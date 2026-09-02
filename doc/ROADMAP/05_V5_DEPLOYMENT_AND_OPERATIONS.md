@@ -1,0 +1,167 @@
+# V5: Deployment i operacje
+
+## Cel
+
+V5 ma przeprowadzić aplikację z lokalnego Docker Compose i CI do jednego realnego środowiska staging lub production. Nie chodzi o wybór najbardziej złożonej platformy. Chodzi o umiejętność wdrożenia, obserwowania, odtworzenia i wycofania aplikacji.
+
+## Status realizacji
+
+Stan na: **2026-09-02**.
+
+| Obszar | Postęp | Status i dowód |
+|---|---:|---|
+| 1. Środowiska i konfiguracja | 75% | Produkcyjny Compose, zewnętrzna konfiguracja, staging profile i protected GitHub Environment są opisane; realny staging nadal wymaga konfiguracji i dowodu uruchomienia. |
+| 2. Obrazy i registry | 85% | Obrazy są multi-stage, runtime backendu działa jako non-root, CD publikuje pełne SHA i skanuje obrazy; pozostaje wykonanie pipeline'u dla finalnego commita. |
+| 3. Migracje bazy | 80% | Osobny migration container jest wymagany przed API, a restore uruchamia kontrolowane migracje; brakuje dowodu migracji na stagingu i scenariusza awarii na VPS. |
+| 4. Reverse proxy i TLS | 80% | Caddy, forwarded headers, cookies, nagłówki bezpieczeństwa i limity proxy są skonfigurowane; docelowy certyfikat i domena wymagają walidacji środowiskowej. |
+| 5. Baza, storage i backup | 75% | Trwały PostgreSQL/MinIO, skoordynowany i szyfrowany backup oraz restore są zaimplementowane; brakuje off-host copy i zapisanego restore drillu. |
+| 6. CI/CD | 85% | CI waliduje kod i konfigurację, a CD publikuje SHA, wdraża protected staging, uruchamia migracje i pełne publiczne browser smoke; brak wykonanego cyklu na realnym hoście. |
+| 7. Monitoring i procedury | 80% | Health checks, dashboard, Prometheus, Alertmanager, alerty, rollback i runbook są skonfigurowane; brak obserwacji realnych danych i testowej notyfikacji. |
+
+**Postęp implementacji V5: 80%**.
+
+**Formalny release gate: pending** do czasu udanego deploymentu na staging, publicznego smoke,
+kopii off-host, restore drillu i ręcznego rollbacku z zapisanym wynikiem.
+
+Wynik nie oznacza gotowości produkcyjnej. Największy brak V5 to wybrane, realne środowisko wdrożeniowe z backupem, monitoringiem i rollbackiem.
+
+## Decyzja o środowisku
+
+Najpierw należy wybrać jeden cel wdrożenia i opisać powód wyboru. Przykładowe opcje to:
+
+- Azure App Service lub Container Apps;
+- VPS z Docker Compose;
+- inny dostawca kontenerów.
+
+Kubernetes nie jest wymagany do zaliczenia tego etapu. Dla jednej aplikacji i jednej osoby może zwiększyć koszt operacyjny bez wartości edukacyjnej proporcjonalnej do złożoności.
+
+## Zakres implementacyjny
+
+### 1. Środowiska i konfiguracja
+
+- rozdzielić local, test, staging i production;
+- trzymać konfigurację poza obrazem;
+- przechowywać sekrety w secret management właściwym dla platformy;
+- walidować krytyczne ustawienia przy starcie;
+- nie używać przykładowych sekretów w środowisku publicznym;
+- opisać różnice cookie, CORS, SMTP, storage i bazy między środowiskami.
+
+### 2. Obrazy i registry
+
+- używać multi-stage Dockerfile;
+- uruchamiać runtime z minimalnymi uprawnieniami, jeśli jest to możliwe;
+- tagować obrazy wersją oraz identyfikatorem commit;
+- nie polegać wyłącznie na tagu `latest`;
+- skanować obrazy pod kątem znanych podatności;
+- przechowywać artefakty w kontrolowanym registry.
+
+### 3. Migracje bazy
+
+- zdecydować, czy migracje wykonuje aplikacja, osobny job czy pipeline;
+- unikać niekontrolowanych migracji przy starcie wielu instancji;
+- testować migrację z poprzedniej wersji schematu;
+- dokumentować operacje potencjalnie blokujące;
+- przygotować procedurę rollbacku aplikacji i plan naprawy migracji.
+
+### 4. Reverse proxy i TLS
+
+- skonfigurować forwarded headers;
+- zweryfikować generowanie absolutnych linków i redirectów;
+- wymusić HTTPS w środowisku publicznym;
+- sprawdzić Secure/SameSite cookies;
+- dodać bezpieczne nagłówki HTTP;
+- ustawić limity request body i timeouty proxy.
+
+### 5. Baza, storage i backup
+
+- używać trwałego storage PostgreSQL;
+- zaplanować backup oraz retencję;
+- wykonać próbne odtworzenie backupu;
+- używać storage odpornego na restart dla załączników;
+- ustalić retencję plików i danych;
+- zweryfikować, że Data Protection key ring nie ginie po deployu.
+
+### 6. CI/CD
+
+Pipeline powinien wykonywać przynajmniej:
+
+- restore i build;
+- testy jednostkowe;
+- testy integracyjne w kontrolowanym środowisku;
+- test PostgreSQL;
+- build obrazów;
+- skanowanie obrazów;
+- publikację artefaktu;
+- wdrożenie na staging po wymaganej aprobacie;
+- smoke test po wdrożeniu.
+
+### 7. Monitoring i procedury
+
+- logi aplikacji i proxy;
+- health checks liveness/readiness;
+- alerty dla błędów, niedostępności bazy i workerów;
+- korelacja requestów;
+- dashboard podstawowych metryk;
+- runbook dla typowych awarii;
+- procedura rollbacku;
+- procedura rotacji sekretów;
+- procedura odtworzenia bazy.
+
+### 8. Operacyjne zachowanie modułów
+
+Modularny monolit nadal jest wdrażany jako jedna aplikacja. Dla modułów zawierających
+opcjonalne endpointy albo workery należy:
+
+- walidować konfigurację włączonych capability podczas startu;
+- mapować endpointy i uruchamiać workery przez jawny entry point modułu;
+- raportować stan krytycznych workerów w health checks;
+- rozróżnić wyłączenie UI lub endpointu od usunięcia danych i schematu modułu;
+- utrzymać jedną kontrolowaną historię migracji wspólnej bazy;
+- nie wykonywać warunkowych migracji zależnych od runtime feature flag;
+- dokumentować zależności uniemożliwiające bezpieczne wyłączenie modułu.
+
+## Test plan
+
+- deploy na czyste środowisko;
+- restart aplikacji bez utraty sesji/kluczy zgodnie z polityką;
+- niedostępność bazy podczas readiness check;
+- niedostępność email/storage;
+- migracja od poprzedniej wersji;
+- rollback obrazu;
+- odtworzenie backupu do oddzielnej bazy;
+- smoke test przez publiczny adres HTTPS;
+- weryfikacja cookie za proxy;
+- start aplikacji dla wspieranych konfiguracji modułów i walidacja błędnej konfiguracji;
+- wyłączony opcjonalny worker nie wpływa na readiness pozostałej aplikacji.
+
+## Definition of Done
+
+- istnieje działające środowisko staging lub production;
+- deployment jest odtwarzalny z dokumentacji i pipeline'u;
+- sekrety nie są zapisane w repozytorium ani obrazie;
+- migracje są kontrolowane;
+- backup został odtworzony przynajmniej raz;
+- aplikacja ma logi, health checks i podstawowe alerty;
+- konfiguracja modułów jest walidowana podczas startu, a opcjonalne workery mają jawny wpływ na health checks;
+- runtime flags nie zmieniają historii migracji ani nie usuwają schematu danych;
+- istnieje rollback oraz runbook;
+- po deployu wykonywany jest publiczny smoke test obejmujący email/2FA i krytyczny workflow biznesowy;
+- Alertmanager dostarcza testową notyfikację do operatora;
+- backup jest szyfrowany przed opuszczeniem hosta, a restore wykonuje migracje i health checks.
+
+## Poza zakresem V5
+
+- multi-region;
+- Kubernetes bez konkretnej potrzeby;
+- pełny SRE stack;
+- automatyczna zmiana produkcji bez kontroli ryzyka;
+- udawanie SLA bez realnych pomiarów i zobowiązań.
+
+## Pytania kontrolne
+
+- Kto i kiedy wykonuje migracje?
+- Co się stanie, gdy nowa aplikacja wystartuje przed zakończeniem migracji?
+- Jak odtworzysz bazę po uszkodzeniu danych?
+- Gdzie są sekrety i jak rotujesz je bez publikowania w logach?
+- Jak odróżnisz proces żywy od procesu gotowego do przyjmowania ruchu?
+- Jak wycofasz wersję, która przeszła build, ale powoduje błąd po wdrożeniu?
