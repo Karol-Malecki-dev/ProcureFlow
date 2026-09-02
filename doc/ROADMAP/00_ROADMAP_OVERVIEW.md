@@ -1,5 +1,11 @@
 # Roadmap rozwoju startera
 
+> [!IMPORTANT]
+> Bieżąca kolejność budowania produktu znajduje się w
+> [ProcureFlow Product Roadmap](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+> Ten dokument oraz etapy V1-V8 pozostają technicznym zapisem fundamentu startera
+> i materiałem referencyjnym. Nie wyznaczają już kolejności branchy produktu.
+
 ## Cel dokumentu
 
 Ten dokument jest mapą rozwoju repozytorium `dotnet-react-starter`. Starter ma być długoterminową bazą edukacyjną dla aplikacji opartych przede wszystkim o:

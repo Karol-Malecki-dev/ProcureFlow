@@ -2,7 +2,9 @@
 
 ## Cel
 
-Starter jest rozwijany wspólnie z asystentem. Asystent może przygotowywać implementację, testy i dokumentację, a właściciel projektu czyta kod, rozumie decyzje i później samodzielnie odtwarza wzorce w nowych projektach.
+ProcureFlow jest rozwijany przez właściciela projektu przy wsparciu asystenta.
+Właściciel implementuje kolejne branche, a asystent pomaga przede wszystkim w
+planowaniu, wyjaśnianiu, code review, debugowaniu i walidacji.
 
 Głównym celem nie jest samo dopisanie funkcji. Celem jest zbudowanie rozumienia od teorii do praktyki.
 
@@ -27,11 +29,13 @@ Asystent powinien:
 
 - analizować aktualny kod przed zmianą;
 - wybierać najmniejszy poprawny zakres;
-- implementować backend jako priorytet;
+- najpierw wyjaśniać regułę, granicę i plan implementacji;
+- przygotowywać kod tylko wtedy, gdy właściciel wyraźnie o to poprosi;
+- traktować backend jako priorytet przeglądu technicznego;
 - utrzymywać frontend funkcjonalny, ale nie rozwijać go kosztem celu backendowego;
-- pisać testy razem z implementacją;
-- aktualizować dokumentację i ADR-y;
-- uruchamiać adekwatny build i testy;
+- wskazywać testy potrzebne razem z implementacją;
+- przypominać o dokumentacji i ADR-ach;
+- uruchamiać albo wskazywać adekwatny build i testy zgodnie z zakresem prośby;
 - wskazywać ryzyka, ograniczenia i miejsca wymagające decyzji;
 - nie dodawać bibliotek bez konkretnego uzasadnienia;
 - nie wykonywać operacji Git bez wyraźnej prośby.
@@ -41,11 +45,11 @@ Asystent powinien:
 Właściciel projektu powinien:
 
 - czytać zmieniony kod;
+- implementować kolejne branche zgodnie z roadmapą produktu;
 - zadawać pytania o decyzje i alternatywy;
 - samodzielnie tłumaczyć przepływ po zakończeniu etapu;
 - uruchamiać lub powtarzać wybrane testy;
 - prowadzić notatki o tym, co było trudne;
-- w kolejnych projektach wykonywać około 70-80% implementacji;
 - korzystać z asystenta głównie do planowania, code review, debugowania i weryfikacji.
 
 ## Schemat pracy nad zadaniem
@@ -101,21 +105,23 @@ Każdy etap powinien kończyć się:
 Preferowany jest jeden większy temat na branch. Przykłady:
 
 ```text
-feature/auth-session-hardening
-feature/optimistic-concurrency
-feature/security-audit
-feature/workspace-search
-chore/deployment-readiness
-perf/project-dashboard-query
+feature/organization-branches
+feature/branch-access-control
+feature/catalog-management
+feature/purchase-request-drafts
+feature/purchase-request-approvals
+feature/procureflow-dashboard
 ```
 
 Dokumentacja całej roadmapy może być na osobnym branchu:
 
 ```text
-docs/project-development-roadmap
+docs/procureflow-product-roadmap
 ```
 
 Nie trzeba tworzyć nowego brancha dla każdej małej poprawki w ramach aktywnego tematu.
+Pełna kolejność znajduje się w
+[roadmapie produktu ProcureFlow](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
 ## Jak oceniać postęp
 
