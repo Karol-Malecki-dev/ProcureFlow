@@ -1,77 +1,95 @@
-# Backend Development Roadmap
+# ProcureFlow Development Roadmap
 
 ## Purpose
 
-This file is the backend-visible index and backup for the project's development roadmap. The canonical, detailed documents live under [`../doc/ROADMAP/`](../doc/ROADMAP/00_ROADMAP_OVERVIEW.md).
+This file is the backend-visible index for the ProcureFlow product roadmap. The canonical,
+detailed product documents live under
+[`../doc/ROADMAP/PROCUREFLOW/`](../doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
-The project is a .NET 9 modular monolith with a React frontend. Backend correctness, security, testability and operational understanding are the primary learning goals.
+The existing V1-V8 roadmap remains a record of the starter's technical maturity. ProcureFlow
+now uses that foundation to build a focused multi-branch purchase-request product at junior+
+level. Backend correctness, domain rules, authorization and PostgreSQL integration tests remain
+the primary learning goals.
 
 ## Current priority
 
-**V3: Domain boundaries, transactions and optimistic concurrency** is the current implementation stage.
+**PF1: Organization, branches and resource access** is the next implementation stage.
 
-V1 is complete as the junior baseline and V2 is complete for the current security-hardening scope. The application already contains authentication, projects, tasks, membership, invitations, comments, attachments, activity, notifications, workers, health checks, Docker wiring and automated tests. The next value comes from stronger domain boundaries, transaction semantics and domain-level concurrency handling.
+PF0 defines the MVP, workflow and implementation order. The application already contains the
+technical foundation: authentication, notifications, file storage, observability, Docker, CI/CD
+and automated tests. The existing Projects and ProjectTasks domain remains available only until
+the ProcureFlow workflow replaces it and passes the PF5 release-level tests.
 
 ## Current progress
 
-As of **2026-09-02**. Percentages follow the calculation documented in the canonical [roadmap overview](../doc/ROADMAP/00_ROADMAP_OVERVIEW.md).
+As of **2026-09-02**. Product progress is tracked separately from the completed technical
+foundation. Status is based on a stage Definition of Done, not the number of files or endpoints.
 
-| Stage | Progress | Status |
-|---|---:|---|
-| V1 | 100% | Complete baseline. |
-| V2 | 96% | Complete for the current scope; minor follow-ups remain. |
-| V3 | 40% | Project and ProjectTask aggregate boundaries are documented and tested; project, invitation and task concurrency plus invitation and member transaction workflows have PostgreSQL coverage; dashboard date predicates and index usage are covered; `User.Email` and `User.DisplayName` use tested domain value objects, while `User` mutations are encapsulated behind a factory and explicit domain methods without changing the existing schema or API contracts; the first `CreateProjectTask` vertical slice now has a focused handler, endpoint, validator and module registration; implementation is not complete. |
-| V4 | 28% | Foundations present; implementation not complete. |
-| V5 | 80% | VPS deployment, controlled migrations, encrypted backup/restore, rollback, monitoring and protected staging smoke are implemented; real staging evidence is still pending. |
-| V6 | 13% | Initial foundations; measurement work not started. |
-| V7 | 0% | Optional and intentionally not started. |
-
-**Overall roadmap progress: 51%**.
+| Stage | Status | Next result |
+|---|---|---|
+| PF0 | Complete | Product scope, workflow and branch order are defined. |
+| PF1 | Next | Organization, branches and business memberships. |
+| PF2 | Planned | Product catalog with reference tables. |
+| PF3 | Planned | Purchase-request drafts, items and submission. |
+| PF4 | Planned | Monthly budgets, approvals and race-condition handling. |
+| PF5 | Planned | Fulfillment, attachments, notifications, dashboard and E2E. |
+| PF6 | Planned | Remove the demo domain and pass the `v1.0.0` release gate. |
+| PF7 | Optional | At most one or two post-MVP extensions. |
 
 ## Stage index
 
 | Stage | Focus | Detailed document |
 |---|---|---|
-| V1 | Junior baseline and current capabilities | [01_V1_JUNIOR_BASELINE.md](../doc/ROADMAP/01_V1_JUNIOR_BASELINE.md) |
-| V2 | Session policy, auth hardening, lockout and API consistency | [02_V2_STABILIZATION_AND_SECURITY.md](../doc/ROADMAP/02_V2_STABILIZATION_AND_SECURITY.md) |
-| V3 | Domain boundaries, transactions and optimistic concurrency | [03_V3_DOMAIN_TRANSACTIONS_AND_CONCURRENCY.md](../doc/ROADMAP/03_V3_DOMAIN_TRANSACTIONS_AND_CONCURRENCY.md) |
-| V4 | Security audit, workspace search, attachment hardening and browser E2E | [04_V4_PRODUCT_COMPLETENESS.md](../doc/ROADMAP/04_V4_PRODUCT_COMPLETENESS.md) |
-| V5 | Deployment, secrets, migrations, backups and operations | [05_V5_DEPLOYMENT_AND_OPERATIONS.md](../doc/ROADMAP/05_V5_DEPLOYMENT_AND_OPERATIONS.md) |
-| V6 | Measurement, database performance, idempotency and worker reliability | [06_V6_PERFORMANCE_AND_RELIABILITY.md](../doc/ROADMAP/06_V6_PERFORMANCE_AND_RELIABILITY.md) |
-| V7 | Optional evolution driven by real constraints | [07_V7_OPTIONAL_EVOLUTION.md](../doc/ROADMAP/07_V7_OPTIONAL_EVOLUTION.md) |
+| PF0 | Product scope and domain decisions | [01_PF0_SCOPE_AND_DECISIONS.md](../doc/ROADMAP/PROCUREFLOW/01_PF0_SCOPE_AND_DECISIONS.md) |
+| PF1 | Organization, branches and access | [02_PF1_ORGANIZATION_AND_ACCESS.md](../doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md) |
+| PF2 | Catalog reference data and products | [03_PF2_CATALOG.md](../doc/ROADMAP/PROCUREFLOW/03_PF2_CATALOG.md) |
+| PF3 | Purchase-request aggregate and submission | [04_PF3_PURCHASE_REQUEST_CORE.md](../doc/ROADMAP/PROCUREFLOW/04_PF3_PURCHASE_REQUEST_CORE.md) |
+| PF4 | Monthly budgets and approvals | [05_PF4_APPROVALS_AND_BUDGETS.md](../doc/ROADMAP/PROCUREFLOW/05_PF4_APPROVALS_AND_BUDGETS.md) |
+| PF5 | Fulfillment and product completeness | [06_PF5_PRODUCT_COMPLETENESS.md](../doc/ROADMAP/PROCUREFLOW/06_PF5_PRODUCT_COMPLETENESS.md) |
+| PF6 | Demo cleanup and `v1.0.0` release | [07_PF6_CLEANUP_AND_RELEASE.md](../doc/ROADMAP/PROCUREFLOW/07_PF6_CLEANUP_AND_RELEASE.md) |
+| PF7 | Optional post-MVP extensions | [08_PF7_POST_MVP_OPTIONS.md](../doc/ROADMAP/PROCUREFLOW/08_PF7_POST_MVP_OPTIONS.md) |
 | Learning workflow | How to work through each stage | [08_LEARNING_WORKFLOW.md](../doc/ROADMAP/08_LEARNING_WORKFLOW.md) |
 | Modular VSA checklist | Definition of Done for modules and slices | [MODULAR_VSA_MODULE_CHECKLIST.md](../doc/MODULAR_VSA_MODULE_CHECKLIST.md) |
 
-The overall map is [00_ROADMAP_OVERVIEW.md](../doc/ROADMAP/00_ROADMAP_OVERVIEW.md).
+The complete branch order is in the
+[product roadmap overview](../doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+The previous [technical foundation roadmap](../doc/ROADMAP/00_ROADMAP_OVERVIEW.md)
+remains available as reference.
 
 ## Execution rules
 
 - Implement one coherent feature or hardening topic per branch.
+- Follow the canonical PF branch order unless a documented dependency changes.
 - Keep the modular monolith unless measurements or operational constraints justify a different boundary.
 - Add tests and documentation with each backend change.
 - Prefer the smallest change that protects a real invariant or solves a measured problem.
 - Do not add technologies only for a CV checklist.
 - Treat frontend changes as support for backend workflows unless the task explicitly targets frontend learning.
 - Validate the relevant build and tests before considering a stage item complete.
+- Keep Projects and ProjectTasks until the ProcureFlow critical flow passes PF5 validation.
 
 ## Recommended branch names
 
 For the documentation work:
 
 ```text
-docs/project-development-roadmap
+docs/procureflow-product-roadmap
 ```
 
-For the immediate V3 work, start with a focused branch such as:
+For the immediate implementation work:
 
 ```text
-feature/v3-domain-transactions-and-concurrency
+feature/organization-branches
 ```
 
-Other examples are `feature/optimistic-concurrency`, `feature/security-audit`, `feature/workspace-search`, `chore/deployment-readiness` and `perf/project-dashboard-query`.
+Then continue with `feature/branch-access-control`, `feature/catalog-management`,
+`feature/purchase-request-drafts` and the remaining branches listed in the canonical overview.
 
 ## Learning model
 
-The assistant writes starter implementation, tests and documentation while explaining the reasoning. The project owner should understand the changed code and gradually move to writing approximately 70-80% of the implementation in future projects, using the assistant for planning, review, debugging and verification.
+The project owner implements the roadmap one branch at a time. The assistant supports planning,
+targeted explanations, code review, debugging and verification without replacing the owner's
+understanding of the changed code.
 
-Mid-level material is optional enrichment distributed mainly through V3, V5 and V6. It is not a list of technologies that must be installed before the fundamentals are understood.
+Junior+ value comes from correct domain rules, resource authorization, transactions, concurrency
+and tests. It is not a checklist of additional technologies.
