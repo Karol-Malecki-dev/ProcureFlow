@@ -2,9 +2,10 @@
 
 ## Cel dokumentu
 
-Ta roadmapa prowadzi istniejący starter do `ProcureFlow v1.0.0`: wewnętrznego
-systemu B2B do obsługi zapotrzebowań zakupowych w firmie posiadającej wiele
-oddziałów.
+Ta roadmapa definiuje budowę `ProcureFlow v1.0.0`: wewnętrznego systemu B2B do
+obsługi zapotrzebowań zakupowych w firmie posiadającej wiele oddziałów. Wykorzystuje
+gotowy fundament techniczny, ale wyznacza nową domenę produktu zamiast mechanicznie
+przemianowywać istniejące moduły demonstracyjne.
 
 Priorytetem jest szybkie zbudowanie spójnego projektu portfolio na poziomie
 junior+, a nie rozbudowanego systemu ERP. Największą wartością projektu mają być:
@@ -24,6 +25,10 @@ numerami wydań semver i nie zastępują tagu `v1.0.0`.
 Dotychczasowe pliki `V1-V8` w katalogu nadrzędnym pozostają dokumentacją
 dojrzałości technicznej startera. Ta roadmapa jest natomiast kanoniczną
 kolejnością budowania domeny ProcureFlow.
+
+Jeśli chcesz zacząć pisać kod, przejdź najpierw do
+[playbooka implementacji](09_IMPLEMENTATION_PLAYBOOK.md). Roadmapa opisuje
+dlaczego i co budujemy, a playbook opisuje kolejność plików, testów i walidacji.
 
 ## Zakres `v1.0.0`
 
@@ -83,6 +88,9 @@ według etapów poniżej, nie według starej roadmapy startera.
 | PF5 | Realizacja, kompletność produktu i E2E | Planowany | [06_PF5_PRODUCT_COMPLETENESS.md](06_PF5_PRODUCT_COMPLETENESS.md) |
 | PF6 | Usunięcie domeny demo i release `v1.0.0` | Planowany | [07_PF6_CLEANUP_AND_RELEASE.md](07_PF6_CLEANUP_AND_RELEASE.md) |
 | PF7 | Rozszerzenia po MVP | Opcjonalny | [08_PF7_POST_MVP_OPTIONS.md](08_PF7_POST_MVP_OPTIONS.md) |
+
+Instrukcja wykonawcza dla wszystkich etapów znajduje się w
+[09_IMPLEMENTATION_PLAYBOOK.md](09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## Kanoniczna kolejność branchy
 

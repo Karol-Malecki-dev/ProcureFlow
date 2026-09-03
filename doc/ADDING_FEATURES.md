@@ -64,6 +64,11 @@ Jeśli dodajesz nowy feature po stronie backendu:
    Dla nieprzeniesionych obszarów przejściowych użyj obecnego composition root.
 6. Dodaj testy jednostkowe i integracyjne.
 
+Jeśli feature należy do aktualnego produktu ProcureFlow, najpierw otwórz
+[playbook implementacji](ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
+Zawiera konkretną kolejność pisania plików dla PF1-PF6, przykładowe slice'y dla
+`Organizations` oraz kryteria, po których można przejść do następnego brancha.
+
 ## Adding a New Runtime Feature Flag
 
 To jest ważny, powtarzalny wzorzec w tym projekcie.
@@ -206,13 +211,16 @@ Praktyczne zasady:
 
 Najbezpieczniejsza kolejność przy większych zmianach:
 
-1. kontrakt i model danych
-2. backendowa implementacja
-3. frontendowy klient API
-4. frontendowy stan i hooki
-5. routing i UI
-6. testy
-7. dokumentacja
+1. user story, reguła biznesowa i kryterium akceptacji
+2. kontrakt i model danych
+3. backendowa implementacja oraz testy domeny
+4. persistence, migracja i testy PostgreSQL
+5. frontendowy klient API, typy, stan i UI
+6. testy frontendu oraz test API/E2E adekwatny do ryzyka
+7. dokumentacja, pełny build i przygotowanie commita
+
+Pełny przebieg z konkretnymi nazwami katalogów i plików znajduje się w
+[playbooku implementacji ProcureFlow](ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## Documentation Rule
 

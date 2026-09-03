@@ -207,6 +207,7 @@ restore i rollbacku. Szczegóły znajdują się w [doc/CI_CD.md](doc/CI_CD.md).
 ## Dokumentacja
 
 - [Mapa dokumentacji](doc/README.md)
+- [Playbook implementacji ProcureFlow](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md)
 - [Roadmapa produktu ProcureFlow](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md)
 - [doc/GETTING_STARTED.md](doc/GETTING_STARTED.md)
 - [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md)
@@ -226,6 +227,8 @@ PF0 jest ukończony. Następny etap to
 [PF1: organizacja, oddziały i dostęp](doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md),
 rozpoczynany przez `feature/organization-branches`, a następnie
 `feature/branch-access-control`.
+Konkretne pliki do napisania i kolejność testów opisuje
+[playbook implementacji ProcureFlow](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## Licencja
 

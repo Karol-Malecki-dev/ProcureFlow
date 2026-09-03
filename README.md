@@ -11,6 +11,8 @@ catalog management, purchase-request workflows, monthly budgets and approvals.
 > until the replacing ProcureFlow workflow passes PF5 validation. They are not the target product
 > contract. The canonical implementation order is the
 > [ProcureFlow product roadmap](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+> For the concrete file-by-file writing order, start with the
+> [ProcureFlow implementation playbook](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## ProcureFlow v1.0 Scope
 
@@ -273,6 +275,7 @@ For local Docker runs, transactional emails are delivered to Mailpit. Open http:
 ## Documentation
 
 - [Documentation map](doc/README.md)
+- [ProcureFlow implementation playbook](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md)
 - [ProcureFlow product roadmap](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md)
 - [doc/GETTING_STARTED.md](doc/GETTING_STARTED.md)
 - [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md)
@@ -293,6 +296,8 @@ the current product branch order.
 PF0 is complete. The next implementation stage is
 [PF1: organization, branches and access](doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md),
 starting with `feature/organization-branches` and followed by `feature/branch-access-control`.
+The concrete files and validation order are described in the
+[ProcureFlow implementation playbook](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## License
 

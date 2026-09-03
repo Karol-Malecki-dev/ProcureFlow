@@ -9,6 +9,8 @@ The canonical architecture and development guide is
 [Frontend Setup](../doc/FRONTEND_SETUP.md). Product scope and implementation order
 are defined in the
 [ProcureFlow roadmap](../doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+The concrete file-by-file workflow for a new product slice is in the
+[ProcureFlow implementation playbook](../doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## Requirements
 

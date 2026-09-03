@@ -8,6 +8,7 @@ technical foundation. These are related, but they have different sources of trut
 | Documentation area | Purpose | Authority |
 |---|---|---|
 | [ProcureFlow product roadmap](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md) | Product scope, stage order and current implementation priority | Canonical for product work |
+| [ProcureFlow implementation playbook](ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md) | File-by-file execution path, tests and branch workflow | Active guide for implementation |
 | [Backend roadmap index](../backend/DEVELOPMENT_ROADMAP.md) | Backend-facing summary of the product roadmap | Derived product index |
 | [Architecture](ARCHITECTURE.md) and setup guides | Current implementation and development conventions | Current-code reference |
 | [Technical foundation roadmap](ROADMAP/00_ROADMAP_OVERVIEW.md) | Maturity history of the starter foundation | Historical and reference material |
@@ -44,11 +45,12 @@ rename is harmless.
 
 ### Implement the next product stage
 
-1. [ProcureFlow product roadmap](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md)
-2. [PF1: organization and access](ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md)
-3. [Adding features](ADDING_FEATURES.md)
-4. [Modular VSA checklist](MODULAR_VSA_MODULE_CHECKLIST.md)
-5. [Learning workflow](ROADMAP/08_LEARNING_WORKFLOW.md)
+1. [ProcureFlow implementation playbook](ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md)
+2. [ProcureFlow product roadmap](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md)
+3. [PF1: organization and access](ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md)
+4. [Adding features](ADDING_FEATURES.md)
+5. [Modular VSA checklist](MODULAR_VSA_MODULE_CHECKLIST.md)
+6. [Learning workflow](ROADMAP/08_LEARNING_WORKFLOW.md)
 
 ### Understand or run the current application
 
