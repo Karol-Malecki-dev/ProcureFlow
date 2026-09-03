@@ -1,5 +1,11 @@
 # V4: Kompletność produktu
 
+> [!NOTE]
+> V4 opisuje kompletność wcześniejszej domeny demonstracyjnej i pozostaje
+> technicznym materiałem referencyjnym. Zakres `ProcureFlow v1.0.0` oraz jego
+> kolejność definiuje
+> [roadmapa PF0-PF7](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
 ## Cel
 
 V4 domyka funkcje, które są ważne dla użytecznego produktu, ale nie powinny wyprzedzać stabilizacji backendu. Ten etap łączy brakujące workflowy użytkownika, bezpieczeństwo danych i pełniejsze testy przez frontend.

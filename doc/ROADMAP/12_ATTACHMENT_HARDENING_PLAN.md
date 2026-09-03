@@ -1,8 +1,15 @@
 # Attachment hardening plan
 
+> [!NOTE]
+> This plan records the hardening of attachments in the temporary `ProjectTasks`
+> domain. The current operational contract is
+> [Attachment Operations](../ATTACHMENT_OPERATIONS.md). PF5 reuses the verified
+> storage and scanning mechanics behind new contracts owned by `PurchaseRequests`;
+> it must not rename the existing domain types in place.
+
 ## Goal
 
-Task attachments must remain private, bounded and recoverable. A client-provided file
+Attachments must remain private, bounded and recoverable. A client-provided file
 name, content type or size is metadata only and cannot be the security boundary.
 
 The implementation remains incremental. Local storage is suitable for development,
@@ -23,16 +30,25 @@ Implemented:
 - application-generated storage keys and rejection of traversal, arbitrary names and
   alternate data stream syntax;
 - cleanup after metadata persistence failure and a durable cleanup queue for deletes;
+- validated per-task count and total-byte quotas;
+- PostgreSQL `FOR UPDATE` serialization for concurrent quota checks;
+- count and byte quota concurrency tests against PostgreSQL;
+- private S3-compatible storage with MinIO in Compose and an AWS-compatible adapter;
+- synchronous fail-closed ClamAV scanning when malware scanning is required;
+- provider inventory reconciliation, dependency health checks and operational alerts;
+- coordinated database, object storage and Data Protection backup/restore procedures;
+- browser upload, download, delete and viewer-authorization coverage;
 - focused unit and API integration tests for the rules above.
 
-Remaining production gaps:
+Remaining product and target-environment gaps:
 
-- configurable attachment count and total-byte quotas;
-- atomic quota enforcement for concurrent uploads;
-- durable production object storage, backup and restore procedures;
-- quarantine and malware scanning where required by the deployment threat model;
-- retention policy, observability and operational alerts;
-- browser-level upload, download and authorization coverage.
+- replace `ProjectTask`-owned contracts and metadata with `PurchaseRequest`-owned
+  contracts during PF5 without creating two active storage mechanisms;
+- prove object storage, ClamAV availability, alerts and retention on the selected
+  staging/production environment;
+- copy backups off host and record a successful restore drill;
+- introduce persisted quarantine states only if a future asynchronous scanner needs
+  them; the current synchronous scanner accepts content before storage.
 
 ## Delivery stages
 
@@ -46,7 +62,7 @@ authoritative attachment policy.
 
 ### Stage 2: Configurable and atomic quotas
 
-Status: **next**.
+Status: **implemented for the current ProjectTasks domain**.
 
 Introduce validated attachment options with conservative defaults:
 
@@ -54,7 +70,7 @@ Introduce validated attachment options with conservative defaults:
 - maximum attachment count per task: 20;
 - maximum total attachment bytes per task: 100 MiB.
 
-Enforce count and byte quotas in the database transaction that creates attachment
+Count and byte quotas are enforced in the database transaction that creates attachment
 metadata. Concurrent uploads for the same task must serialize or use a concurrency
 token so two requests cannot both pass a stale count. Return a stable validation or
 conflict response and do not leave a binary behind when quota reservation fails.
@@ -65,27 +81,30 @@ boundary and complements, but does not replace, persistent quotas.
 
 ### Stage 3: Production storage provider
 
-Status: **planned**.
+Status: **repository implementation complete; target-environment proof pending**.
 
-Retain `IProjectTaskAttachmentStorage` as the application port. Make the local root
-configurable and fail application startup when local storage is selected in a
-production environment without an explicitly mounted persistent path.
+`IProjectTaskAttachmentStorage` remains the current application port. The local root
+is configurable, and production startup rejects an unsupported ephemeral local
+configuration.
 
-Add an object-storage adapter only after the deployment target is selected. It must
-use private objects, server-side encryption, bounded retries, cancellation, health
-checks and metrics. Downloads continue through the authorized API or use short-lived
-signed URLs issued only after the same access check.
+The S3-compatible adapter uses private objects and supports AWS S3 or compatible
+providers. Docker Compose uses a private MinIO bucket. Downloads continue through the
+authorized API; deployment-specific encryption, credentials, backup and availability
+must still be proven in the target environment.
 
 The deployment runbook must include backup, restore, orphan reconciliation and a
 migration procedure from local files to object storage.
 
 ### Stage 4: Quarantine, scanning and retention
 
-Status: **planned when required by the environment**.
+Status: **synchronous scanning and cleanup contract implemented; asynchronous
+quarantine remains conditional**.
 
-Model an explicit attachment lifecycle such as `PendingScan`, `Clean`, `Rejected` and
-`Deleted`. New binaries enter quarantine and cannot be downloaded until a scanner
-marks them clean. Scanner failures retry without making the file public.
+The current ClamAV adapter scans synchronously before storage. A threat, timeout,
+connection failure or malformed scanner response fails closed, so unscanned content
+does not receive downloadable metadata. An asynchronous provider would require an
+explicit lifecycle such as `PendingScan`, `Clean`, `Rejected` and `Deleted`; those
+states are not added without that provider requirement.
 
 Define retention separately for active attachments, rejected uploads and cleanup
 messages. Scheduled cleanup must be idempotent and observable. Logs and audit events
@@ -108,7 +127,9 @@ Required coverage includes:
 
 ## Definition of done
 
-Attachment hardening is production-ready only when limits are atomic, the selected
-production storage survives application replacement, retention and recovery are
-documented and tested, and no attachment can be downloaded before all required access
-and scanning decisions complete.
+Repository-level hardening of the current attachment mechanism is complete when the
+focused unit, API, PostgreSQL and browser tests pass. A production-readiness claim
+additionally requires the selected storage to survive replacement, a target-environment
+scanner and alert check, an off-host backup, and a recorded restore drill. ProcureFlow
+product completeness separately requires the PF5 `PurchaseRequest` contract and PF6
+removal of the legacy attachment model.

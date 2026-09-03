@@ -1,5 +1,10 @@
 # V6: Wydajność i niezawodność
 
+> [!NOTE]
+> To referencyjny plan pomiarów i niezawodności fundamentu. Zadania z V6 są
+> podejmowane tylko wtedy, gdy roadmapa ProcureFlow lub zebrany pomiar uzasadnia
+> ich koszt; V6 nie jest obecnie następnym etapem produktu.
+
 ## Cel
 
 V6 uczy optymalizacji na podstawie pomiarów oraz projektowania odporności na retry, chwilowe błędy i większą liczbę danych. Nie należy zaczynać od dodawania cache lub kolejki. Najpierw trzeba mieć hipotezę, pomiar i kryterium sukcesu.

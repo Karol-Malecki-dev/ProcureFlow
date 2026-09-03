@@ -1,6 +1,8 @@
 # Backend Setup
 
-Ten dokument opisuje aktualny backend startera i sposób rozwijania nowych funkcji bez psucia istniejącej struktury.
+Ten dokument opisuje aktualny backend ProcureFlow, odziedziczony fundament
+techniczny i sposób dodawania nowych modułów produktu bez psucia istniejącej
+struktury.
 
 ## When To Read This Document
 
@@ -17,8 +19,26 @@ Backend odpowiada za:
 - role-based authorization
 - dostarczanie runtime feature flags dla frontendu
 - persistence przez EF Core i PostgreSQL
-- projekty, zadania, członkowie, załączniki, etykiety, terminy i powiadomienia
+- przejściową domenę demonstracyjną projektów i zadań wraz z członkostwem,
+  załącznikami, terminami i powiadomieniami
 - health checks, korelacja żądań i cykliczne workery infrastrukturalne
+
+## Product Migration Boundary
+
+PF1-PF5 dodają docelowe moduły `Organizations`, `Catalog` i
+`PurchaseRequests`. `Projects` oraz `ProjectTasks` pozostają dostępne tylko jako
+zweryfikowana domena demonstracyjna i są usuwane w PF6 po przejściu testów
+zastępującego workflow.
+
+Mechanizmy auth, email outboxu, storage, malware scanning, health checks i
+correlation ID są fundamentem nadającym się do ponownego użycia. Ich obecne
+kontrakty nie zawsze są jednak neutralne domenowo. W szczególności model
+powiadomień zawiera `ProjectId`, a porty i metadata załączników odnoszą się do
+`ProjectTask`. W PF5 należy zachować sprawdzoną mechanikę, ale wystawić nowe
+kontrakty należące do `PurchaseRequests`, zamiast wykonywać mechaniczny rename.
+
+Szczegółową kolejność określa
+[roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
 ## Backend Layers
 
@@ -201,9 +221,11 @@ W środowisku za reverse proxy adres IP musi być poprawnie odtworzony przez kon
 
 Pełna decyzja bezpieczeństwa jest opisana w [ADR-09: Authentication brute-force protection](ROADMAP/09_ADR_AUTH_BRUTE_FORCE_PROTECTION.md).
 
-## Database Model
+## Current Database Model
 
-Aktualny model bazy obejmuje auth, użytkowników oraz domenę projektów i zadań.
+Aktualny model bazy obejmuje auth, użytkowników oraz przejściową domenę projektów
+i zadań. Tabele ProcureFlow będą dodawane etapami, a schema demo pozostanie do
+kontrolowanego cleanupu PF6.
 
 Najważniejsze DbSety:
 
@@ -246,11 +268,21 @@ To jest wzorzec projektowy, nie jednorazowy wyjątek.
 
 Jeśli dodajesz nową funkcję backendową, trzymaj się tej kolejności:
 
-1. Zacznij od domeny, jeśli feature wprowadza nowe pojęcie biznesowe.
-2. Dodaj lub rozszerz DTO i interfejsy w `Application/`.
-3. Dodaj implementację w `Infrastructure/`, jeśli feature dotyka bazy lub integracji.
-4. Dodaj endpoint lub rozszerz istniejący kontroler w `API/`.
-5. Dodaj testy jednostkowe i integracyjne adekwatne do zakresu.
+1. Znajdź etap, zakres i branch w roadmapie ProcureFlow.
+2. Zacznij od modelu domenowego, jeśli feature wprowadza nowe pojęcie biznesowe.
+3. Dodaj focused command/query, handler contract i port w
+	`Application/Modules/<BusinessModule>/<UseCase>/`.
+4. Dodaj adapter persistence lub integracji w
+	`Infrastructure/Modules/<BusinessModule>/<UseCase>/`.
+5. Dodaj kontrakt HTTP, walidację i endpoint w
+	`API/Modules/<BusinessModule>/<UseCase>/`.
+6. Zarejestruj slice przez extension właściwego modułu.
+7. Dodaj testy domenowe, handlera, API i PostgreSQL adekwatne do ryzyka.
+
+Starszy układ rozwijaj tylko podczas naprawy obszaru, który nie został jeszcze
+przeniesiony. Pełny standard znajduje się w
+[Adding Features](ADDING_FEATURES.md) i
+[Modular VSA Module Checklist](MODULAR_VSA_MODULE_CHECKLIST.md).
 
 ## Naming Guidelines
 
@@ -271,6 +303,8 @@ Kilka praktycznych zasad nazewnictwa:
 
 ## See Also
 
+- [Mapa dokumentacji](README.md) - źródła prawdy i aktualny status dokumentów
+- [Roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md) - kolejność modułów produktu
 - `doc/ARCHITECTURE.md` - całościowa architektura i przepływy między backendem i frontendem
 - `doc/JWT_ARCHITECTURE.md` - szczegóły sesji, JWT i refresh token rotation
 - `doc/EMAIL_2FA_FLOWS.md` - confirm email, email 2FA i reset hasła od strony flow

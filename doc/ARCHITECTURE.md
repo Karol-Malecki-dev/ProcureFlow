@@ -1,11 +1,28 @@
-# Project Architecture
+# ProcureFlow Architecture
 
-Ten starter to pełny projekt full-stack z backendem ASP.NET Core 9 i frontendem React 19 + TypeScript.
-Najważniejszy cel projektu: być stabilną bazą pod aplikacje z autoryzacją, rolami, panelem użytkownika, panelem admina i dalszą rozbudową.
+ProcureFlow jest modularnym monolitem full-stack z backendem ASP.NET Core 9 i
+frontendem React 19 + TypeScript. Projekt wykorzystuje stabilny fundament auth,
+persistence, testów i operacji, a domena zakupowa jest dodawana inkrementalnie bez
+przemianowywania istniejącej domeny demonstracyjnej.
 
 ## When To Read This Document
 
-Czytaj ten plik jako pierwszy dokument techniczny, gdy chcesz zrozumieć granice projektu, przepływ informacji oraz odpowiedzialność backendu i frontendu.
+Czytaj ten plik jako pierwszy dokument techniczny, gdy chcesz zrozumieć granice
+projektu, przepływ informacji oraz odpowiedzialność backendu i frontendu. Zakres
+i kolejność implementacji produktu definiuje osobno
+[roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
+## Architecture States
+
+Dokument rozróżnia dwa stany:
+
+- **current implementation** - kod, endpointy i tabele istniejące obecnie;
+- **target product architecture** - moduły ProcureFlow wdrażane w kolejności PF1-PF6.
+
+`Projects` i `ProjectTasks` należą do current implementation, ale są domeną
+demonstracyjną przeznaczoną do usunięcia w PF6. Pozostają działające do czasu, aż
+nowy workflow przejdzie walidację PF5. Opis tych modułów poniżej jest dokumentacją
+istniejącego kodu i wzorców, a nie rekomendacją ich dalszej rozbudowy.
 
 ## High-Level Overview
 
@@ -18,6 +35,23 @@ Do tego dochodzą:
 
 - `doc/` - dokumentacja techniczna i przewodniki
 - `docker/` oraz `docker-compose.yml` - uruchamianie środowiska kontenerowego
+
+## Target Product Modules
+
+Docelowa domena ProcureFlow jest podzielona według odpowiedzialności biznesowej:
+
+- `Organizations` - organizacja, oddziały, członkostwa i role biznesowe;
+- `Catalog` - kategorie, jednostki miary i produkty;
+- `PurchaseRequests` - draft, pozycje, workflow, budżety i decyzje;
+- `Notifications` - dostarczanie informacji o zdarzeniach ProcureFlow po usunięciu
+	obecnych założeń `ProjectId` i `ProjectTask`;
+- `Reports` - read modele dodawane dopiero po ustabilizowaniu zapisów produktu.
+
+`Accounts` i auth pozostają współdzieloną capability techniczną. `PurchaseRequest`
+nie jest zmianą nazwy `ProjectTask`, a nowe moduły nie przejmują encji starej domeny.
+Wszystkie moduły pozostają w jednej aplikacji, korzystają z jednego
+`ApplicationDbContext` i jednej bazy PostgreSQL, dopóki mierzalna potrzeba nie
+uzasadni innego podziału.
 
 ## Backend Structure
 
@@ -92,9 +126,12 @@ uniqueness checks and configuration-dependent policies remain in application and
 infrastructure services. This boundary intentionally does not split persistence into
 separate profile and security tables.
 
-## Database Model
+## Current Database Model
 
 Główna baza jest obsługiwana przez EF Core w `backend/Infrastructure/Data/ApplicationDbContext.cs`.
+
+Poniższa lista opisuje stan przejściowy. Tabele ProcureFlow będą dodawane etapami,
+a tabele domeny demonstracyjnej pozostaną do kontrolowanego cleanupu PF6.
 
 Najważniejsze tabele/encje:
 
@@ -124,6 +161,11 @@ Relacje są proste i czytelne:
 - usunięcie przypisanego użytkownika ustawia `AssignedUserId` na `NULL`
 
 ### Project And ProjectTask Domain
+
+> [!NOTE]
+> Ta sekcja opisuje przejściową domenę demonstracyjną. Jest źródłem wiedzy o
+> działających transakcjach, autoryzacji i concurrency, ale nowe funkcje produktu
+> powinny należeć do modułów ProcureFlow.
 
 `Project` posiada podstawowe dane biznesowe, właściciela i stan archiwizacji.
 Archiwizacja jest soft delete: aktywne odczyty pomijają projekt, a aktualizacje
@@ -328,7 +370,11 @@ DELETE /api/projects/{projectId}/members/{userId}
 
 Szczegółowy workflow dodawania tej funkcji znajduje się w `doc/ADDING_FEATURES.md`.
 
-Model obejmuje zarówno auth i konta użytkowników, jak i rozwijaną domenę zarządzania projektami oraz zadaniami. Kolejne funkcje powinny respektować osobne granice agregatów `Project` i `ProjectTask` oraz istniejące kontrole członkostwa i ról.
+Model obejmuje auth i konta użytkowników oraz przejściową domenę zarządzania
+projektami i zadaniami. Zmiany utrzymaniowe starej domeny nadal respektują granice
+agregatów `Project` i `ProjectTask`. Nowe funkcje biznesowe powinny natomiast
+respektować granice `Organizations`, `Catalog` i `PurchaseRequests` określone w
+roadmapie produktu.
 
 ## Observability And Background Work
 
@@ -367,6 +413,11 @@ To podejście jest używane do kontrolowania:
 - email delivery visibility
 - email 2FA availability
 
+Przejściowo istnieją również `ProjectsEnabled`, `ProjectArchiveEnabled` i
+`ProjectTaskAssignmentEnabled`. Sterują wyłącznie dostępnością UX domeny demo i
+zostaną usunięte razem z nią w PF6. Feature flag nigdy nie zastępuje autoryzacji
+po stronie API.
+
 ## Naming and Organization Rules
 
 W projekcie warto utrzymywać kilka prostych zasad:
@@ -394,15 +445,16 @@ przez Testcontainers.
 
 ## Recommended Reading Order
 
-Jeśli zaczynasz pracę w tym starterze, czytaj w tej kolejności:
+Jeśli zaczynasz pracę nad ProcureFlow, czytaj w tej kolejności:
 
 1. `README.md`
-2. `doc/ARCHITECTURE.md`
-3. `doc/JWT_ARCHITECTURE.md`
-4. `doc/EMAIL_2FA_FLOWS.md`
+2. `doc/README.md`
+3. `doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md`
+4. `doc/ARCHITECTURE.md`
 5. `doc/BACKEND_SETUP.md`
 6. `doc/FRONTEND_SETUP.md`
-7. `doc/ADDING_FEATURES.md`
+7. dokument aktywnego etapu PF
+8. `doc/ADDING_FEATURES.md`
 
 ## See Also
 

@@ -1,6 +1,7 @@
 # Adding Features
 
-Ten dokument opisuje, jak rozwijać ten starter w sposób spójny z obecną architekturą.
+Ten dokument opisuje, jak rozwijać ProcureFlow w sposób spójny z obecną
+architekturą i kanoniczną roadmapą produktu.
 
 ## When To Read This Document
 
@@ -11,11 +12,18 @@ Czytaj ten plik, gdy chcesz ustalić:
 - w jakiej kolejności ruszać backend, frontend, bazę i dokumentację
 - jak nie zepsuć istniejących wzorców auth, runtime config i routingu
 
-Jeśli najpierw potrzebujesz zrozumieć obecną architekturę projektu, zacznij od `doc/ARCHITECTURE.md`.
+Jeśli najpierw potrzebujesz zrozumieć obecną architekturę projektu, zacznij od
+[mapy dokumentacji](README.md) i [architektury](ARCHITECTURE.md).
 
 ## General Rule
 
 Najpierw ustal, jakiego typu jest nowy feature.
+
+Dla funkcji biznesowej najpierw znajdź etap i branch w
+[roadmapie ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md). Roadmapa
+określa zakres produktu, natomiast bieżący kod i testy określają, co jest już
+zaimplementowane. Nie rozszerzaj `Projects` ani `ProjectTasks`, jeśli wymaganie
+należy do `Organizations`, `Catalog` lub `PurchaseRequests`.
 
 Najczęstsze przypadki:
 
@@ -48,7 +56,9 @@ Jeśli dodajesz nowy feature po stronie backendu:
 1. Zacznij od domeny, jeśli pojawia się nowe pojęcie biznesowe.
 2. Dodaj DTO, interfejsy i walidację w `backend/Application/`.
 3. Dodaj implementację persistence lub integracji w `backend/Infrastructure/`.
-4. Dodaj lub rozszerz endpoint w `backend/API/Controllers/`.
+4. Dodaj adapter HTTP w `backend/API/Modules/<BusinessModule>/<UseCase>/`.
+   Istniejący kontroler rozszerzaj tylko podczas utrzymania obszaru, który nie
+   został jeszcze przeniesiony do modułu.
 5. Jeśli feature należy do istniejącego modułu rozwijanego w stylu modularnego VSA,
    zastosuj standard opisany poniżej i zarejestruj usługi przez rozszerzenie modułu.
    Dla nieprzeniesionych obszarów przejściowych użyj obecnego composition root.
@@ -102,7 +112,8 @@ Rekomendowany podział:
 
 1. Dla nowych slice'ów umieść kontrakty w
    `Application/Modules/<BusinessModule>/<UseCase>/`. Przykładowo
-   `GetProjectDetails` należy do `Application/Modules/Projects/GetProjectDetails/`.
+   `CreatePurchaseRequest` należy do
+   `Application/Modules/PurchaseRequests/CreatePurchaseRequest/`.
    Istniejące, jeszcze nieprzeniesione przypadki mogą pozostać w
    `Application/Features/<Feature>/`.
 2. Reguły domenowe trzymaj w encji lub agregacie w `Domain/`.
@@ -114,7 +125,8 @@ Rekomendowany podział:
    powinien znać tylko punkt wejścia modułu.
 6. Testuj handler przez mocki portów, a zapis i zapytania EF przez testy integracyjne.
 
-Dla `ProjectTasks` aktualne porty współdzielone przez uzasadnione capability to:
+Poniższe porty `ProjectTasks` są referencją istniejącej domeny demonstracyjnej,
+a nie katalogiem portów do kopiowania do ProcureFlow:
 
 - `IProjectTaskAccess` - aktywna rola użytkownika i pobranie zadania z etykietami,
 - `IListProjectTasksQueryStore` - filtrowanie, sortowanie i paginacja listy zadań,
@@ -155,12 +167,12 @@ Każdy slice powinien mieć, zależnie od potrzeb:
 7. rejestrację w module, a nie bezpośredni wpis w composition root;
 8. krótką dokumentację decyzji, zależności i zachowania przy błędzie.
 
-Po zakończeniu migracji CRUD `ProjectTasks` nie dodawaj nowych przypadków użycia do
-dużego serwisu. Każda nowa komenda lub kwerenda powinna mieć własny slice oraz
-rejestrację w entry poincie właściwego modułu, na przykład `ProjectTasksModule` albo
-`ProjectsModule`. Przejściowe porty współdzielone przez kilka
-slice'ów pozostają dopuszczalne tylko wtedy, gdy opisują rzeczywistą wspólną
-potrzebę, a nie wygodę dostępu do całego `DbContext`.
+Każda nowa komenda lub kwerenda ProcureFlow powinna mieć własny slice oraz
+rejestrację w entry poincie właściwego modułu, na przykład
+`OrganizationsModule`, `CatalogModule` albo `PurchaseRequestsModule`. Zmiany w
+`ProjectsModule` i `ProjectTasksModule` ograniczaj do napraw koniecznych przed PF6.
+Porty współdzielone przez kilka slice'ów są dopuszczalne tylko wtedy, gdy opisują
+rzeczywistą wspólną potrzebę, a nie wygodę dostępu do całego `DbContext`.
 
 Nie traktuj folderu jako granicy sam w sobie. Moduł jest granicą dopiero wtedy, gdy:
 
@@ -206,7 +218,12 @@ Najbezpieczniejsza kolejność przy większych zmianach:
 
 Jeśli feature wprowadza nowy przepływ, nowy typ danych albo nowy wzorzec architektoniczny, zaktualizuj dokumentację w `doc/` od razu po wdrożeniu zmiany.
 
-## Project And ProjectTask Feature
+## Legacy Project And ProjectTask Reference
+
+> [!NOTE]
+> Ta sekcja dokumentuje działający kod domeny demonstracyjnej. Nie definiuje
+> modelu `PurchaseRequest` i nie jest backlogiem nowych funkcji. Domena zostanie
+> usunięta dopiero po spełnieniu warunków PF6.
 
 Feature zarządzania projektami składa się z dwóch powiązanych, ale osobnych agregatów:
 
@@ -297,7 +314,7 @@ dotnet ef migrations add AddProjectTasks `
 	--output-dir Data\Migrations
 ```
 
-### Recommended Implementation Order
+### Historical Implementation Order
 
 1. Domena: `Project`, `ProjectTask` i enumy.
 2. `DbSet`, indeksy, klucze obce i migracja.
@@ -322,9 +339,12 @@ W zależności od typu zmiany przejdź dalej do odpowiedniego pliku:
 - `doc/FRONTEND_SETUP.md` - jeśli dodajesz ekran, routing, context albo integrację UI
 - `doc/JWT_ARCHITECTURE.md` - jeśli zmiana dotyka sesji, JWT, refresh tokenów albo `/me`
 - `doc/EMAIL_2FA_FLOWS.md` - jeśli zmiana dotyka confirm email, 2FA albo resetu hasła
+- `doc/ROADMAP/PROCUREFLOW/` - jeśli zmiana dodaje funkcję biznesową ProcureFlow
 
 ## See Also
 
+- `doc/README.md` - źródła prawdy i klasyfikacja dokumentacji
+- `doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md` - aktywna kolejność produktu
 - `doc/ARCHITECTURE.md` - mapa odpowiedzialności i głównych przepływów informacji
 - `doc/BACKEND_SETUP.md` - warstwy backendu, konfiguracja i wzorce rozszerzania API
 - `doc/FRONTEND_SETUP.md` - bootstrap UI, routing i warstwa klienta API

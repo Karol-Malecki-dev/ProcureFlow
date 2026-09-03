@@ -12,9 +12,9 @@ To jak orkiestra - każdy instrument (kontener) zna swoją rolę i wie, kiedy gr
 `docker-compose.yml` zakłada root plik `.env`.
 
 Start:
-```bash
-copy .env.example .env
-docker-compose up --build
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
 ```
 
 Najważniejsze grupy zmiennych:
@@ -27,19 +27,20 @@ Najważniejsze grupy zmiennych:
 
 ## Struktura naszego docker-compose.yml
 
-### Wersja i services
+### Services
 ```yaml
-version: '3.9'
-
 services:
   db:
+    ...
+  mailpit:
+    ...
+  minio:
     ...
   backend:
     ...
   frontend:
     ...
 ```
-- `version: '3.9'` = wersja compose (3.9 jest stara ale stabilna)
 - `services:` = lista wszystkich kontenerów
 
 ## Backend Service
@@ -71,8 +72,8 @@ ports:
 
 ```yaml
 environment:
-  - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  - DefaultConnection=${DEFAULT_CONNECTION}
+  - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+  - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
   - Jwt__Secret=${JWT_SECRET}
   - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGIN_0}
   - EmailDelivery__Host=${EMAIL_DELIVERY_HOST}
@@ -167,11 +168,12 @@ frontend:
 
 ```yaml
 depends_on:
-  - backend
+  backend:
+    condition: service_healthy
 ```
 - **WAŻNE!** Frontend czeka aż backend będzie uruchomiony
 - Najpierw start backend, potem frontend
-- Nie gwarantuje że backend jest gotowy, tylko że kontener się uruchomił
+- Warunek `service_healthy` wymaga przejścia health checku backendu
 
 ```yaml
 networks:
@@ -208,7 +210,7 @@ Docker DNS automatycznie resolve `backend` do IP kontenera!
 
 ### Pierwsze uruchomienie:
 ```bash
-docker-compose up
+docker compose up
 ```
 - Buduje obrazy (jeśli nie istnieją)
 - Uruchamia kontenery
@@ -216,20 +218,20 @@ docker-compose up
 
 ### W tle (daemon):
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 - `-d` = detached mode
 - Zwraca promptu, ale kontenery działają w tle
 
 ### Zatrzymanie:
 ```bash
-docker-compose down
+docker compose down
 ```
 - Zatrzymuje wszystkie kontenery
 - Usuwają sieci (ale obrazy zostają)
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 - `-v` = remove volumes (usuwa dane/bazy)
 - Usuwa również `data-protection-keys` i `minio-data`, więc unieważnia key ring oraz
@@ -237,7 +239,7 @@ docker-compose down -v
 
 ### Przebudowanie po zmianie kodu:
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 - Przebudowuje obrazy
 - Uruchamia nowe kontenery
@@ -246,25 +248,25 @@ docker-compose up --build
 
 ### Sprawdzić co działa:
 ```bash
-docker-compose ps
+docker compose ps
 ```
 - Wylistować uruchomione serwisy
 
 ### Logi:
 ```bash
-docker-compose logs
+docker compose logs
 ```
 - Wszystkie logi
 
 ```bash
-docker-compose logs -f frontend
+docker compose logs -f frontend
 ```
 - `-f` = follow (na żywo)
 - `frontend` = tylko tego serwisu
 
 ### Wejść do kontenera:
 ```bash
-docker-compose exec backend bash
+docker compose exec backend sh
 ```
 - `exec` = execute
 - `backend` = nazwa serwisu
@@ -273,12 +275,10 @@ docker-compose exec backend bash
 ## Komunikacja między kontenerami
 
 ### Frontend (React) → Backend (API)
-```javascript
-// src/services/api.ts
-const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-fetch(`${API_URL}/api/users`)
-```
+`frontend/src/services/api/HttpClient.ts` normalizuje `VITE_API_URL` tak, aby base
+URL kończył się pojedynczym `/api`. Klienty funkcji przekazują ścieżki względne,
+na przykład `/users`; nie doklejają drugiego segmentu `/api`.
 
 ### W nginx.conf:
 ```nginx
@@ -325,16 +325,15 @@ Nie ma w repozytorium osobnego `docker-compose.dev.yml`; zmiany kodu na żywo i 
 lokalne uruchamiaj bezpośrednio z `dotnet run` oraz `npm start`, zgodnie z dokumentacją
 setupu.
 
-## Checklist - co się dzieje przy `docker-compose up`:
+## Checklist - co się dzieje przy `docker compose up`:
 
-1. ✅ Docker buduje backend (Dockerfile)
-2. ✅ Docker buduje frontend (Dockerfile)
-3. ✅ Docker tworzy network `dotnet-react-network`
-4. ✅ Uruchamia backend (port 5000)
-5. ✅ Czeka aż backend będzie healthy
-6. ✅ Uruchamia frontend (port 3000)
-7. ✅ Frontend proxy'uje API do backend:5000
-8. ✅ Otwierasz `http://localhost:3000` 🎉
+1. Docker buduje obrazy backendu i frontendu.
+2. Tworzy sieć `dotnet-react-network` oraz trwałe wolumeny.
+3. Uruchamia PostgreSQL, Mailpit i MinIO.
+4. `minio-init` tworzy prywatny bucket załączników.
+5. Backend startuje po gotowości zależności i przechodzi health check.
+6. Frontend startuje po gotowości backendu na porcie `3000`.
+7. Nginx proxy'uje `/api/*` do `backend:5000`.
 
 ## Problemy i rozwiązania
 
@@ -352,7 +351,7 @@ docker network ls
 docker network inspect dotnet-react-network
 
 # Sprawdź czy backend w sieci
-docker-compose ps
+docker compose ps
 ```
 
 ### ❌ "depends_on" czeka ale aplikacja nie gotowa
@@ -364,27 +363,27 @@ healthcheck:
 
 ### ❌ Logi są duże, szukam specific service
 ```bash
-docker-compose logs frontend --tail 50
+docker compose logs frontend --tail 50
 # --tail 50 = ostatnie 50 linii
 ```
 
 ## Mniej znane rzeczy
 
-### Override konfiguracji:
+### Uruchomienie wybranego serwisu:
 ```bash
-# Zmienić port na żywo
-docker-compose -p myapp up
-
-# Uruchomić tylko backend
-docker-compose up backend
+docker compose up backend
 ```
+
+Backend nadal wymaga uruchomienia zależności wskazanych przez `depends_on`.
 
 ### Build bez cache (od zera):
 ```bash
-docker-compose up --build --no-cache
+docker compose build --no-cache
+docker compose up
 ```
 
-### Scale serwisu (wiele instancji):
-```bash
-docker-compose up --scale frontend=3
-```
+### Wiele instancji
+
+Lokalny plik używa jawnych `container_name`, stałych portów hosta i pojedynczych
+workerów, dlatego nie jest przeznaczony do `--scale`. Zachowanie wielu instancji
+wymaga osobnej topologii, koordynacji workerów i odpowiedniej warstwy routingu.

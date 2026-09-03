@@ -1,10 +1,17 @@
 # JWT Backend Authentication Audit
 
+> [!NOTE]
+> Status: historical technical-foundation checkpoint. This audit predates the
+> current frontend and preserves results from its original test scope. It is not a
+> current security backlog or evidence that today's full suite passed; current
+> product decisions follow the
+> [ProcureFlow roadmap](../../ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
 ## Goal
 The purpose of this audit is to verify whether the ASP.NET backend correctly implements JWT-based authentication and is prepared to work with the React TypeScript frontend.
 
 ## Overall Status
-The JWT backend is currently **implemented and verified for frontend integration**.
+At the time of this audit, the JWT backend was **implemented and verified for frontend integration**.
 
 The following areas were verified:
 - JWT configuration correctness,
@@ -23,7 +30,7 @@ The following areas were verified:
 - Result: **55/55 passed**
 
 ### Integration Tests
-- Result: **60/60 passed** in the current backend integration suite; the JWT scenarios listed below remain covered.
+- Recorded result: **60/60 passed** in the integration suite used at the time; the JWT scenarios listed below remain covered.
 
 Verified scenarios:
 - login returns an access token and a refresh token,
@@ -70,10 +77,10 @@ The backend uses the real authentication flow implemented by `AuthService` and t
 
 The audit verifies the authentication and JWT behavior covered by the current unit and integration suites. It does not replace a production security review, penetration test, or infrastructure review.
 
-## Recommendations Before Frontend Work
+## Historical Frontend Handoff Recommendation
 
-### Frontend Can Be Started
-The React frontend can now implement:
+### Scope Handed Off to the Frontend
+Based on this audit, the React frontend could implement:
 - login,
 - access token storage,
 - sending `Authorization: Bearer <token>`,
@@ -103,7 +110,7 @@ At this stage it is recommended to:
 - expand tests to cover a real relational database provider.
 
 ## Final Conclusion
-The JWT backend is currently **stable enough and sufficiently verified** to begin implementing the authentication layer on the React TypeScript frontend.
+At the time of this audit, the JWT backend was **stable enough and sufficiently verified** to begin implementing the authentication layer on the React TypeScript frontend. That layer now exists, so this conclusion is handoff evidence rather than a next task.
 
 Most important points for the current release:
 - JWT configuration works,

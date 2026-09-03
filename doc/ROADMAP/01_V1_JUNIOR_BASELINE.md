@@ -1,5 +1,10 @@
 # V1: Aktualny baseline juniorowy
 
+> [!NOTE]
+> Ten dokument opisuje historyczny baseline fundamentu technicznego. Nie wyznacza
+> już kolejności prac produktowych; aktualny plan znajduje się w
+> [roadmapie ProcureFlow](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
 ## Cel
 
 V1 jest wersją bazową startera. Ma pokazać, że aplikacja może być zbudowana jako pełny, testowalny modularny monolit, a nie tylko zbiór endpointów CRUD.
@@ -75,6 +80,10 @@ V1 można uznać za ukończone, gdy:
 - lokalne środowisko można uruchomić przez Docker Compose;
 - ograniczenia są zapisane i nie są mylone z gotowością produkcyjną.
 
-## Następny krok
+## Aktualny następny krok
 
-Następnym etapem jest V3, zaczynające się od granic domeny, transakcji i optimistic concurrency. Nie należy rozpoczynać od nowych technologii infrastrukturalnych bez konkretnego problemu.
+Historycznie po V1 rozwijano stabilizację oraz granice domeny opisane w V2-V3.
+Obecnym krokiem produktowym jest
+[PF1: organizacja, oddziały i dostęp](PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md).
+Nie należy rozpoczynać od nowych technologii infrastrukturalnych bez konkretnego
+problemu.

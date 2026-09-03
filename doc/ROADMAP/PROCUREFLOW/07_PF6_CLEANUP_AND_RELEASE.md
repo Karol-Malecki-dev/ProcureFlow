@@ -44,13 +44,17 @@ potwierdzenia, że CI oraz staging używają tej samej historii.
 
 ### 2. `docs/procureflow-release-documentation`
 
-- zmienić README z opisu startera na opis ProcureFlow;
+- usunąć z README przejściowe ostrzeżenie o domenie demonstracyjnej i opisać
+  wyłącznie zweryfikowany zakres wydania ProcureFlow;
 - zaktualizować architekturę i strukturę modułów;
 - udokumentować role i macierz uprawnień;
 - opisać workflow i statusy wniosku;
 - dodać przykładowe payloady krytycznych endpointów;
 - zaktualizować instrukcje uruchomienia oraz dane demo;
 - usunąć twierdzenia o funkcjach, których produkt już nie posiada;
+- zmienić odziedziczone identyfikatory techniczne tylko wtedy, gdy branch zawiera
+  plan kompatybilności oraz test sesji, Data Protection, wolumenów, backupu,
+  restore i rollbacku;
 - zachować ADR-y nadal opisujące aktualne decyzje techniczne.
 
 ### 3. `chore/procureflow-v1-release-readiness`

@@ -1,17 +1,39 @@
-# .NET React Starter
+# ProcureFlow
 
-Full-stack starter przygotowany z myślą o nauce wzorców stosowanych w aplikacjach produkcyjnych. Projekt łączy API ASP.NET Core 9, frontend React + TypeScript, PostgreSQL, uwierzytelnianie JWT, rotację refresh tokenów, Docker Compose oraz automatyczne testy.
+ProcureFlow to portfolio-grade system zarządzania zapotrzebowaniami zakupowymi dla
+organizacji posiadającej wiele oddziałów. Aplikacja powstaje w ASP.NET Core 9,
+React 19, TypeScript, EF Core i PostgreSQL na bazie wcześniej zweryfikowanego
+fundamentu technicznego.
 
-## Najważniejsze funkcje
+> [!IMPORTANT]
+> Fundament aplikacji już działa, ale domena biznesowa ProcureFlow jest rozwijana
+> etapami. `Projects` i `ProjectTasks` są tymczasową domeną demonstracyjną zachowaną
+> do przejścia walidacji PF5. Nie są docelowym kontraktem produktu. Kanoniczną
+> kolejność implementacji definiuje
+> [roadmapa ProcureFlow](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
+## Zakres ProcureFlow v1.0
+
+- jedna organizacja posiadająca wiele oddziałów i role biznesowe zależne od członkostwa;
+- katalog kategorii, jednostek miary i produktów;
+- draft zapotrzebowania, pozycje, wysłanie i anulowanie;
+- miesięczny budżet oddziału, akceptacja managera i eskalacja do Procurement;
+- realizacja zaakceptowanego wniosku jako zamówionego i dostarczonego;
+- historia decyzji, powiadomienia, załączniki i prosty dashboard;
+- testy transakcji, autoryzacji i współbieżności na PostgreSQL;
+- krytyczny przepływ od utworzenia wniosku do dostarczenia przetestowany w przeglądarce.
+
+## Gotowy fundament techniczny
 
 - podział backendu na warstwy `API`, `Application`, `Domain`, `Infrastructure` i `Shared`;
 - JWT access token oraz rotacja refresh tokenów w ciasteczkach HttpOnly;
 - potwierdzanie adresu e-mail i e-mailowe 2FA;
-- autoryzacja oparta na rolach dla operacji administracyjnych, projektów i zadań;
+- autoryzacja oparta na rolach oraz ochrona dostępu do zasobów;
 - walidacja formularzy przez React Hook Form i Zod;
 - centralna obsługa wyjątków, Serilog i health check API;
 - endpointy liveness, readiness i kondycji workerów oraz korelacja żądań przez `X-Correlation-ID`;
-- projekty, zadania, członkowie, załączniki, etykiety, terminy i powiadomienia;
+- przejściowa domena demonstracyjna projektów i zadań, używana jako źródło
+	sprawdzonych wzorców transakcji, concurrency, załączników i powiadomień;
 - PostgreSQL, Mailpit i reverse proxy w lokalnym środowisku Docker Compose;
 - testy jednostkowe, integracyjne, frontendowe oraz Docker smoke/E2E;
 - GitHub Actions dla walidacji kodu i publikowania obrazów do GHCR.
@@ -62,14 +84,14 @@ Aktywny manifest aplikacji frontendowej znajduje się w [frontend/package.json](
 ### Wymagania
 
 - .NET 9 SDK;
-- Node.js 20 lub nowszy;
+- Node.js 22.x;
 - Docker Desktop z obsługą Compose.
 
 ### Docker Compose
 
 ```powershell
-git clone https://github.com/Karol8284/dotnet-react-starter.git
-Set-Location dotnet-react-starter
+git clone https://github.com/Karol-Malecki-dev/ProcureFlow.git
+Set-Location ProcureFlow
 Copy-Item .env.example .env
 docker compose up --build
 ```
@@ -174,6 +196,8 @@ restore i rollbacku. Szczegóły znajdują się w [doc/CI_CD.md](doc/CI_CD.md).
 
 ## Znane ograniczenia
 
+- domena ProcureFlow jest obecnie na etapie PF1, a gotowej domeny demo nie należy
+	traktować jako publicznego kontraktu przyszłego wydania;
 - frontend korzysta z Vite i Vitest; audyt zależności z 2026-09-02 nie wykazał znanych podatności npm;
 - Docker Compose jest przede wszystkim lokalnym środowiskiem uruchomieniowym i testowym;
 - domyślne hasła oraz sekrety Compose nie nadają się do środowiska produkcyjnego;
@@ -182,6 +206,8 @@ restore i rollbacku. Szczegóły znajdują się w [doc/CI_CD.md](doc/CI_CD.md).
 
 ## Dokumentacja
 
+- [Mapa dokumentacji](doc/README.md)
+- [Roadmapa produktu ProcureFlow](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md)
 - [doc/GETTING_STARTED.md](doc/GETTING_STARTED.md)
 - [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md)
 - [doc/BACKEND_SETUP.md](doc/BACKEND_SETUP.md)
@@ -190,6 +216,16 @@ restore i rollbacku. Szczegóły znajdują się w [doc/CI_CD.md](doc/CI_CD.md).
 - [doc/EMAIL_2FA_FLOWS.md](doc/EMAIL_2FA_FLOWS.md)
 - [doc/CI_CD.md](doc/CI_CD.md)
 - [docker/DOCKER_COMPOSE.md](docker/DOCKER_COMPOSE.md)
+
+Dokumenty `V1-V8` opisują dojrzałość odziedziczonego fundamentu technicznego.
+Nie definiują już kolejności branchy produktu.
+
+## Aktualny etap produktu
+
+PF0 jest ukończony. Następny etap to
+[PF1: organizacja, oddziały i dostęp](doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md),
+rozpoczynany przez `feature/organization-branches`, a następnie
+`feature/branch-access-control`.
 
 ## Licencja
 

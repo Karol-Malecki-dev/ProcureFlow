@@ -1,5 +1,11 @@
 # V4 implementation plan
 
+> [!IMPORTANT]
+> Status: historical technical-foundation plan. The packages below document how
+> the temporary projects/tasks product was hardened; they are not the active
+> ProcureFlow backlog. Current product work follows the
+> [PF0-PF7 roadmap](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
 ## Purpose
 
 This document turns the V4 product-completeness roadmap into an executable sequence of

@@ -1,5 +1,9 @@
 # V7: Opcjonalna ewolucja
 
+> [!NOTE]
+> Ten dokument jest katalogiem opcjonalnych decyzji technicznych, nie aktywnym
+> backlogiem. Rozszerzenia produktu po `v1.0.0` są klasyfikowane osobno w PF7.
+
 ## Cel
 
 V7 opisuje kierunki rozwoju produktu i infrastruktury, które mogą być wartościowe, ale nie powinny być obowiązkową częścią startera. Ich kolejność ma wynikać z realnej potrzeby produktu, użytkowników, infrastruktury lub ograniczeń zespołu. Platformizacja sprawdzonych modułów, generatory i dystrybucja między projektami należą do osobnego V8.

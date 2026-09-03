@@ -1,5 +1,10 @@
 # V4 Product Event Matrix
 
+> [!NOTE]
+> This matrix documents the temporary projects/tasks domain. It remains regression
+> evidence while that domain exists, but PF5 requires a separate ProcureFlow event
+> matrix for request submission, approval, rejection, fulfillment and attachments.
+
 This matrix records the release-level decision for critical collaboration events.
 Security audit events remain separate from product activity and user notifications.
 

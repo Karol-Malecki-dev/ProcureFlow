@@ -19,32 +19,23 @@ WORKDIR /app
 - Ustawiamy **folder roboczy** w kontenerze (jak `cd /app`)
 - Wszystkie polecenia będą wykonane w tym folderze
 
+Pliki projektów są kopiowane przed kodem źródłowym, dzięki czemu warstwa restore
+pozostaje w cache, dopóki nie zmienią się zależności:
+
 ```dockerfile
+COPY API/API.csproj API/
+COPY Application/Application.csproj Application/
+COPY Domain/Domain.csproj Domain/
+COPY Infrastructure/Infrastructure.csproj Infrastructure/
+COPY Shared/Shared.csproj Shared/
+RUN dotnet restore API/API.csproj
+
 COPY . .
+RUN dotnet publish API/API.csproj -c Release -o /app/publish --no-restore
 ```
-- Kopiujemy **wszystkie pliki z lokalnego folderu** do folderu `/app` w kontenerze
-- Pierwszy `.` = z gdzie brać (lokalna maszyna)
-- Drugi `.` = dokąd (folder `/app` w kontenerze)
 
-```dockerfile
-RUN dotnet restore
-```
-- **RUN** = wykonaj polecenie w kontenerze
-- **dotnet restore** = pobierz wszystkie NuGet packages (biblioteki)
-- Jest to jak `npm install` dla Node.js
-
-```dockerfile
-RUN dotnet build -c Release --no-restore
-```
-- **-c Release** = tryb Release (zoptymalizowany dla produkcji)
-- **--no-restore** = nie pobieraj packagesów (już to zrobiliśmy)
-
-```dockerfile
-RUN dotnet publish -c Release -o /app/publish --no-build
-```
-- **publish** = przygotowuje aplikację do uruchomienia
-- **-o /app/publish** = wyjście (gdzie zapisać)
-- **--no-build** = nie buduj, już zbudowaliśmy
+`dotnet publish` buduje wdrażalne API w konfiguracji Release. Osobny krok
+`dotnet build` nie jest potrzebny w tym Dockerfile.
 
 ### 🚀 Stage 2: Runtime (Etap uruchomienia)
 ```dockerfile
@@ -59,6 +50,10 @@ COPY --from=builder /app/publish .
 - Kopujemy opublikowane binaria **z poprzedniego etapu (builder)**
 - Nie kopiujemy cały kod źródłowy, tylko gotowe do uruchomienia pliki
 - Rozmiarem: builder ~1GB, runtime ~400MB ✅
+
+Obraz instaluje `curl` dla health checku, przygotowuje zapisywalne katalogi dla
+logów, lokalnych załączników i Data Protection, a następnie uruchamia API jako
+użytkownik non-root przez `USER $APP_UID`.
 
 ### Dlaczego 2 etapy?
 **Multi-stage build** = mniejszy obraz!
@@ -83,6 +78,10 @@ docker run -p 5000:5000 dotnet-react-starter:backend
 ```
 - `-p 5000:5000` = mapowanie portów (host:container)
 - Port 5000 w kontenerze będzie dostępny na porcie 5000 na maszynie
+
+Samo `docker run` wymaga dostarczenia connection stringu, JWT secretu i pozostałej
+konfiguracji. Do uruchomienia kompletnego lokalnego środowiska użyj
+`docker compose up --build` z katalogu głównego.
 
 ## 🔑 Kluczowe zmienne
 
@@ -131,14 +130,19 @@ netstat -an | grep 5000
 6. ✅ API nasłuchuje na `http://0.0.0.0:5000`
 7. ✅ Możemy się podłączyć z `http://localhost:5000`
 
-## Producent vs Development
+## Production-like Image vs Development
 
 ### Produkcja (nasz Dockerfile):
 - Multi-stage build
 - Release build (zoptymalizowany)
 - Mały rozmiar obrazu
 
-### Development (docker-compose.dev.yml):
-- Możliwość hot-reload
-- Volume mounts (zmiany na żywo)
-- Debugowanie
+### Development lokalny
+
+Repozytorium nie zawiera `docker-compose.dev.yml`. Hot reload i debugowanie
+uruchamiaj bezpośrednio przez projekt API, a Compose traktuj jako pełny stack do
+smoke testów:
+
+```powershell
+dotnet watch --project backend/API/API.csproj
+```

@@ -1,6 +1,8 @@
 # Frontend Setup
 
-Ten dokument opisuje aktualną strukturę frontendu i sposób rozwijania UI w tym starterze.
+Ten dokument opisuje aktualną strukturę frontendu ProcureFlow i sposób
+inkrementalnego zastępowania ekranów domeny demonstracyjnej docelowym workflow
+zakupowym.
 
 ## When To Read This Document
 
@@ -16,6 +18,21 @@ Frontend odpowiada za:
 - bootstrap runtime feature flags
 - wyświetlanie stanu auth, 2FA i profilu
 - komunikację z backendem przez centralny HTTP client
+
+## Product Migration Boundary
+
+Obecny frontend nadal zawiera ekrany `Projects` i `ProjectTasks`. Są one częścią
+domeny demonstracyjnej, a nie docelową nawigacją ProcureFlow. Nowe ekrany powinny
+powstawać zgodnie z etapami PF1-PF5 dla `Organizations`, `Catalog` i
+`PurchaseRequests`. Stare trasy pozostają działające do czasu przejścia krytycznego
+browser E2E i są usuwane w PF6.
+
+Frontend może wykorzystać istniejący shell, auth bootstrap, `HttpClient`, obsługę
+błędów, formularze i runtime config. Nie powinien jednak kopiować nazw, typów ani
+założeń autoryzacyjnych `ProjectTask` do nowych kontraktów zakupowych.
+
+Aktualną kolejność definiuje
+[roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
 ## Frontend Structure
 
@@ -121,6 +138,15 @@ Aktualnie flagi sterują między innymi:
 - sekcjami związanymi z email features
 - dostępnością flow 2FA
 
+Przejściowe flagi domeny demonstracyjnej to:
+
+- `ProjectsEnabled`;
+- `ProjectArchiveEnabled`;
+- `ProjectTaskAssignmentEnabled`.
+
+Zostaną usunięte razem ze starymi ekranami w PF6. Ukrycie trasy lub przycisku
+przez flagę jest decyzją UX i nigdy nie zastępuje autoryzacji backendowej.
+
 Najważniejsze miejsca użycia:
 
 - `components/UI/Navbar.tsx`
@@ -184,6 +210,7 @@ Kilka praktycznych zasad nazewnictwa:
 
 ## What Not To Do
 
+- nie dodawaj nowych funkcji produktowych do ekranów `Projects` lub `ProjectTasks`
 - nie odczytuj feature flags bezpośrednio z kilku różnych źródeł
 - nie duplikuj logiki auth w wielu komponentach
 - nie blokuj bezpieczeństwa tylko po stronie frontendu
@@ -191,6 +218,8 @@ Kilka praktycznych zasad nazewnictwa:
 
 ## See Also
 
+- [Mapa dokumentacji](README.md) - źródła prawdy i status migracji
+- [Roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md) - kolejność ekranów produktu
 - `doc/ARCHITECTURE.md` - pełna mapa projektu i główne zależności między warstwami
 - `doc/JWT_ARCHITECTURE.md` - bootstrap sesji, access token i refresh flow
 - `doc/EMAIL_2FA_FLOWS.md` - ekrany confirm email, verify 2FA i reset hasła w kontekście całego flow

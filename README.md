@@ -1,10 +1,29 @@
-# .NET React Starter
+# ProcureFlow
 
-Production-minded full-stack learning starter with ASP.NET Core 9 API, React + TypeScript frontend, JWT authentication, refresh-token rotation in HttpOnly cookies, Docker Compose, and automated test projects.
+ProcureFlow is a portfolio-grade, multi-branch purchase request management system built with
+ASP.NET Core 9, React 19, TypeScript, EF Core and PostgreSQL. It is being developed from an
+existing production-minded starter into a focused B2B product with organization-scoped access,
+catalog management, purchase-request workflows, monthly budgets and approvals.
 
-This repository is a practical base for auth-heavy applications, admin dashboards, and future starter implementations. It already includes backend auth flows, protected frontend routes, role-aware access, Docker wiring, and test projects you can extend.
+> [!IMPORTANT]
+> The technical foundation is already operational, but the ProcureFlow business domain is under
+> active development. `Projects` and `ProjectTasks` are a temporary demonstration domain retained
+> until the replacing ProcureFlow workflow passes PF5 validation. They are not the target product
+> contract. The canonical implementation order is the
+> [ProcureFlow product roadmap](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
-## Features
+## ProcureFlow v1.0 Scope
+
+- one organization with multiple branches and branch-scoped business memberships
+- product categories, units of measure and a small purchasing catalog
+- purchase-request drafts, line items, submission and cancellation
+- monthly branch budgets, manager approval and procurement escalation
+- ordered and delivered fulfillment states
+- decision history, notifications, attachments and a focused dashboard
+- PostgreSQL-backed transaction, authorization and concurrency tests
+- one critical browser workflow from request creation to delivery
+
+## Technical Foundation Available Today
 
 - Clean Architecture backend split into `API`, `Application`, `Domain`, `Infrastructure`, and `Shared`
 - React + TypeScript frontend with protected routes, authenticated session handling, runtime feature gating, and a quick search shell
@@ -95,7 +114,7 @@ Rules:
 
 The frontend consumes `GET /api/runtime-config` during startup.
 
-Current flags include:
+Product-neutral flags include:
 
 - `GlobalSearchEnabled`
 - `DashboardOverviewEnabled`
@@ -106,6 +125,15 @@ Current flags include:
 - `EmailTwoFactorEnabled`
 - `EmailTwoFactorEnabledForNewUsers`
 
+Temporary demo-domain flags include:
+
+- `ProjectsEnabled`
+- `ProjectArchiveEnabled`
+- `ProjectTaskAssignmentEnabled`
+
+The demo-domain flags remain available only while `Projects` and `ProjectTasks` are retained during
+the incremental migration to ProcureFlow.
+
 Use `RuntimeConfigProvider` and `useFeatureAvailability()` to read them from the frontend.
 
 ## Quick Start
@@ -113,14 +141,14 @@ Use `RuntimeConfigProvider` and `useFeatureAvailability()` to read them from the
 ### Prerequisites
 
 - .NET 9 SDK
-- Node.js 20+
+- Node.js 22.x
 - Docker Desktop with Compose support for containerized runs
 
 ### Run with Docker
 
 ```powershell
-git clone https://github.com/Karol8284/dotnet-react-starter.git
-Set-Location dotnet-react-starter
+git clone https://github.com/Karol-Malecki-dev/ProcureFlow.git
+Set-Location ProcureFlow
 Copy-Item .env.example .env
 docker compose up --build
 ```
@@ -191,10 +219,9 @@ dotnet test backend/IntegrationTests/IntegrationTests.csproj
 dotnet test backend/E2ETests/E2ETests.csproj
 ```
 
-Test `PostgreSqlIntegrationTests` uruchamia PostgreSQL przez Testcontainers,
-dlatego przed wykonaniem pełnego zestawu `IntegrationTests` Docker Desktop musi
-działać i udostępniać poprawnie skonfigurowany endpoint Docker Engine. Pozostałe
-testy integracyjne korzystają z kontrolowanego store'a in-memory.
+`PostgreSqlIntegrationTests` starts PostgreSQL through Testcontainers. Docker Desktop must therefore
+be running and expose a correctly configured Docker Engine endpoint before the complete integration
+suite is executed. The remaining integration tests use a controlled in-memory store.
 
 The integration suite includes PostgreSQL Testcontainers coverage. It applies the real EF Core migrations to a temporary PostgreSQL container, so Docker Desktop must be running before executing it.
 
@@ -245,6 +272,8 @@ For local Docker runs, transactional emails are delivered to Mailpit. Open http:
 
 ## Documentation
 
+- [Documentation map](doc/README.md)
+- [ProcureFlow product roadmap](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md)
 - [doc/GETTING_STARTED.md](doc/GETTING_STARTED.md)
 - [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md)
 - [doc/BACKEND_SETUP.md](doc/BACKEND_SETUP.md)
@@ -256,11 +285,14 @@ For local Docker runs, transactional emails are delivered to Mailpit. Open http:
 - [doc/ROADMAP/00_ROADMAP_OVERVIEW.md](doc/ROADMAP/00_ROADMAP_OVERVIEW.md)
 - [backend/DEVELOPMENT_ROADMAP.md](backend/DEVELOPMENT_ROADMAP.md)
 
-## Suggested Next Steps
+The `V1-V8` roadmap records the maturity of the inherited technical foundation. It does not define
+the current product branch order.
 
-- Execute V2: stabilization and security hardening
-- Add the focused tests and ADRs required by the roadmap before starting new infrastructure work
-- Choose a hosting target after the auth and data consistency foundations are stable
+## Current Product Step
+
+PF0 is complete. The next implementation stage is
+[PF1: organization, branches and access](doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md),
+starting with `feature/organization-branches` and followed by `feature/branch-access-control`.
 
 ## License
 

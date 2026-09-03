@@ -1,5 +1,11 @@
 # V3: Domena, transakcje i współbieżność
 
+> [!NOTE]
+> Ten dokument opisuje rozwój granic domeny demonstracyjnej i techniczne wzorce,
+> z których korzysta ProcureFlow. Nie jest planem przemianowania `ProjectTask` na
+> `PurchaseRequest`; aktywny backlog znajduje się w
+> [roadmapie produktu](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
 ## Cel
 
 V3 ma przeprowadzić projekt od poprawnie działającego warstwowego monolitu modularnego do systemu z wyraźnymi granicami odpowiedzialności. Obejmuje również mały pilotaż hybrydy: moduł biznesowy zawierający vertical slices. Najważniejsze pytanie tego etapu brzmi:

@@ -1,5 +1,10 @@
 # V5: Deployment i operacje
 
+> [!NOTE]
+> Ten dokument opisuje dojrzałość wspólnego fundamentu deploymentowego. Pozostaje
+> aktualnym źródłem wymagań operacyjnych, ale nie określa kolejności implementacji
+> domeny ProcureFlow.
+
 ## Cel
 
 V5 ma przeprowadzić aplikację z lokalnego Docker Compose i CI do jednego realnego środowiska staging lub production. Nie chodzi o wybór najbardziej złożonej platformy. Chodzi o umiejętność wdrożenia, obserwowania, odtworzenia i wycofania aplikacji.

@@ -80,6 +80,19 @@ wniosku przekraczającego dostępny budżet.
 - Domena demonstracyjna pozostaje tymczasowo działająca i jest usuwana dopiero w
   PF6.
 
+### Nazewnictwo i dokumentacja podczas migracji
+
+- `ProcureFlow` jest nazwą produktu używaną w README i dokumentacji produktowej.
+- Nazwa istniejącego fundamentu może pozostać w historycznej roadmapie, ADR-ach i
+  audytach opisujących stan sprzed pivotu domenowego.
+- Techniczne identyfikatory JWT, Data Protection, obrazów, kontenerów, wolumenów i
+  ścieżek deploymentu nie są zmieniane w PF0. Ich rename wymaga osobnej walidacji
+  sesji, chronionych danych, backupu, restore i rollbacku.
+- Dokument opisujący bieżący kod musi odróżniać gotowy fundament od planowanych
+  funkcji ProcureFlow i od tymczasowej domeny `Projects/ProjectTasks`.
+- Roadmapa `PF0-PF7` określa kolejność prac produktowych. Dokumenty `V1-V8`
+  pozostają historią dojrzałości technicznej i nie tworzą konkurencyjnego backlogu.
+
 ## Artefakty etapu
 
 - roadmapa produktu i kolejność branchy;
@@ -95,6 +108,7 @@ wniosku przekraczającego dostępny budżet.
 - każdy etap ma zakres, kolejność branchy, test plan i kryteria ukończenia;
 - roadmapa nie wymaga usuwania działającego kodu przed jego zastąpieniem;
 - pierwszy branch implementacyjny to `feature/organization-branches`;
+- mapa dokumentacji rozróżnia produkt, bieżący kod, fundament historyczny i audyty;
 - techniczna roadmapa startera pozostaje dostępna jako materiał referencyjny.
 
 ## Poza zakresem PF0
