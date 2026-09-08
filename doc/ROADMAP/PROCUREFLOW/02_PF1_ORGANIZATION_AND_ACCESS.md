@@ -6,6 +6,24 @@ PF1 tworzy kontekst organizacyjny używany przez wszystkie kolejne moduły. Po t
 etapie backend potrafi jednoznacznie odpowiedzieć: do jakiego oddziału należy
 użytkownik i jakie operacje biznesowe może tam wykonać.
 
+## Status implementacji
+
+Branch `feature/organization-branches` jest ukończony w zakresie organizacji i
+administracyjnego CRUD oddziałów. Obejmuje:
+
+- model agregatu `Organization` z należącymi do niego oddziałami;
+- tworzenie, listowanie, odczyt szczegółów, aktualizację i miękką archiwizację;
+- normalizację oraz unikalność nazwy i kodu oddziału w organizacji;
+- ograniczenia PostgreSQL dla aktywnej organizacji, oddziałów i klucza obcego;
+- endpoint administracyjny `GET /api/organizations/active`, który rozwiązuje
+	aktywną organizację dla ekranu MVP bez ręcznego podawania GUID-u;
+- frontendowy ekran administracyjny z obsługą loading, empty, error i archive;
+- testy jednostkowe, API/PostgreSQL oraz testy frontendowe dla tego przepływu.
+
+PF1 jako cały etap pozostaje w toku. Członkostwa, role `Employee`, `Manager` i
+`Procurement` oraz autoryzacja zasobowa pozostają zakresem kolejnego brancha
+`feature/branch-access-control`.
+
 ## Kolejność branchy
 
 ### 1. `feature/organization-branches`

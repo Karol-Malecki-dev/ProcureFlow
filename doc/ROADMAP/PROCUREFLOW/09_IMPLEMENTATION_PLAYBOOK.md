@@ -206,6 +206,10 @@ by the catalog and purchase requests. Implement its two branches in order.
 Do not add memberships or business roles in this branch. Keeping that boundary
 small makes ownership and authorization easier to test.
 
+**Current status:** implemented. The admin branch screen can resolve the single
+active MVP organization through `GET /api/organizations/active`; memberships and
+business roles remain deferred to `feature/branch-access-control`.
+
 #### Domain work
 
 Create the following concepts, adjusting names only if the existing code reveals

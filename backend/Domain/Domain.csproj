@@ -9,6 +9,7 @@
   <ItemGroup>
     <Folder Include="Constants\" />
     <Folder Include="Models\Auths\" />
+    <Folder Include="Models\Organizations\Enums\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,6 +9,7 @@ import Home from '../pages/Home';
 import Login from '../pages/Login';
 import NotFound from '../pages/NotFound';
 import Notifications from '../pages/Notifications';
+import OrganizationBranches from '../pages/OrganizationBranches';
 import Profile from '../pages/Profile';
 import ProjectInvitation from '../pages/ProjectInvitation';
 import Projects from '../pages/Projects';
@@ -45,10 +46,12 @@ export function AppRoutes() {
 
       <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
         <Route path="/admin" element={adminNavigationEnabled ? <AdminPanel /> : <Navigate to="/" replace />} />
+        <Route path="/admin/organization/branches" element={<OrganizationBranches />} />
         <Route
           path="/admin/users"
           element={userManagementNavigationEnabled ? <UserList /> : <Navigate to="/admin" replace />}
         />
+        <Route path="/admin/organizations/:organizationId/branches" element={<OrganizationBranches />} />
         <Route
           path="/users"
           element={userManagementNavigationEnabled ? <Navigate to="/admin/users" replace /> : <Navigate to="/admin" replace />}

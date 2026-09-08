@@ -81,7 +81,7 @@ według etapów poniżej, nie według starej roadmapy startera.
 | Etap | Cel | Status | Dokument |
 |---|---|---|---|
 | PF0 | Zamrożenie zakresu i decyzji domenowych | Ukończony przez tę roadmapę | [01_PF0_SCOPE_AND_DECISIONS.md](01_PF0_SCOPE_AND_DECISIONS.md) |
-| PF1 | Organizacja, oddziały i dostęp do zasobów | Następny | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
+| PF1 | Organizacja, oddziały i dostęp do zasobów | W toku: branch organizacji i oddziałów ukończony | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
 | PF2 | Katalog produktów | Planowany | [03_PF2_CATALOG.md](03_PF2_CATALOG.md) |
 | PF3 | Draft i wysłanie zapotrzebowania | Planowany | [04_PF3_PURCHASE_REQUEST_CORE.md](04_PF3_PURCHASE_REQUEST_CORE.md) |
 | PF4 | Budżety, zatwierdzanie i concurrency | Planowany | [05_PF4_APPROVALS_AND_BUDGETS.md](05_PF4_APPROVALS_AND_BUDGETS.md) |

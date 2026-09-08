@@ -52,6 +52,9 @@ export default function AdminPanel() {
           <button className="button button--ghost" type="button" onClick={() => void loadStats()} disabled={loading}>
             Refresh stats
           </button>
+          <Link className="button button--ghost" to="/admin/organization/branches">
+            Manage branches
+          </Link>
           <Link className="button" to="/admin/users">
             Open user directory
           </Link>

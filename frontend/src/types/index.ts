@@ -166,3 +166,25 @@ export type {
   UpdateNotificationEmailPreferenceResponse,
 } from './notifications';
 
+// Organization and branch types
+export type {
+  OrganizationAddressDto,
+  ActiveOrganizationDto,
+  BranchDto,
+  BranchListItemDto,
+  BranchDetailsDto,
+  CreatedBranchDto,
+  UpdatedBranchDto,
+  CreateBranchAddressRequest,
+  CreateBranchRequest,
+  UpdateBranchAddressRequest,
+  UpdateBranchRequest,
+  ArchiveBranchResponse,
+  ListBranchesResponse,
+  GetBranchDetailsResponse,
+  CreateBranchResponse,
+  UpdateBranchResponse,
+  ArchiveBranchApiResponse,
+  GetActiveOrganizationResponse,
+} from './organization';
+

@@ -565,6 +565,36 @@ textarea { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--border); b
   white-space: nowrap;
 }
 
+.branch-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.branch-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.branch-card__header h2 {
+  margin: 0;
+}
+
+.branch-card__address {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--muted);
+}
+
+.branch-card__address svg {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: var(--accent);
+}
+
 .auth-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);

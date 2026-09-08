@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Domain.Entities.Auth;
 using Domain.Entities.JWT;
+using Domain.Models.Organizations.Organization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
@@ -44,6 +45,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<ProjectInvitation> ProjectInvitations => Set<ProjectInvitation>();
 
     public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
+
+
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<Branch> Branches => Set<Branch>();
 
     /// <summary>
     /// Konfiguracja modeli i relacji między encjami
