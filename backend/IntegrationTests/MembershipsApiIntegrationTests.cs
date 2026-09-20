@@ -339,10 +339,11 @@ public sealed class MembershipsApiIntegrationTests
     {
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var suffix = Guid.NewGuid().ToString("N")[..8];
         var branch = new DomainBranch(
-            "Membership test branch",
+            $"Membership test branch {suffix}",
             CreateAddress(),
-            $"BR{Guid.NewGuid():N}"[..10],
+            $"BR{suffix}",
             organizationId);
         dbContext.Branches.Add(branch);
         await dbContext.SaveChangesAsync();
