@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Modules.ProjectTasks.CreateProjectTask;
 using Moq;
+using System.Net;
 
 namespace UnitTests.Modules.ProjectTasks.CreateProjectTask;
 
@@ -71,7 +72,7 @@ public sealed class CreateProjectTaskHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(201, result.CreatedStatusCode);
+        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.Equal("Project task created", result.Message);
         Assert.NotNull(result.Value);
         Assert.Equal(command.Title, result.Value!.Title);

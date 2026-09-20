@@ -1,5 +1,13 @@
 # Attachment Operations Contract
 
+> [!IMPORTANT]
+> This is the current operational contract for attachments in the temporary
+> `ProjectTasks` domain. Storage, validation, cleanup, reconciliation and scanning
+> behavior are reusable. The metadata model, authorization context and
+> `IProjectTask*` ports are not domain-neutral and must be replaced by
+> `PurchaseRequest`-owned contracts in PF5. Both models must not remain active after
+> PF6.
+
 ## Scope
 
 Attachment metadata is stored in PostgreSQL and binary content is stored through

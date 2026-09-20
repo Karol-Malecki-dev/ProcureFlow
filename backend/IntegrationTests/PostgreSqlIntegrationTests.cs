@@ -94,6 +94,7 @@ public sealed class PostgreSqlIntegrationTests
         await SeedUserAsync();
 
         JwtTokens initialTokens;
+        Guid userId;
         await using (var setupScope = _factory.Services.CreateAsyncScope())
         {
             var serviceProvider = setupScope.ServiceProvider;
@@ -102,6 +103,7 @@ public sealed class PostgreSqlIntegrationTests
             var user = await dbContext.Users
                 .SingleAsync(candidate => candidate.Email == EmailAddress.Create("postgres-concurrent@example.com"));
 
+            userId = user.Id;
             initialTokens = await tokenService.GenerateTokensAsync(user);
         }
 
@@ -118,7 +120,9 @@ public sealed class PostgreSqlIntegrationTests
 
         await using var verificationScope = _factory.Services.CreateAsyncScope();
         var verificationContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var storedTokens = await verificationContext.RefreshTokens.ToListAsync();
+        var storedTokens = await verificationContext.RefreshTokens
+            .Where(token => token.UserId == userId)
+            .ToListAsync();
 
         Assert.Equal(2, storedTokens.Count);
         Assert.Single(storedTokens, token => token.RevocationReason == RevocationReason.TokenRotated);

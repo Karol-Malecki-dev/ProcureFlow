@@ -2,9 +2,10 @@
 
 ## Cel dokumentu
 
-Ta roadmapa prowadzi istniejący starter do `ProcureFlow v1.0.0`: wewnętrznego
-systemu B2B do obsługi zapotrzebowań zakupowych w firmie posiadającej wiele
-oddziałów.
+Ta roadmapa definiuje budowę `ProcureFlow v1.0.0`: wewnętrznego systemu B2B do
+obsługi zapotrzebowań zakupowych w firmie posiadającej wiele oddziałów. Wykorzystuje
+gotowy fundament techniczny, ale wyznacza nową domenę produktu zamiast mechanicznie
+przemianowywać istniejące moduły demonstracyjne.
 
 Priorytetem jest szybkie zbudowanie spójnego projektu portfolio na poziomie
 junior+, a nie rozbudowanego systemu ERP. Największą wartością projektu mają być:
@@ -24,6 +25,10 @@ numerami wydań semver i nie zastępują tagu `v1.0.0`.
 Dotychczasowe pliki `V1-V8` w katalogu nadrzędnym pozostają dokumentacją
 dojrzałości technicznej startera. Ta roadmapa jest natomiast kanoniczną
 kolejnością budowania domeny ProcureFlow.
+
+Jeśli chcesz zacząć pisać kod, przejdź najpierw do
+[playbooka implementacji](09_IMPLEMENTATION_PLAYBOOK.md). Roadmapa opisuje
+dlaczego i co budujemy, a playbook opisuje kolejność plików, testów i walidacji.
 
 ## Zakres `v1.0.0`
 
@@ -76,13 +81,16 @@ według etapów poniżej, nie według starej roadmapy startera.
 | Etap | Cel | Status | Dokument |
 |---|---|---|---|
 | PF0 | Zamrożenie zakresu i decyzji domenowych | Ukończony przez tę roadmapę | [01_PF0_SCOPE_AND_DECISIONS.md](01_PF0_SCOPE_AND_DECISIONS.md) |
-| PF1 | Organizacja, oddziały i dostęp do zasobów | Następny | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
+| PF1 | Organizacja, oddziały i dostęp do zasobów | W toku: branch organizacji i oddziałów ukończony | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
 | PF2 | Katalog produktów | Planowany | [03_PF2_CATALOG.md](03_PF2_CATALOG.md) |
 | PF3 | Draft i wysłanie zapotrzebowania | Planowany | [04_PF3_PURCHASE_REQUEST_CORE.md](04_PF3_PURCHASE_REQUEST_CORE.md) |
 | PF4 | Budżety, zatwierdzanie i concurrency | Planowany | [05_PF4_APPROVALS_AND_BUDGETS.md](05_PF4_APPROVALS_AND_BUDGETS.md) |
 | PF5 | Realizacja, kompletność produktu i E2E | Planowany | [06_PF5_PRODUCT_COMPLETENESS.md](06_PF5_PRODUCT_COMPLETENESS.md) |
 | PF6 | Usunięcie domeny demo i release `v1.0.0` | Planowany | [07_PF6_CLEANUP_AND_RELEASE.md](07_PF6_CLEANUP_AND_RELEASE.md) |
 | PF7 | Rozszerzenia po MVP | Opcjonalny | [08_PF7_POST_MVP_OPTIONS.md](08_PF7_POST_MVP_OPTIONS.md) |
+
+Instrukcja wykonawcza dla wszystkich etapów znajduje się w
+[09_IMPLEMENTATION_PLAYBOOK.md](09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## Kanoniczna kolejność branchy
 

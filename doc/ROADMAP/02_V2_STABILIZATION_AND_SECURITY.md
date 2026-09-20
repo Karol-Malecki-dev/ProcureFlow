@@ -1,10 +1,17 @@
 # V2: Stabilizacja i bezpieczeństwo
 
+> [!NOTE]
+> V2 pozostaje zapisem zweryfikowanego hardeningu fundamentu. Nie jest aktywnym
+> backlogiem produktu; bieżącą kolejność określa
+> [roadmapa ProcureFlow](PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+
 ## Cel
 
 V2 ma domknąć istniejące fundamenty. Nie jest etapem dokładania wielu nowych funkcji. Jest etapem udowodnienia, że obecne auth, API i konfiguracja zachowują się poprawnie przy błędach, restartach, równoległych żądaniach i zmianach stanu konta.
 
-Zakres V2 na bieżącej gałęzi jest ukończony i zwalidowany. Kolejnym priorytetem rozwoju backendu jest V3.
+Zakres V2 jest ukończony i zwalidowany dla opisanego fundamentu. Historycznie
+kolejnym etapem technicznym był V3, natomiast aktualnym priorytetem produktu jest
+PF1.
 
 ## Status realizacji
 

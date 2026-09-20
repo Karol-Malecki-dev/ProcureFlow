@@ -8,6 +8,7 @@ using Infrastructure.Modules.Projects.CreateProjectInvitation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Npgsql;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using CreateInvitationCommand = Application.Modules.Projects.CreateProjectInvitation.CreateProjectInvitationCommand;
@@ -238,7 +239,7 @@ public sealed class CreateProjectInvitationHandlerTests
         var result = await handler.HandleAsync(command, cancellationToken);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(201, result.CreatedStatusCode);
+        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.NotNull(stagedInvitation);
         Assert.Equal(

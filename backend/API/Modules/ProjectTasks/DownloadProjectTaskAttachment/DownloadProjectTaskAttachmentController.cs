@@ -48,7 +48,7 @@ public sealed class DownloadProjectTaskAttachmentController : ProjectTaskControl
             cancellationToken);
         if (!result.IsSuccess)
         {
-            var statusCode = MapStatusCode(result.Status);
+            var statusCode = (int)result.StatusCode;
             return StatusCode(
                 statusCode,
                 ApiResponse<ProjectTaskAttachmentResponse>.Error(statusCode, result.Message));

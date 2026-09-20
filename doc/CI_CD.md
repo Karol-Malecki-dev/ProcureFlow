@@ -2,6 +2,12 @@
 
 Projekt używa GitHub Actions. Pipeline jest podzielony na CI, które sprawdza kod, oraz CD, które publikuje obrazy Docker.
 
+> [!NOTE]
+> Pipeline jest częścią działającego fundamentu technicznego ProcureFlow. Nazwy
+> obrazów `dotnet-react-starter-*` są odziedziczonymi identyfikatorami
+> operacyjnymi używanymi przez workflow, Compose, staging i rollback. Pozostają
+> niezmienione do kontrolowanej decyzji PF6; nie oznaczają nazwy produktu.
+
 ## CI
 
 Workflow znajduje się w `.github/workflows/ci.yml`.
@@ -47,6 +53,10 @@ Uruchamia się po pomyślnym zakończeniu CI dla `main` albo ręcznie. Buduje i 
 ghcr.io/<owner>/dotnet-react-starter-backend:<commit-sha>
 ghcr.io/<owner>/dotnet-react-starter-frontend:<commit-sha>
 ```
+
+Zmiana tych nazw wymaga jednego skoordynowanego brancha obejmującego workflow,
+registry, konfigurację staging, skrypty deploymentu, rollback i runbook. Nie
+należy wykonywać częściowego rename tylko w dokumentacji lub tylko w CD.
 
 Ręczne uruchomienie z `main` może wdrożyć obraz o pełnym SHA do chronionego środowiska `staging`.
 CD przesyła definicję VPS, uruchamia kontrolowane migracje przez `deploy.sh`, włącza stagingowy

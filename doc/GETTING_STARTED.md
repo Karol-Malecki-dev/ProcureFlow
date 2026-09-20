@@ -1,17 +1,25 @@
 # Getting Started
 
-Ten dokument prowadzi przez uruchomienie aktualnej wersji startera i wskazuje właściwą kolejność czytania dokumentacji.
+Ten dokument prowadzi przez uruchomienie bieżącej wersji ProcureFlow i wskazuje
+właściwą kolejność czytania dokumentacji.
 
 ## When To Read This Document
 
 Czytaj ten plik, gdy konfigurujesz środowisko lokalne, uruchamiasz projekt po raz pierwszy albo szukasz podstawowych komend developerskich.
+
+> [!IMPORTANT]
+> PF0 jest ukończony, a PF1 jest następnym etapem produktu. Uruchomiona aplikacja
+> nadal zawiera demonstracyjne moduły `Projects` i `ProjectTasks`; pozostają one
+> dostępne jako zweryfikowany fundament do czasu zastąpienia przez ProcureFlow.
+> Kolejność prac definiuje
+> [roadmapa produktu](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
 ## Prerequisites
 
 Do uruchomienia projektu lokalnie potrzebujesz:
 
 - .NET 9 SDK
-- Node.js 20+
+- Node.js 22.x
 - Docker Desktop z Docker Compose, jeśli uruchamiasz pełny stack w kontenerach
 - PostgreSQL lokalnie albo PostgreSQL uruchomionego przez Docker Compose
 
@@ -73,6 +81,9 @@ Usunięcie również danych z wolumenów:
 docker compose down -v
 ```
 
+Ta komenda trwale usuwa lokalną bazę, załączniki MinIO i klucze Data Protection.
+Nie używaj jej jako zwykłego sposobu zatrzymania środowiska.
+
 ## Run Backend Locally
 
 W katalogu głównym:
@@ -128,13 +139,14 @@ npm run build
 
 Zalecana kolejność:
 
-1. `README.md` - szybki opis projektu i główne komendy
-2. `ARCHITECTURE.md` - granice warstw i przepływy informacji
-3. `BACKEND_SETUP.md` - backend, konfiguracja i persistence
-4. `FRONTEND_SETUP.md` - bootstrap, routing i warstwa API
-5. `JWT_ARCHITECTURE.md` - sesja, JWT i refresh token rotation
-6. `EMAIL_2FA_FLOWS.md` - confirm email, 2FA i reset hasła
-7. `ADDING_FEATURES.md` - workflow rozszerzania projektu
+1. [Mapa dokumentacji](README.md) - źródła prawdy i status dokumentów
+2. [Roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md) - zakres i kolejność produktu
+3. [Architektura](ARCHITECTURE.md) - stan bieżący i docelowe granice modułów
+4. [Backend setup](BACKEND_SETUP.md) - backend, konfiguracja i persistence
+5. [Frontend setup](FRONTEND_SETUP.md) - bootstrap, routing i warstwa API
+6. [JWT architecture](JWT_ARCHITECTURE.md) - sesja, JWT i refresh token rotation
+7. [Email and 2FA flows](EMAIL_2FA_FLOWS.md) - confirm email, 2FA i reset hasła
+8. [Adding features](ADDING_FEATURES.md) - workflow rozszerzania produktu
 
 ## Troubleshooting Order
 
@@ -149,10 +161,6 @@ Gdy aplikacja nie startuje, sprawdź kolejno:
 
 ## See Also
 
-- `README.md` - aktualny opis funkcji, stacku i endpointów auth
-- `ARCHITECTURE.md` - ogólny model projektu
-- `BACKEND_SETUP.md` - szczegóły backendu
-- `FRONTEND_SETUP.md` - szczegóły frontendu
-- `JWT_ARCHITECTURE.md` - model sesji i tokenów
-- `EMAIL_2FA_FLOWS.md` - flow emailowe i 2FA
-- `ADDING_FEATURES.md` - zasady dodawania feature'ów
+- [Główny README](../README.PL.md) - aktualny opis produktu i komendy
+- [Techniczna roadmapa fundamentu](ROADMAP/00_ROADMAP_OVERVIEW.md) - historia V1-V8
+- [Backendowa roadmapa produktu](../backend/DEVELOPMENT_ROADMAP.md) - skrócony indeks PF0-PF7

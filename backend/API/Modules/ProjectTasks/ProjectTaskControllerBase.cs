@@ -21,13 +21,14 @@ public abstract class ProjectTaskControllerBase : ControllerBase
     {
         if (!result.IsSuccess)
         {
-            var statusCode = MapStatusCode(result.Status);
+            var statusCode = (int)result.StatusCode;
             return StatusCode(statusCode, ApiResponse<TResponse>.Error(statusCode, result.Message));
         }
 
+        var successStatusCode = (int)result.StatusCode;
         return StatusCode(
-            result.CreatedStatusCode,
-            ApiResponse<TResponse>.Success(map(result.Value!), result.Message, result.CreatedStatusCode));
+            successStatusCode,
+            ApiResponse<TResponse>.Success(map(result.Value!), result.Message, successStatusCode));
     }
 
     protected static ProjectTaskResponse MapTask(ProjectTaskView task) => new(
@@ -62,15 +63,6 @@ public abstract class ProjectTaskControllerBase : ControllerBase
         attachment.ContentType,
         attachment.SizeBytes,
         attachment.CreatedAt);
-
-    protected static int MapStatusCode(ProjectOperationStatus status) => status switch
-    {
-        ProjectOperationStatus.NotFound => 404,
-        ProjectOperationStatus.ValidationError => 400,
-        ProjectOperationStatus.Conflict => 409,
-        ProjectOperationStatus.Forbidden => 403,
-        _ => 500
-    };
 
     protected bool TryGetCurrentUserId(out Guid userId)
     {

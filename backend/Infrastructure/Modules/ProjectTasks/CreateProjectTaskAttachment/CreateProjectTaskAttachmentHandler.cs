@@ -5,6 +5,7 @@ using Application.Modules.ProjectTasks.CreateProjectTaskAttachment;
 using Domain.Enums;
 using Microsoft.Extensions.Options;
 using Shared.Settings;
+using System.Net;
 
 namespace Infrastructure.Modules.ProjectTasks.CreateProjectTaskAttachment;
 
@@ -145,7 +146,7 @@ public sealed class CreateProjectTaskAttachmentHandler : ICreateProjectTaskAttac
             return ProjectOperationResult<ProjectTaskAttachmentView>.Success(
                 attachment,
                 "Project task attachment created",
-                201);
+                HttpStatusCode.Created);
         }
         catch (ProjectTaskAttachmentQuotaExceededException exception)
         {

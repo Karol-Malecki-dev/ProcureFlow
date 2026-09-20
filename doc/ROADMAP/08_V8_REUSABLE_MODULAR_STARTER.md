@@ -1,5 +1,10 @@
 # V8: Reusable Modular Starter / Platformization
 
+> [!NOTE]
+> V8 dotyczy ewentualnej platformizacji fundamentu po potwierdzeniu wzorców w
+> działającym produkcie. Nie należy realizować go równolegle z roadmapą
+> ProcureFlow PF1-PF6.
+
 ## Cel
 
 V8 przekształca sprawdzone wzorce z V3-V7 w powtarzalny starter, który pomaga tworzyć

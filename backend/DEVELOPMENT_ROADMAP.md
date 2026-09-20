@@ -40,6 +40,7 @@ foundation. Status is based on a stage Definition of Done, not the number of fil
 
 | Stage | Focus | Detailed document |
 |---|---|---|
+| Implementation | File-by-file execution path and validation workflow | [09_IMPLEMENTATION_PLAYBOOK.md](../doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md) |
 | PF0 | Product scope and domain decisions | [01_PF0_SCOPE_AND_DECISIONS.md](../doc/ROADMAP/PROCUREFLOW/01_PF0_SCOPE_AND_DECISIONS.md) |
 | PF1 | Organization, branches and access | [02_PF1_ORGANIZATION_AND_ACCESS.md](../doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md) |
 | PF2 | Catalog reference data and products | [03_PF2_CATALOG.md](../doc/ROADMAP/PROCUREFLOW/03_PF2_CATALOG.md) |
@@ -53,6 +54,8 @@ foundation. Status is based on a stage Definition of Done, not the number of fil
 
 The complete branch order is in the
 [product roadmap overview](../doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
+Use the [ProcureFlow implementation playbook](../doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md)
+for the concrete file-by-file writing order, focused ports, tests and commit format.
 The previous [technical foundation roadmap](../doc/ROADMAP/00_ROADMAP_OVERVIEW.md)
 remains available as reference.
 

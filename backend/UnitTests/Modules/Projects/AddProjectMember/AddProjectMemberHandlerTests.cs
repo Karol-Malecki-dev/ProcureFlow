@@ -5,6 +5,7 @@ using Domain.Enums;
 using Domain.ValueObjects;
 using Infrastructure.Modules.Projects.AddProjectMember;
 using Moq;
+using System.Net;
 
 namespace UnitTests.Modules.Projects.AddProjectMember;
 
@@ -124,7 +125,7 @@ public sealed class AddProjectMemberHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(201, result.CreatedStatusCode);
+        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.Equal(command.UserId, result.Value!.UserId);
         Assert.Equal(ProjectMemberRole.Member, result.Value.Role);
         _store.Verify(store => store.AddMember(It.Is<ProjectMember>(member =>

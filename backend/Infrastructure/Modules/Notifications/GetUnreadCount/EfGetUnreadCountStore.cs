@@ -14,5 +14,5 @@ public sealed class EfGetUnreadCountStore : IGetUnreadCountStore
     public Task<int> QueryAsync(Guid userId, CancellationToken cancellationToken = default)
         => _dbContext.Set<Notification>().CountAsync(
             notification => notification.UserId == userId && notification.ReadAt == null,
-            cancellationToken);
+            cancellationToken); 
 }

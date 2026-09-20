@@ -6,6 +6,27 @@ PF1 tworzy kontekst organizacyjny używany przez wszystkie kolejne moduły. Po t
 etapie backend potrafi jednoznacznie odpowiedzieć: do jakiego oddziału należy
 użytkownik i jakie operacje biznesowe może tam wykonać.
 
+## Status implementacji
+
+Branch `feature/organization-branches` jest ukończony w zakresie organizacji i
+administracyjnego CRUD oddziałów. Obejmuje:
+
+- model agregatu `Organization` z należącymi do niego oddziałami;
+- tworzenie, listowanie, odczyt szczegółów, aktualizację i miękką archiwizację;
+- normalizację oraz unikalność nazwy i kodu oddziału w organizacji;
+- ograniczenia PostgreSQL dla aktywnej organizacji, oddziałów i klucza obcego;
+- endpoint administracyjny `GET /api/organizations/active`, który rozwiązuje
+	aktywną organizację dla ekranu MVP bez ręcznego podawania GUID-u;
+- frontendowy ekran administracyjny z obsługą loading, empty, error i archive;
+- testy jednostkowe, API/PostgreSQL oraz testy frontendowe dla tego przepływu.
+
+PF1 jako cały etap pozostaje w toku, ale branch
+`feature/branch-access-control` ma zaimplementowany zakres administracji
+członkostwami. Obejmuje role `Employee`, `Manager` i `Procurement`, jeden
+aktywny membership na użytkownika, listowanie, zmianę, archiwizację oraz
+odczyt aktualnego kontekstu membershipu. Wykonanie testów PostgreSQL pozostaje
+zależne od dostępności lokalnego Docker Engine.
+
 ## Kolejność branchy
 
 ### 1. `feature/organization-branches`
@@ -30,8 +51,8 @@ Zakres:
 - role `Employee`, `Manager` i `Procurement`;
 - constraint jednego aktywnego członkostwa użytkownika w MVP;
 - jawny port odczytujący kontekst organizacyjny aktualnego użytkownika;
-- polityki dostępu zasobowego używane później przez katalog i wnioski;
-- administracyjne przypisywanie oraz zmiana roli;
+- administracyjne przypisywanie, listowanie, zmiana roli/oddziału i archiwizacja;
+- endpoint aktualnego membershipu używany później przez katalog i wnioski;
 - frontendowy wybór użytkownika i oddziału bez kopiowania reguł autoryzacji do UI.
 
 ## Rekomendowany model MVP
@@ -42,7 +63,9 @@ Najprostszy poprawny model to `OrganizationMembership` zawierający
 - `Employee` i `Manager` wymagają `BranchId`;
 - `Procurement` działa w całej organizacji i nie wymaga `BranchId`;
 - globalny `Admin` może zarządzać członkostwami;
-- unikalność `(OrganizationId, UserId)` uniemożliwia dwuznaczne przypisanie.
+- filtrowany indeks `UX_Memberships_ActiveUser` ogranicza globalnie użytkownika
+	do jednego aktywnego membershipu;
+- archiwizacja zachowuje historię, ale usuwa bieżący dostęp.
 
 Ten kompromis ogranicza MVP do jednego oddziału na osobę. Jeśli później pojawi się
 realna potrzeba managera wielu oddziałów, członkostwo można rozdzielić na poziom
@@ -69,11 +92,17 @@ organizacji i kolekcję przypisań oddziałowych.
 ### Integration/PostgreSQL tests
 
 - duplikat członkostwa jest blokowany przez bazę;
+- równoległe przypisanie tego samego użytkownika kończy się dokładnie jednym
+	sukcesem i jednym `409 Conflict`;
 - użytkownik nie odczytuje zasobów innego oddziału;
 - Manager ma uprawnienia tylko w przypisanym oddziale;
 - Procurement posiada zakres organizacji;
 - nieaktywny użytkownik traci dostęp mimo istniejącego tokenu;
 - migracje tworzą wymagane klucze obce i indeksy.
+
+Testy PostgreSQL oraz Testcontainers są przygotowane, ale ich wykonanie jest
+obecnie zablokowane przez niedostępny Docker Engine. Testy domeny, API w pamięci
+oraz frontend przechodzą.
 
 ### Frontend tests
 
@@ -88,7 +117,7 @@ organizacji i kolekcję przypisań oddziałowych.
 - istnieje jeden sposób uzyskania aktualnego kontekstu członkostwa;
 - endpointy administracyjne egzekwują dostęp po stronie backendu;
 - izolacja oddziałów ma test integracyjny;
-- schema i ograniczenia są przetestowane na PostgreSQL;
+- schema i ograniczenia mają testy PostgreSQL, oczekujące na uruchomienie Dockera;
 - backend i frontend budują się bez nowych ostrzeżeń związanych ze zmianą.
 
 ## Poza zakresem PF1

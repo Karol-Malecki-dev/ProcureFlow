@@ -7,6 +7,7 @@ using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Modules.Projects.Invitations;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using CreateInvitationCommand = Application.Modules.Projects.CreateProjectInvitation.CreateProjectInvitationCommand;
 
 namespace Infrastructure.Modules.Projects.CreateProjectInvitation;
@@ -158,6 +159,6 @@ public sealed class CreateProjectInvitationHandler : ICreateProjectInvitationHan
         return ProjectOperationResult<CreatedProjectInvitationView>.Success(
             new CreatedProjectInvitationView(view, rawToken),
             "Project invitation created",
-            201);
+            HttpStatusCode.Created);
     }
 }

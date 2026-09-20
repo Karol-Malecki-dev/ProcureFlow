@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Shared.Settings;
 using Moq;
 using System.IO.Compression;
+using System.Net;
 
 namespace UnitTests.Modules.ProjectTasks.CreateProjectTaskAttachment;
 
@@ -201,7 +202,7 @@ public sealed class CreateProjectTaskAttachmentHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(201, result.CreatedStatusCode);
+        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.Same(expected, result.Value);
         _storage.Verify(
             storage => storage.SaveAsync(

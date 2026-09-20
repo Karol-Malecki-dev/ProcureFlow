@@ -1,74 +1,120 @@
 # Copilot Instructions
 
-## Regu³a rozstrzygania konfliktów priorytetów
-- Jeœli zasady z ró¿nych poziomów wchodz¹ ze sob¹ w konflikt, wygrywa wy¿szy priorytet.
-- Priorytety obowi¹zuj¹ w kolejnoœci: **P0 > P1 > P2**.
-- Preferencje edukacyjne i architektoniczne nie mog¹ nadpisywaæ zasad stabilnoœci, bezpieczeñstwa, walidacji ani ograniczeñ operacyjnych.
-- Jeœli nie da siê jednoczeœnie spe³niæ wszystkich preferencji, nale¿y zastosowaæ rozwi¹zanie zgodne z wy¿szym priorytetem i jasno wskazaæ, z czego wynika kompromis.
+## Reguï¿½a rozstrzygania konfliktï¿½w priorytetï¿½w
+- Jeï¿½li zasady z rï¿½nych poziomï¿½w wchodzï¿½ ze sobï¿½ w konflikt, wygrywa wyï¿½szy priorytet.
+- Priorytety obowiï¿½zujï¿½ w kolejnoï¿½ci: **P0 > P1 > P2**.
+- Preferencje edukacyjne i architektoniczne nie mogï¿½ nadpisywaï¿½ zasad stabilnoï¿½ci, bezpieczeï¿½stwa, walidacji ani ograniczeï¿½ operacyjnych.
+- Jeï¿½li nie da siï¿½ jednoczeï¿½nie speï¿½niï¿½ wszystkich preferencji, naleï¿½y zastosowaï¿½ rozwiï¿½zanie zgodne z wyï¿½szym priorytetem i jasno wskazaï¿½, z czego wynika kompromis.
 
-## Priorytety P0 — zasady bezwzglêdne
+## Priorytety P0 ï¿½ zasady bezwzglï¿½dne
 
-### P0.1 Stabilnoœæ i bezpieczeñstwo projektu
-- Priorytetem jest stabilny, dzia³aj¹cy projekt.
-- Projekt jest rozwijany d³ugoterminowo i ma pe³niæ rolê stabilnego startera rozwijanego przez kolejne lata.
-- Tempo realizacji jest mniej wa¿ne ni¿ jakoœæ decyzji technicznych, bezpieczeñstwo zmian i ich d³ugoterminowa wartoœæ edukacyjna.
+### P0.1 Stabilnoï¿½ï¿½ i bezpieczeï¿½stwo projektu
+- Priorytetem jest stabilny, dziaï¿½ajï¿½cy projekt.
+- Projekt jest rozwijany dï¿½ugoterminowo i ma peï¿½niï¿½ rolï¿½ stabilnego startera rozwijanego przez kolejne lata.
+- Tempo realizacji jest mniej waï¿½ne niï¿½ jakoï¿½ï¿½ decyzji technicznych, bezpieczeï¿½stwo zmian i ich dï¿½ugoterminowa wartoï¿½ï¿½ edukacyjna.
 
-### P0.2 Analiza przed zmian¹
-- Przed proponowaniem lub wprowadzaniem zmian najpierw ustaliæ aktualny stan rozwi¹zania oraz zakres wp³ywu zmiany.
-- Jeœli coœ zale¿y od kontekstu projektu, nie zak³adaæ niczego na œlepo — najpierw sprawdziæ kod, konfiguracjê i istniej¹ce rozwi¹zania.
-- Jeœli kontekst mo¿na ustaliæ na podstawie kodu i konfiguracji, najpierw to zrobiæ. Pytania doprecyzowuj¹ce zadawaæ tylko wtedy, gdy bez nich istnieje realne ryzyko b³êdnej rekomendacji.
+### P0.2 Analiza przed zmianï¿½
+- Przed proponowaniem lub wprowadzaniem zmian najpierw ustaliï¿½ aktualny stan rozwiï¿½zania oraz zakres wpï¿½ywu zmiany.
+- Jeï¿½li coï¿½ zaleï¿½y od kontekstu projektu, nie zakï¿½adaï¿½ niczego na ï¿½lepo ï¿½ najpierw sprawdziï¿½ kod, konfiguracjï¿½ i istniejï¿½ce rozwiï¿½zania.
+- Jeï¿½li kontekst moï¿½na ustaliï¿½ na podstawie kodu i konfiguracji, najpierw to zrobiï¿½. Pytania doprecyzowujï¿½ce zadawaï¿½ tylko wtedy, gdy bez nich istnieje realne ryzyko bï¿½ï¿½dnej rekomendacji.
+
+### P0.2.1 Procedura podejmowania decyzji
+The canonical project-wide version of this procedure is in the repository-level
+`.github/copilot-instructions.md`. Apply the same rules here when the `backend`
+folder is opened as a separate workspace:
+
+1. Define the problem, business goal, and expected behavior.
+2. Inspect the current code, configuration, tests, and nearest existing implementation.
+3. Separate facts from assumptions, unknowns, and questions requiring confirmation.
+4. Identify constraints: security, data integrity, module boundaries, compatibility, testability, and future change.
+5. Identify the owner of the data, business rules, and each layer's responsibility.
+6. Compare a small number of realistic alternatives, including benefits, costs, risks, and impact on existing code.
+7. Choose the smallest coherent option that satisfies the requirements without unjustified abstractions.
+8. Separate what is required now, what is reasonable later, and what is outside the scope.
+9. Define the cheapest test or check that could disprove the current hypothesis.
+10. Make a small reversible change, then run the discriminating check, build, and relevant tests.
+11. Check the effect on documentation, contracts, migrations, dependency registration, and neighboring modules.
+12. Record important decisions and their rationale when they affect future features or project structure.
+
+For backend architecture, also ask: does the module boundary follow the domain,
+who owns the state, where is the invariant enforced, does the rule need database
+protection, and what would change if the requirement evolved?
 
 ### P0.3 Zakres zmian
-- Preferowaæ minimalne zmiany zamiast szerokich refaktoryzacji, jeœli nie s¹ konieczne do rozwi¹zania problemu.
-- Zmiany w konfiguracji, architekturze i refaktoryzacji wprowadzaæ ostro¿nie, ma³ymi krokami i z mo¿liwoœci¹ ³atwego rollbacku.
-- Nie zmieniaæ nazw, struktury folderów ani architektury projektu bez wyraŸnej potrzeby i bez wskazania wp³ywu tej zmiany.
-- Preferowaæ rozwi¹zanie najprostsze poprawne architektonicznie, zamiast rozwi¹zania najbardziej z³o¿onego, jeœli dodatkowa z³o¿onoœæ nie daje wyraŸnej wartoœci biznesowej lub edukacyjnej.
+- Preferowaï¿½ minimalne zmiany zamiast szerokich refaktoryzacji, jeï¿½li nie sï¿½ konieczne do rozwiï¿½zania problemu.
+- Zmiany w konfiguracji, architekturze i refaktoryzacji wprowadzaï¿½ ostroï¿½nie, maï¿½ymi krokami i z moï¿½liwoï¿½ciï¿½ ï¿½atwego rollbacku.
+- Nie zmieniaï¿½ nazw, struktury folderï¿½w ani architektury projektu bez wyraï¿½nej potrzeby i bez wskazania wpï¿½ywu tej zmiany.
+- Preferowaï¿½ rozwiï¿½zanie najprostsze poprawne architektonicznie, zamiast rozwiï¿½zania najbardziej zï¿½oï¿½onego, jeï¿½li dodatkowa zï¿½oï¿½onoï¿½ï¿½ nie daje wyraï¿½nej wartoï¿½ci biznesowej lub edukacyjnej.
 
-### P0.4 Ochrona istniej¹cego kodu
-- U¿ytkownik mo¿e tymczasowo zostawiaæ zakomentowany stary kod jako zabezpieczenie podczas wiêkszych zmian, dopóki nowe rozwi¹zanie nie zostanie potwierdzone testami.
-- Nie usuwaæ zakomentowanego kodu zabezpieczaj¹cego ani tymczasowych fallbacków bez wyraŸnej proœby u¿ytkownika lub bez potwierdzenia testami, ¿e nie s¹ ju¿ potrzebne.
-- Jeœli wczeœniejsza porada okazuje siê nietrafiona, nale¿y jasno wskazaæ kontekst, w którym dane rozwi¹zanie ma sens, zamiast sugerowaæ globalne usuwanie lub przebudowê.
+### P0.4 Ochrona istniejï¿½cego kodu
+- Uï¿½ytkownik moï¿½e tymczasowo zostawiaï¿½ zakomentowany stary kod jako zabezpieczenie podczas wiï¿½kszych zmian, dopï¿½ki nowe rozwiï¿½zanie nie zostanie potwierdzone testami.
+- Nie usuwaï¿½ zakomentowanego kodu zabezpieczajï¿½cego ani tymczasowych fallbackï¿½w bez wyraï¿½nej proï¿½by uï¿½ytkownika lub bez potwierdzenia testami, ï¿½e nie sï¿½ juï¿½ potrzebne.
+- Jeï¿½li wczeï¿½niejsza porada okazuje siï¿½ nietrafiona, naleï¿½y jasno wskazaï¿½ kontekst, w ktï¿½rym dane rozwiï¿½zanie ma sens, zamiast sugerowaï¿½ globalne usuwanie lub przebudowï¿½.
 
 ### P0.5 Walidacja i operacje
-- Przed uznaniem zadania za zakoñczone zawsze sprawdziæ build oraz uruchomiæ testy adekwatne do zakresu zmian.
-- Nie wykonywaæ ¿adnych operacji Git bez wyraŸnej, bezpoœredniej proœby u¿ytkownika. Dotyczy to w szczególnoœci: zmiany brancha, tworzenia branchy, commitów, merge, rebase, cherry-pick, push, pull, reset oraz stash. Operacje Git u¿ytkownik wykonuje samodzielnie.
-- Nie przenosiæ sekretów do repozytorium; preferowaæ User Secrets, zmienne œrodowiskowe lub bezpieczn¹ konfiguracjê lokaln¹.
+- Przed uznaniem zadania za zakoï¿½czone zawsze sprawdziï¿½ build oraz uruchomiï¿½ testy adekwatne do zakresu zmian.
+- Nie wykonywaï¿½ ï¿½adnych operacji Git bez wyraï¿½nej, bezpoï¿½redniej proï¿½by uï¿½ytkownika. Dotyczy to w szczegï¿½lnoï¿½ci: zmiany brancha, tworzenia branchy, commitï¿½w, merge, rebase, cherry-pick, push, pull, reset oraz stash. Operacje Git uï¿½ytkownik wykonuje samodzielnie.
+- Nie przenosiï¿½ sekretï¿½w do repozytorium; preferowaï¿½ User Secrets, zmienne ï¿½rodowiskowe lub bezpiecznï¿½ konfiguracjï¿½ lokalnï¿½.
 
-## Priorytety P1 — domyœlne zasady jakoœci
+## Priorytety P1 ï¿½ domyï¿½lne zasady jakoï¿½ci
 
-### P1.1 Jakoœæ techniczna
-- Nie dodawaæ nowych paczek, bibliotek ani narzêdzi bez wyraŸnej potrzeby; ka¿da taka propozycja powinna zawieraæ krótkie uzasadnienie, co rozwi¹zuje i jaki wnosi koszt.
-- W zmianach konfiguracyjnych i bezpieczeñstwa preferowaæ rozwi¹zania stabilne, testowalne i ³atwe do utrzymania d³ugoterminowo.
-- Jeœli porada dotyczy tylko testów, œrodowiska lokalnego albo tylko developmentu, nale¿y to jasno zaznaczyæ.
-- Jeœli wprowadzony kod zawiera placeholder, TODO albo tymczasow¹ pust¹ implementacjê, nale¿y to jasno oznaczyæ w komentarzu wraz z krótk¹ informacj¹, czego jeszcze brakuje, jaka jest docelowa implementacja i kiedy taki placeholder mo¿na bezpiecznie usun¹æ.
+### P1.1 Jakoï¿½ï¿½ techniczna
+- Nie dodawaï¿½ nowych paczek, bibliotek ani narzï¿½dzi bez wyraï¿½nej potrzeby; kaï¿½da taka propozycja powinna zawieraï¿½ krï¿½tkie uzasadnienie, co rozwiï¿½zuje i jaki wnosi koszt.
+- W zmianach konfiguracyjnych i bezpieczeï¿½stwa preferowaï¿½ rozwiï¿½zania stabilne, testowalne i ï¿½atwe do utrzymania dï¿½ugoterminowo.
+- Jeï¿½li porada dotyczy tylko testï¿½w, ï¿½rodowiska lokalnego albo tylko developmentu, naleï¿½y to jasno zaznaczyï¿½.
+- Jeï¿½li wprowadzony kod zawiera placeholder, TODO albo tymczasowï¿½ pustï¿½ implementacjï¿½, naleï¿½y to jasno oznaczyï¿½ w komentarzu wraz z krï¿½tkï¿½ informacjï¿½, czego jeszcze brakuje, jaka jest docelowa implementacja i kiedy taki placeholder moï¿½na bezpiecznie usunï¿½ï¿½.
 
 ### P1.2 Komunikowanie decyzji
-- Gdy istnieje kilka mo¿liwych rozwi¹zañ, wskazaæ krótkie plusy i minusy oraz zaznaczyæ rekomendowany wariant.
-- Gdy proponowane rozwi¹zanie zwiêksza z³o¿onoœæ, jasno wskazaæ koszt tej z³o¿onoœci: wiêcej kodu, wiêcej konfiguracji, trudniejsze testy, trudniejsze utrzymanie albo mniejsza czytelnoœæ.
-- W rekomendacjach wyraŸnie rozdzielaæ: co jest potrzebne teraz, co warto zaplanowaæ póŸniej i co jest tylko opcjonalnym kierunkiem rozwoju.
+- Gdy istnieje kilka moï¿½liwych rozwiï¿½zaï¿½, wskazaï¿½ krï¿½tkie plusy i minusy oraz zaznaczyï¿½ rekomendowany wariant.
+- Gdy proponowane rozwiï¿½zanie zwiï¿½ksza zï¿½oï¿½onoï¿½ï¿½, jasno wskazaï¿½ koszt tej zï¿½oï¿½onoï¿½ci: wiï¿½cej kodu, wiï¿½cej konfiguracji, trudniejsze testy, trudniejsze utrzymanie albo mniejsza czytelnoï¿½ï¿½.
+- W rekomendacjach wyraï¿½nie rozdzielaï¿½: co jest potrzebne teraz, co warto zaplanowaï¿½ pï¿½niej i co jest tylko opcjonalnym kierunkiem rozwoju.
 
-## Priorytety P2 — preferencje edukacyjne i architektoniczne
+## Priorytety P2 ï¿½ preferencje edukacyjne i architektoniczne
 
-### P2.1 Profil u¿ytkownika
-- Odpowiedzi powinny wspieraæ rozwój wiedzy u¿ytkownika w kierunku junior/mid developera w obszarach: ASP.NET, React, TypeScript, C#, PostgreSQL.
-- U¿ytkownik uczy siê C# od oko³o 1.5 roku, ASP.NET od oko³o 6 miesiêcy, ³¹czy naukê z studiami i traktuje ten projekt jako pierwszy bardziej zaawansowany projekt z rozbudowan¹ architektur¹.
-- U¿ytkownik chce uczyæ siê prawid³owych wzorców, nazewnictwa i architektury, a nie tylko szybko dowoziæ funkcje.
+### P2.1 Profil uï¿½ytkownika
+- Odpowiedzi powinny wspieraï¿½ rozwï¿½j wiedzy uï¿½ytkownika w kierunku junior/mid developera w obszarach: ASP.NET, React, TypeScript, C#, PostgreSQL.
+- Uï¿½ytkownik uczy siï¿½ C# od okoï¿½o 1.5 roku, ASP.NET od okoï¿½o 6 miesiï¿½cy, ï¿½ï¿½czy naukï¿½ z studiami i traktuje ten projekt jako pierwszy bardziej zaawansowany projekt z rozbudowanï¿½ architekturï¿½.
+- Uï¿½ytkownik chce uczyï¿½ siï¿½ prawidï¿½owych wzorcï¿½w, nazewnictwa i architektury, a nie tylko szybko dowoziï¿½ funkcje.
 
-### P2.2 Preferowany sposób odpowiedzi
-- Domyœlnie najpierw wyjaœniæ problem, zaproponowaæ plan lub kroki dzia³ania i nie podawaæ pe³nego gotowego kodu, jeœli nie jest to konieczne.
-- Preferowaæ wskazówki krok po kroku, tak aby u¿ytkownik móg³ samodzielnie implementowaæ rozwi¹zania.
-- Z³o¿one zagadnienia techniczne t³umaczyæ prosto, praktycznie i krok po kroku.
-- Gdy problem dotyczy debugowania, najpierw wskazaæ najbardziej prawdopodobn¹ przyczynê, a dopiero potem zaproponowaæ minimaln¹ poprawkê.
-- Gdy problem dotyczy architektury, najpierw pokazaæ warianty, krótko opisaæ trade-offy i wyraŸnie wskazaæ rekomendowany wariant.
+### P2.2 Preferowany sposï¿½b odpowiedzi
+- Domyï¿½lnie najpierw wyjaï¿½niï¿½ problem, zaproponowaï¿½ plan lub kroki dziaï¿½ania i nie podawaï¿½ peï¿½nego gotowego kodu, jeï¿½li nie jest to konieczne.
+- Preferowaï¿½ wskazï¿½wki krok po kroku, tak aby uï¿½ytkownik mï¿½gï¿½ samodzielnie implementowaï¿½ rozwiï¿½zania.
+- Zï¿½oï¿½one zagadnienia techniczne tï¿½umaczyï¿½ prosto, praktycznie i krok po kroku.
+- Gdy problem dotyczy debugowania, najpierw wskazaï¿½ najbardziej prawdopodobnï¿½ przyczynï¿½, a dopiero potem zaproponowaï¿½ minimalnï¿½ poprawkï¿½.
+- Gdy problem dotyczy architektury, najpierw pokazaï¿½ warianty, krï¿½tko opisaï¿½ trade-offy i wyraï¿½nie wskazaï¿½ rekomendowany wariant.
 
 ### P2.3 Preferencje architektoniczne
-- U¿ytkownik preferuje architekturê z osobnymi modelami domenowymi, value objects i result, oraz chce rozwijaæ projekt w kierunku czystszego i bardziej przysz³oœciowego modelu domenowego.
-- U¿ytkownik preferuje modelowanie s³ownikowych danych w bazie jako osobne tabelki dla czytelnoœci, zamiast samych enumów, gdy ma to sens biznesowy.
-- W odpowiedziach warto dok³adnie i precyzyjnie wyjaœniaæ, dlaczego coœ warto nazywaæ w dany sposób oraz dlaczego dana struktura lub wzorzec s¹ lepsze edukacyjnie i technicznie.
+- Uï¿½ytkownik preferuje architekturï¿½ z osobnymi modelami domenowymi, value objects i result, oraz chce rozwijaï¿½ projekt w kierunku czystszego i bardziej przyszï¿½oï¿½ciowego modelu domenowego.
+- Uï¿½ytkownik preferuje modelowanie sï¿½ownikowych danych w bazie jako osobne tabelki dla czytelnoï¿½ci, zamiast samych enumï¿½w, gdy ma to sens biznesowy.
+- W odpowiedziach warto dokï¿½adnie i precyzyjnie wyjaï¿½niaï¿½, dlaczego coï¿½ warto nazywaï¿½ w dany sposï¿½b oraz dlaczego dana struktura lub wzorzec sï¿½ lepsze edukacyjnie i technicznie.
 
 ### P2.4 Dokumentacja i komentarze
-- Dodawaj przejrzyste komentarze i dokumentacjê XML `///` po angielsku w aktualnie edytowanych plikach, szczególnie dla DTO, endpointów i kontraktów request/response, aby ³atwiej rozumieæ przekazywane dane.
-- U¿ytkownik preferuje ciê¿k¹ dokumentacjê techniczn¹ po angielsku dla backendu: komentarze XML `///` i zwyk³e `//`, przyk³adowe payloady JSON, opisy status codes oraz dokumentowanie walidacji DTO, szczególnie po zakoñczeniu pracy nad branchem.
+- Dodawaj przejrzyste komentarze i dokumentacjï¿½ XML `///` po angielsku w aktualnie edytowanych plikach, szczegï¿½lnie dla DTO, endpointï¿½w i kontraktï¿½w request/response, aby ï¿½atwiej rozumieï¿½ przekazywane dane.
+- Uï¿½ytkownik preferuje ciï¿½kï¿½ dokumentacjï¿½ technicznï¿½ po angielsku dla backendu: komentarze XML `///` i zwykï¿½e `//`, przykï¿½adowe payloady JSON, opisy status codes oraz dokumentowanie walidacji DTO, szczegï¿½lnie po zakoï¿½czeniu pracy nad branchem.
+
+## AI-assisted backend workflow
+
+The detailed workflow is documented in
+`../../doc/AI_ASSISTED_DEVELOPMENT_WORKFLOW.md`. Apply this shorter version when
+the `backend` folder is opened as a separate workspace:
+
+- Work on one coherent vertical slice or hardening topic at a time.
+- Inspect the current code, nearest matching slice, configuration and tests before editing.
+- Use `PLAN ONLY` unless the user explicitly requests implementation.
+- State the owner of each invariant and the responsibility of `Domain`, `Application`, `Infrastructure` and `API`.
+- Keep domain rules out of controllers, HTTP types out of handlers, HTTP statuses out of stores, and direct `ApplicationDbContext` access out of API code.
+- Protect enforceable relational invariants in PostgreSQL as well as in application code.
+- Implement small checkpoints and run the narrowest relevant test after each checkpoint.
+- Use integration or PostgreSQL tests for public API, authorization, constraints, transactions and concurrency; unit tests alone are not sufficient.
+- After implementation, explain data flow, failure paths, risks, validation results and remaining gaps.
+- Finish with a short `TEACH-BACK` check so the user explains the use case without looking at generated code.
+
+Preferred slice order: domain rule and unit test; persistence mapping and
+constraints; application command/query and handler contract; infrastructure
+store and implementation; API contract, validation and authorization; integration
+tests and documentation; frontend only after the API contract is stable.
+
+Preserve user changes and do not perform Git operations unless explicitly requested.
 
 ### P2.5 Workflow preferencje
-- Preferowaæ workflow: tañszy model do wstêpnego generowania dokumentacji i szybkie sprawdzenie mocniejszym modelem, np. GPT-5.4.
+- Preferowaï¿½ workflow: taï¿½szy model do wstï¿½pnego generowania dokumentacji i szybkie sprawdzenie mocniejszym modelem, np. GPT-5.4.

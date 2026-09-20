@@ -7,9 +7,9 @@ Przepis na zbudowanie **kontenera z aplikacją React**. Frontend wymaga innego p
 
 ### 📦 Stage 1: Builder (Etap budowania)
 ```dockerfile
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 ```
-- **node:20-alpine** = bazowy obraz Node.js (alpine = bardzo mały, ~160MB)
+- **node:22-alpine** = bazowy obraz Node.js używany także w CI
 - **AS builder** = nazwa etapu do odwołania się później
 - Alpine = Linux minimalistyczny, bez zbędnych rzeczy
 
@@ -41,12 +41,12 @@ COPY . .
 RUN npm run build
 ```
 - Buduje aplikację React
-- Tworzy folder `build/` z zoptymalizowanymi `.js`, `.css`, `.html` plikami
-- HTML aplikacji: `build/index.html`
+- Vite tworzy folder `dist/` ze zoptymalizowanymi plikami statycznymi
+- HTML aplikacji: `dist/index.html`
 
 ### 🌐 Stage 2: Runtime - Nginx (serwer WWW)
 ```dockerfile
-FROM nginx:alpine
+FROM nginx:1.28-alpine
 ```
 - Nowy bazowy obraz - **nginx** (ultra lekki serwer HTTP)
 - Tylko ~10MB!
@@ -75,7 +75,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 ### ❌ Node.js (złe):
 ```dockerfile
-FROM node:20
+FROM node:22
 COPY . .
 CMD ["npm", "start"]
 ```
@@ -85,8 +85,8 @@ CMD ["npm", "start"]
 
 ### ✅ Nginx (dobre):
 ```dockerfile
-FROM nginx:alpine
-COPY build /usr/share/nginx/html
+FROM nginx:1.28-alpine
+COPY dist /usr/share/nginx/html
 ```
 - Obraz: ~20MB (nginx + alpine linux)
 - Szybko start
@@ -129,11 +129,11 @@ docker run -p 3000:3000 dotnet-react-starter:frontend
 
 1. ✅ Docker pobiera Node.js
 2. ✅ Instaluje npm packages
-3. ✅ Buduje React (`npm run build` → folder `build/`)
+3. ✅ Buduje React (`npm run build` → folder `dist/`)
 4. ✅ Docker pobiera nginx
-5. ✅ Kopiuje folder `build/` do nginx
+5. ✅ Kopiuje folder `dist/` do nginx
 6. ✅ Uruchamia nginx na porcie 3000
-7. ✅ `http://localhost:3000` serwuje `build/index.html`
+7. ✅ `http://localhost:3000` serwuje `dist/index.html`
 
 ## Czyszczenie cache (jeśli zmienisz package.json)
 
@@ -147,14 +147,17 @@ docker build -t dotnet-react-starter:frontend frontend/
 
 ## Hot-reload w Development
 
-W Dockerzie (produkcja) = brak hot-reload (build jest do serwowania)
+Repozytorium nie zawiera `docker-compose.dev.yml`. Obraz frontendowy służy do
+sprawdzania produkcyjnego buildu i nie zapewnia hot reloadu. Development uruchamiaj
+bezpośrednio przez Vite:
 
-W development (docker-compose.dev.yml) = będziemy mieć volume mount:
-```yaml
-volumes:
-  - ./frontend/src:/app/src
+```powershell
+Set-Location frontend
+npm ci
+npm start
 ```
-To pozwoli zmieniać kod i React będzie się przebudowywać na bieżąco!
+
+Serwer używa portu `3000` ustawionego w `vite.config.ts`.
 
 ## Problemy i rozwiązania
 

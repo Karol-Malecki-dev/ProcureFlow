@@ -32,13 +32,15 @@ public sealed class PostgreSqlWebApplicationFactory : CustomWebApplicationFactor
         var connectionString = _database.GetConnectionString();
         builder.UseSetting("ConnectionStrings:DefaultConnection", connectionString);
         builder.UseSetting("DbConnectionString", connectionString);
+        builder.UseSetting("AuthSecurity:RateLimitPermitLimit", "1000");
         builder.ConfigureAppConfiguration((_, configurationBuilder) =>
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = connectionString,
                 ["DbConnectionString"] = connectionString,
-                ["DefaultConnection"] = connectionString
+                ["DefaultConnection"] = connectionString,
+                ["AuthSecurity:RateLimitPermitLimit"] = "1000"
             });
         });
         builder.ConfigureServices(services =>

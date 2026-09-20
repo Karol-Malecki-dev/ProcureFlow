@@ -2,6 +2,7 @@ using Application.Features.Projects;
 using Application.Modules.Projects.CreateProject;
 using Domain.Entities;
 using Domain.Enums;
+using System.Net;
 
 namespace Infrastructure.Modules.Projects.CreateProject;
 
@@ -45,6 +46,6 @@ public sealed class CreateProjectHandler : ICreateProjectHandler
                 project.IsArchived,
                 ProjectMemberRole.Owner),
             "Project created",
-            201);
+            HttpStatusCode.Created);
     }
 }

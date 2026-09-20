@@ -1,8 +1,18 @@
 # Release Readiness Audit
 
+> [!IMPORTANT]
+> Status: point-in-time audit of the inherited technical foundation, verified on
+> the dates recorded below. Test counts are evidence for that checkpoint, not a
+> claim about the current working tree. This is not the ProcureFlow `v1.0.0`
+> acceptance report; current release criteria are defined by the
+> [V4 gate](../V4_RELEASE_GATE.md), [V5 gate](../V5_RELEASE_GATE.md) and the
+> [PF6 release plan](../ROADMAP/PROCUREFLOW/07_PF6_CLEANUP_AND_RELEASE.md).
+
 ## Scope
 
-This audit records the verification state of the `.NET 9 + React 19` starter after the frontend migration from Create React App to Vite and Vitest, plus the PostgreSQL integration-test and observability work.
+This audit records the verification state of the inherited `.NET 9 + React 19`
+technical foundation after the frontend migration from Create React App to Vite and
+Vitest, plus the PostgreSQL integration-test and observability work.
 
 The audit covers documentation consistency, build and test evidence, dependency risk, Docker packaging,
 VPS deployment operations, recovery automation, and known release limitations. It is not a penetration
@@ -55,8 +65,10 @@ upgrade was used.
 
 ## Release Limitations
 
-This repository is ready for a staging release-candidate validation, but the following points remain
-environment-specific or intentionally outside repository-only verification:
+At the time of this audit, the technical foundation was suitable for a staging
+release-candidate validation. That conclusion did not establish ProcureFlow product
+completeness. The following points remained environment-specific or intentionally
+outside repository-only verification:
 
 - The CD workflow can deploy a full-SHA image to the protected VPS staging environment and run public browser smoke; no real staging run has been recorded in this repository yet.
 - Production secrets, database migrations, CORS, cookies, TLS, monitoring, rollback, and hosting configuration still require validation on the target environment.
@@ -65,9 +77,9 @@ environment-specific or intentionally outside repository-only verification:
 - Local Docker image builds, Docker Compose smoke, and PostgreSQL Testcontainers passed; the CI Trivy image scan must still pass for the exact published SHA images.
 - Docker Compose defaults are intended for local development and smoke testing, not as production secrets.
 
-## Release Gate
+## Reproducing the Foundation Gate
 
-Before tagging a final release, run and record:
+To reproduce this checkpoint against the current working tree, run and record:
 
 ```powershell
 Set-Location backend
@@ -89,10 +101,13 @@ Set-Location ..
 The commands should complete successfully on a clean working tree with the target environment configuration.
 The protected staging workflow must additionally run the CD deployment, public browser smoke,
 Alertmanager notification check, backup copy, restore drill, and manual rollback described in the
-V5 release gate.
+V5 release gate. A ProcureFlow final release also requires the PF5 critical business workflow and
+all PF6 acceptance criteria.
 
 ## Conclusion
 
-The implementation is suitable for a staging release-candidate cycle. It should not be described as
-an accepted V5 production release until hosting, secrets, public workflows, alert delivery, off-host
-backup, restore, and rollback evidence are recorded for the selected deployment platform.
+The audit found the technical foundation suitable for a staging release-candidate
+cycle at the recorded checkpoint. It did not accept a V5 production release or a
+ProcureFlow product release. Those claims require fresh evidence for hosting, secrets,
+public workflows, alert delivery, off-host backup, restore and rollback, plus the PF5
+and PF6 product gates.
