@@ -111,7 +111,7 @@ public sealed class OrganizationsApiIntegrationTests
         updateResponse.EnsureSuccessStatusCode();
         var updated = await updateResponse.Content
             .ReadFromJsonAsync<ApiResponse<UpdateBranchResponse>>();
-        Assert.Equal($"UPD{suffix}", updated?.Data?.Code);
+        Assert.Equal($"UPD{suffix}".ToUpperInvariant(), updated?.Data?.Code);
 
         var archiveResponse = await _client.PostAsync(
             $"/api/organizations/{organizationId}/branches/{branchId}/archive",
