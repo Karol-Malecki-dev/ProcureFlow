@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Modules.ProjectTasks.CreateProjectTaskComment;
 using Moq;
+using System.Net;
 
 namespace UnitTests.Modules.ProjectTasks.CreateProjectTaskComment;
 
@@ -84,7 +85,7 @@ public sealed class CreateProjectTaskCommentHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(201, result.CreatedStatusCode);
+        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.Same(expected, result.Value);
         _commentStore.Verify(
             store => store.CreateAsync(

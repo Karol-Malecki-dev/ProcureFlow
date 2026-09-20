@@ -1,9 +1,9 @@
-using Application.Modules.Organization.ArchiveBranch;
+using Application.Modules.Organization.Branch.ArchiveBranch;
 using Domain.ValueObjects;
-using Infrastructure.Modules.Organization.ArchiveBranch;
+using Infrastructure.Modules.Organization.Branch.ArchiveBranch;
 using Moq;
-using DomainBranch = Domain.Models.Organizations.Organization.Branch;
-using DomainOrganization = Domain.Models.Organizations.Organization.Organization;
+using DomainBranch = Domain.Models.Organizations.Branch;
+using DomainOrganization = Domain.Models.Organizations.Organization;
 
 namespace UnitTests.Modules.Organization.ArchiveBranch;
 

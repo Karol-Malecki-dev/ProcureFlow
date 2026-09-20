@@ -1,3 +1,4 @@
+using System.Net;
 using Domain.Enums;
 using Application.Features.ProjectManagement.Tasks;
 
@@ -16,15 +17,30 @@ public sealed record ProjectOperationResult<T>(
     ProjectOperationStatus Status,
     T? Value = default,
     string Message = "Success",
-    int CreatedStatusCode = 200)
+    HttpStatusCode StatusCode = HttpStatusCode.OK)
 {
     public bool IsSuccess => Status == ProjectOperationStatus.Success;
 
-    public static ProjectOperationResult<T> Success(T value, string message = "Success", int statusCode = 200)
+    public static ProjectOperationResult<T> Success(
+        T value,
+        string message = "Success",
+        HttpStatusCode statusCode = HttpStatusCode.OK)
         => new(ProjectOperationStatus.Success, value, message, statusCode);
 
-    public static ProjectOperationResult<T> Failure(ProjectOperationStatus status, string message)
-        => new(status, default, message);
+    public static ProjectOperationResult<T> Failure(
+        ProjectOperationStatus status,
+        string message,
+        HttpStatusCode? statusCode = null)
+        => new(status, default, message, statusCode ?? GetFailureStatusCode(status));
+
+    private static HttpStatusCode GetFailureStatusCode(ProjectOperationStatus status) => status switch
+    {
+        ProjectOperationStatus.NotFound => HttpStatusCode.NotFound,
+        ProjectOperationStatus.ValidationError => HttpStatusCode.BadRequest,
+        ProjectOperationStatus.Conflict => HttpStatusCode.Conflict,
+        ProjectOperationStatus.Forbidden => HttpStatusCode.Forbidden,
+        _ => HttpStatusCode.InternalServerError
+    };
 }
 
 public sealed record ProjectView(

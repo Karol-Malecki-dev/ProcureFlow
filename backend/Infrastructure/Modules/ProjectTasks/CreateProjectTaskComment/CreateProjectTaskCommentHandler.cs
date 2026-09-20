@@ -3,6 +3,7 @@ using Application.Features.Projects;
 using Application.Modules.ProjectTasks.Comments;
 using Application.Modules.ProjectTasks.CreateProjectTaskComment;
 using Domain.Enums;
+using System.Net;
 
 namespace Infrastructure.Modules.ProjectTasks.CreateProjectTaskComment;
 
@@ -69,6 +70,6 @@ public sealed class CreateProjectTaskCommentHandler : ICreateProjectTaskCommentH
         return ProjectOperationResult<ProjectTaskCommentView>.Success(
             comment,
             "Project task comment created",
-            201);
+            HttpStatusCode.Created);
     }
 }

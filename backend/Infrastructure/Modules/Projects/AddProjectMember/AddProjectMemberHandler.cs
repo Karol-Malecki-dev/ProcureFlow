@@ -3,6 +3,7 @@ using Application.Modules.Projects.AddProjectMember;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace Infrastructure.Modules.Projects.AddProjectMember;
 
@@ -102,6 +103,6 @@ public sealed class AddProjectMemberHandler : IAddProjectMemberHandler
                 member.Role,
                 member.AddedAt),
             "Project member added",
-            201);
+            HttpStatusCode.Created);
     }
 }

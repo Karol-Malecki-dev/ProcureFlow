@@ -1,10 +1,18 @@
 import type {
   ArchiveBranchApiResponse,
+  ArchiveMembershipApiResponse,
+  CreateMembershipRequest,
+  CreateMembershipResponse,
   CreateBranchRequest,
   CreateBranchResponse,
+  GetCurrentMembershipResponse,
   GetBranchDetailsResponse,
   GetActiveOrganizationResponse,
+  ListMembershipsResponse,
+  MembershipListFilters,
   ListBranchesResponse,
+  UpdateMembershipRequest,
+  UpdateMembershipResponse,
   UpdateBranchRequest,
   UpdateBranchResponse,
 } from '../../types/organization';
@@ -53,6 +61,52 @@ export class OrganizationApi {
     return this.client.post<ArchiveBranchApiResponse>(
       `/organizations/${organizationId}/branches/${branchId}/archive`,
     );
+  }
+
+  getMemberships(organizationId: string, filters: MembershipListFilters = {}): Promise<ListMembershipsResponse> {
+    const searchParams = new URLSearchParams();
+    if (filters.branchId) {
+      searchParams.set('branchId', filters.branchId);
+    }
+    if (filters.role !== undefined) {
+      searchParams.set('role', String(filters.role));
+    }
+    if (filters.includeInactive) {
+      searchParams.set('includeInactive', 'true');
+    }
+
+    const query = searchParams.toString();
+    return this.client.get<ListMembershipsResponse>(
+      `/organizations/${organizationId}/memberships${query ? `?${query}` : ''}`,
+    );
+  }
+
+  createMembership(organizationId: string, request: CreateMembershipRequest): Promise<CreateMembershipResponse> {
+    return this.client.post<CreateMembershipResponse, CreateMembershipRequest>(
+      `/organizations/${organizationId}/memberships`,
+      request,
+    );
+  }
+
+  updateMembership(
+    organizationId: string,
+    membershipId: string,
+    request: UpdateMembershipRequest,
+  ): Promise<UpdateMembershipResponse> {
+    return this.client.put<UpdateMembershipResponse, UpdateMembershipRequest>(
+      `/organizations/${organizationId}/memberships/${membershipId}`,
+      request,
+    );
+  }
+
+  archiveMembership(organizationId: string, membershipId: string): Promise<ArchiveMembershipApiResponse> {
+    return this.client.post<ArchiveMembershipApiResponse>(
+      `/organizations/${organizationId}/memberships/${membershipId}/archive`,
+    );
+  }
+
+  getCurrentMembership(): Promise<GetCurrentMembershipResponse> {
+    return this.client.get<GetCurrentMembershipResponse>('/memberships/current');
   }
 }
 

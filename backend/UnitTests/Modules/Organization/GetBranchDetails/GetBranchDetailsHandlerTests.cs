@@ -1,6 +1,6 @@
-using Application.Modules.Organization.GetBranchDetails;
+using Application.Modules.Organization.Branch.GetBranchDetails;
 using Domain.ValueObjects;
-using Infrastructure.Modules.Organization.GetBranchDetails;
+using Infrastructure.Modules.Organization.Branch.GetBranchDetails;
 using Moq;
 
 namespace UnitTests.Modules.Organization.GetBranchDetails;

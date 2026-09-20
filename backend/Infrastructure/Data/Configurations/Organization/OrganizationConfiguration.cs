@@ -1,7 +1,7 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using DomainOrganization = Domain.Models.Organizations.Organization.Organization;
+using DomainOrganization = Domain.Models.Organizations.Organization;
 
 namespace Infrastructure.Data.Configurations.Organization;
 

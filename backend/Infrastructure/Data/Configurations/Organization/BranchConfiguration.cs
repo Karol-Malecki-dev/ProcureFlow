@@ -1,4 +1,4 @@
-using Domain.Models.Organizations.Organization;
+using Domain.Models.Organizations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

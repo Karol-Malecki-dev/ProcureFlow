@@ -31,6 +31,9 @@ public sealed class ModuleArchitectureIntegrationTests : IDisposable
                         StringComparison.Ordinal) == true
                     || type.Namespace?.StartsWith(
                         "Application.Modules.Notifications",
+                        StringComparison.Ordinal) == true
+                    || type.Namespace?.StartsWith(
+                        "Application.Modules.Organization",
                         StringComparison.Ordinal) == true))
             .OrderBy(type => type.FullName, StringComparer.Ordinal)
             .ToList();

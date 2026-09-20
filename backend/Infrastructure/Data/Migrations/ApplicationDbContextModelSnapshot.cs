@@ -904,7 +904,7 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Models.Organizations.Organization.Branch", b =>
+            modelBuilder.Entity("Domain.Models.Organizations.Branch", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -937,7 +937,42 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("Branches", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Models.Organizations.Organization.Organization", b =>
+            modelBuilder.Entity("Domain.Models.Organizations.Membership", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Memberships_ActiveUser")
+                        .HasFilter("\"IsActive\" = true");
+
+                    b.HasIndex("OrganizationId", "IsActive", "BranchId");
+
+                    b.ToTable("Memberships", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.Organizations.Organization", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1257,9 +1292,9 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("ProjectTask");
                 });
 
-            modelBuilder.Entity("Domain.Models.Organizations.Organization.Branch", b =>
+            modelBuilder.Entity("Domain.Models.Organizations.Branch", b =>
                 {
-                    b.HasOne("Domain.Models.Organizations.Organization.Organization", null)
+                    b.HasOne("Domain.Models.Organizations.Organization", null)
                         .WithMany("Branches")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1317,7 +1352,27 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Models.Organizations.Organization.Organization", b =>
+            modelBuilder.Entity("Domain.Models.Organizations.Membership", b =>
+                {
+                    b.HasOne("Domain.Models.Organizations.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Domain.Models.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Models.Organizations.Organization", b =>
                 {
                     b.OwnsOne("Domain.ValueObjects.Address", "Address", b1 =>
                         {
@@ -1394,7 +1449,7 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("ProjectMemberships");
                 });
 
-            modelBuilder.Entity("Domain.Models.Organizations.Organization.Organization", b =>
+            modelBuilder.Entity("Domain.Models.Organizations.Organization", b =>
                 {
                     b.Navigation("Branches");
                 });

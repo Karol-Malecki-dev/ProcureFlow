@@ -24,6 +24,9 @@
   <ItemGroup>
     <Folder Include="Configurations\" />
     <Folder Include="Extensions\" />
+    <Folder Include="Modules\Organization\Membership\Get\" />
+    <Folder Include="Modules\Organization\Membership\List\" />
+    <Folder Include="Modules\Organization\Membership\Update\" />
   </ItemGroup>
 
   <ItemGroup>

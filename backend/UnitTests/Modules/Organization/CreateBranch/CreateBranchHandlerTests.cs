@@ -1,9 +1,11 @@
-using Application.Modules.Organization.CreateBranch;
-using DomainBranch = Domain.Models.Organizations.Organization.Branch;
-using DomainOrganization = Domain.Models.Organizations.Organization.Organization;
+using DomainBranch = Domain.Models.Organizations.Branch;
+using DomainOrganization = Domain.Models.Organizations.Organization;
+using Domain.Models.Organizations.Enums;
 using Domain.ValueObjects;
-using Infrastructure.Modules.Organization.CreateBranch;
 using Moq;
+using Application.Modules.Organization.Branch.CreateBranch;
+using Infrastructure.Modules.Organization.Branch.CreateBranch;
+using System.Net;
 
 namespace UnitTests.Modules.Organization.CreateBranch;
 
@@ -43,7 +45,7 @@ public sealed class CreateBranchHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(BranchOperationStatus.Success, result.Status);
-        Assert.Equal(201, result.CreatedStatusCode);
+        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.Equal("WAW", result.Value!.Code);
         Assert.Contains(organization.Branches, branch => branch.Id == result.Value.Id);

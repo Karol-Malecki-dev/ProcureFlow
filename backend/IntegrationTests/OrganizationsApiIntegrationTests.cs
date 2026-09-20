@@ -1,10 +1,4 @@
 using Application.DTOs.Auth;
-using API.Modules.Organization.ArchiveBranch;
-using API.Modules.Organization.CreateBranch;
-using API.Modules.Organization.GetBranchDetails;
-using API.Modules.Organization.GetActiveOrganization;
-using API.Modules.Organization.ListBranches;
-using API.Modules.Organization.UpdateBranch;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.ValueObjects;
@@ -16,8 +10,14 @@ using Shared.Responses;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using DomainBranch = Domain.Models.Organizations.Organization.Branch;
-using DomainOrganization = Domain.Models.Organizations.Organization.Organization;
+using DomainBranch = Domain.Models.Organizations.Branch;
+using DomainOrganization = Domain.Models.Organizations.Organization;
+using API.Modules.Organization.Branch.CreateBranch;
+using API.Modules.Organization.Branch.GetBranchDetails;
+using API.Modules.Organization.Branch.GetActiveOrganization;
+using API.Modules.Organization.Branch.ListBranches;
+using API.Modules.Organization.Branch.UpdateBranch;
+using API.Modules.Organization.Branch.ArchiveBranch;
 
 namespace IntegrationTests;
 

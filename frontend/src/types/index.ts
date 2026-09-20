@@ -170,9 +170,13 @@ export type {
 export type {
   OrganizationAddressDto,
   ActiveOrganizationDto,
+  ArchiveMembershipResponse,
   BranchDto,
   BranchListItemDto,
   BranchDetailsDto,
+  CreateMembershipRequest,
+  CreateMembershipResponse,
+  CurrentMembershipDto,
   CreatedBranchDto,
   UpdatedBranchDto,
   CreateBranchAddressRequest,
@@ -186,5 +190,15 @@ export type {
   UpdateBranchResponse,
   ArchiveBranchApiResponse,
   GetActiveOrganizationResponse,
+  GetCurrentMembershipResponse,
+  ListMembershipsResponse,
+  MembershipDto,
+  MembershipListFilters,
+  MembershipListItemDto,
+  ArchiveMembershipApiResponse,
+  UpdateMembershipRequest,
+  UpdateMembershipResponse,
 } from './organization';
+
+export { BusinessRole } from './organization';
 

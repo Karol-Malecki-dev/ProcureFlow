@@ -1,6 +1,6 @@
-﻿using Application.Modules.Organization.ListBranches;
+﻿using Application.Modules.Organization.Branch.ListBranches;
 using Domain.ValueObjects;
-using Infrastructure.Modules.Organization.ListBranches;
+using Infrastructure.Modules.Organization.Branch.ListBranches;
 using Moq;
 
 namespace UnitTests.Modules.Organization.ListBranches;

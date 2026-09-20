@@ -1,8 +1,8 @@
-using Application.Modules.Organization.UpdateBranch;
+using Application.Modules.Organization.Branch.UpdateBranch;
 using Domain.ValueObjects;
-using Infrastructure.Modules.Organization.UpdateBranch;
+using Infrastructure.Modules.Organization.Branch.UpdateBranch;
 using Moq;
-using DomainBranch = Domain.Models.Organizations.Organization.Branch;
+using DomainBranch = Domain.Models.Organizations.Branch;
 
 namespace UnitTests.Modules.Organization.UpdateBranch;
 

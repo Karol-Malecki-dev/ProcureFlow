@@ -55,6 +55,9 @@ export default function AdminPanel() {
           <Link className="button button--ghost" to="/admin/organization/branches">
             Manage branches
           </Link>
+          <Link className="button button--ghost" to="/admin/organization/memberships">
+            Manage access
+          </Link>
           <Link className="button" to="/admin/users">
             Open user directory
           </Link>
