@@ -497,6 +497,7 @@ namespace API.Controllers
             }
 
             await CreateSecurityAlertAsync(userId, "Recovery codes regenerated", "Your authenticator recovery codes were replaced after password re-authentication.", cancellationToken);
+            await WriteSecurityAuditAsync("auth.2fa.recovery-codes.regenerated", "success", userId);
             return Ok(ApiResponse<AuthenticatorConfirmationDto>.Success(new AuthenticatorConfirmationDto
             {
                 RecoveryCodes = confirmation.RecoveryCodes
@@ -622,6 +623,7 @@ namespace API.Controllers
 
                 await _jwtTokenService.RevokeAllUserTokensAsync(userId, RevocationReason.UserLogout, cancellationToken);
                 ClearRefreshTokenCookie();
+                await WriteSecurityAuditAsync("auth.logout.succeeded", "success", userId);
 
                 _logger.LogInformation("✓ All refresh sessions revoked for user: {UserId}", userId);
                 return Ok(new ApiResponse(200, "All sessions logged out successfully"));
