@@ -1,17 +1,21 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using API.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using API.Modules.PurchaseRequests.ChangePurchaseRequestStatus;
 using API.Modules.PurchaseRequests.CreatePurchaseRequest;
 using API.Modules.PurchaseRequests.RemovePurchaseRequestItem;
 using API.Modules.PurchaseRequests.UpdatePurchaseRequestItemQuantity;
 using API.Responses;
+using Application.Modules.PurchaseRequests.CancelPurchaseRequest;
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.AddPurchaseRequestItem;
 using Application.Modules.PurchaseRequests.CreatePurchaseRequest;
 using Application.Modules.PurchaseRequests.GetPurchaseRequestDetails;
 using Application.Modules.PurchaseRequests.ListMyPurchaseRequests;
 using Application.Modules.PurchaseRequests.RemovePurchaseRequestItem;
+using Application.Modules.PurchaseRequests.SubmitPurchaseRequest;
 using Application.Modules.PurchaseRequests.UpdatePurchaseRequestItemQuantity;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +35,8 @@ public sealed class PurchaseRequestsController : ControllerBase
     private readonly IAddPurchaseRequestItemHandler _addItemHandler;
     private readonly IUpdatePurchaseRequestItemQuantityHandler _updateItemQuantityHandler;
     private readonly IRemovePurchaseRequestItemHandler _removeItemHandler;
+    private readonly ISubmitPurchaseRequestHandler _submitHandler;
+    private readonly ICancelPurchaseRequestHandler _cancelHandler;
     private readonly IGetPurchaseRequestDetailsHandler _detailsHandler;
     private readonly IListMyPurchaseRequestsHandler _listHandler;
 
@@ -39,6 +45,8 @@ public sealed class PurchaseRequestsController : ControllerBase
         IAddPurchaseRequestItemHandler addItemHandler,
         IUpdatePurchaseRequestItemQuantityHandler updateItemQuantityHandler,
         IRemovePurchaseRequestItemHandler removeItemHandler,
+        ISubmitPurchaseRequestHandler submitHandler,
+        ICancelPurchaseRequestHandler cancelHandler,
         IGetPurchaseRequestDetailsHandler detailsHandler,
         IListMyPurchaseRequestsHandler listHandler)
     {
@@ -46,6 +54,8 @@ public sealed class PurchaseRequestsController : ControllerBase
         _addItemHandler = addItemHandler;
         _updateItemQuantityHandler = updateItemQuantityHandler;
         _removeItemHandler = removeItemHandler;
+        _submitHandler = submitHandler;
+        _cancelHandler = cancelHandler;
         _detailsHandler = detailsHandler;
         _listHandler = listHandler;
     }
@@ -86,6 +96,7 @@ public sealed class PurchaseRequestsController : ControllerBase
         Guid organizationId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] PurchaseRequestStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         if (!TryGetCurrentUserId(out var userId))
@@ -96,7 +107,7 @@ public sealed class PurchaseRequestsController : ControllerBase
         }
 
         var result = await _listHandler.HandleAsync(
-            new ListMyPurchaseRequestsQuery(userId, organizationId, page, pageSize),
+            new ListMyPurchaseRequestsQuery(userId, organizationId, page, pageSize, status),
             cancellationToken);
 
         return ToActionResult(result, MapList);
@@ -122,6 +133,70 @@ public sealed class PurchaseRequestsController : ControllerBase
 
         var result = await _detailsHandler.HandleAsync(
             new GetPurchaseRequestDetailsQuery(userId, organizationId, purchaseRequestId),
+            cancellationToken);
+
+        return ToActionResult(result, MapDetails);
+    }
+
+    /// <summary>Submits an own draft after validating its completeness and version.</summary>
+    [HttpPost("{purchaseRequestId:guid}/submit")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Submit(
+        Guid organizationId,
+        Guid purchaseRequestId,
+        PurchaseRequestStatusChangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _submitHandler.HandleAsync(
+            new SubmitPurchaseRequestCommand(
+                userId,
+                organizationId,
+                purchaseRequestId,
+                request.ConcurrencyStamp),
+            cancellationToken);
+
+        return ToActionResult(result, MapDetails);
+    }
+
+    /// <summary>Cancels an own draft or submitted request before approval.</summary>
+    [HttpPost("{purchaseRequestId:guid}/cancel")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Cancel(
+        Guid organizationId,
+        Guid purchaseRequestId,
+        PurchaseRequestStatusChangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _cancelHandler.HandleAsync(
+            new CancelPurchaseRequestCommand(
+                userId,
+                organizationId,
+                purchaseRequestId,
+                request.ConcurrencyStamp),
             cancellationToken);
 
         return ToActionResult(result, MapDetails);

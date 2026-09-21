@@ -145,6 +145,39 @@ public sealed class PurchaseRequest
         Touch();
     }
 
+    /// <summary>
+    /// Submits a complete draft for the next workflow stage.
+    /// </summary>
+    public void Submit()
+    {
+        if (Status != PurchaseRequestStatus.Draft)
+        {
+            throw new InvalidOperationException("Only draft purchase requests can be submitted.");
+        }
+
+        if (_items.Count == 0)
+        {
+            throw new InvalidOperationException("A purchase request must contain at least one item before submission.");
+        }
+
+        Status = PurchaseRequestStatus.Submitted;
+        Touch();
+    }
+
+    /// <summary>
+    /// Cancels a request before it reaches the approval stage.
+    /// </summary>
+    public void Cancel()
+    {
+        if (Status is not (PurchaseRequestStatus.Draft or PurchaseRequestStatus.Submitted))
+        {
+            throw new InvalidOperationException("Only draft or submitted purchase requests can be cancelled.");
+        }
+
+        Status = PurchaseRequestStatus.Cancelled;
+        Touch();
+    }
+
     private PurchaseRequestItem FindItem(Guid itemId)
     {
         if (itemId == Guid.Empty)

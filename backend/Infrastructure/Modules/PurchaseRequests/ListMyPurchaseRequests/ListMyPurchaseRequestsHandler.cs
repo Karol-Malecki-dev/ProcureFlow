@@ -48,7 +48,12 @@ public sealed class ListMyPurchaseRequestsHandler : IListMyPurchaseRequestsHandl
                 new PurchaseRequestListView([], query.Page, query.PageSize, 0));
         }
 
-        var result = await _store.QueryAsync(membership, query.Page, query.PageSize, cancellationToken);
+        var result = await _store.QueryAsync(
+            membership,
+            query.Page,
+            query.PageSize,
+            query.Status,
+            cancellationToken);
         return PurchaseRequestOperationResult<PurchaseRequestListView>.Success(result);
     }
 }

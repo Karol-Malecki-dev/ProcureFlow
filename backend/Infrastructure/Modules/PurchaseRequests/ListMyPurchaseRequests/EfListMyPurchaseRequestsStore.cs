@@ -1,5 +1,6 @@
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.ListMyPurchaseRequests;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,7 @@ public sealed class EfListMyPurchaseRequestsStore : IListMyPurchaseRequestsStore
         PurchaseRequestMembership membership,
         int page,
         int pageSize,
+        PurchaseRequestStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         var query = _dbContext.PurchaseRequests
@@ -25,6 +27,11 @@ public sealed class EfListMyPurchaseRequestsStore : IListMyPurchaseRequestsStore
             .Where(request => request.AuthorUserId == membership.UserId
                 && request.OrganizationId == membership.OrganizationId
                 && request.BranchId == membership.BranchId);
+
+        if (status.HasValue)
+        {
+            query = query.Where(request => request.Status == status.Value);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
