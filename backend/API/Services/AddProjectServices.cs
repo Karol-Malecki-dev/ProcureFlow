@@ -13,6 +13,7 @@ using Infrastructure.Modules.Catalog;
 using Infrastructure.Modules.Organization;
 using Infrastructure.Modules.ProjectTasks;
 using Infrastructure.Modules.Projects;
+using Infrastructure.Modules.PurchaseRequests;
 using Application.Modules.Workspace.SearchWorkspace;
 using Infrastructure.Modules.Workspace.SearchWorkspace;
 using Infrastructure.ProjectManagement.Tasks;
@@ -362,6 +363,7 @@ namespace API.Services
             services.AddOrganizationModule();
             services.AddProjectTasksModule();
             services.AddProjectsModule();
+            services.AddPurchaseRequestsModule();
 
             services.AddScoped<LoggingAccountEmailSender>();
             services.AddScoped<MailKitAccountEmailSender>();

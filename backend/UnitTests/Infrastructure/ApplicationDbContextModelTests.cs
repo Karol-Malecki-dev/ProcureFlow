@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Domain.Entities.Auth;
 using Domain.Entities.JWT;
+using Domain.Models.Catalog;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,10 @@ public sealed class ApplicationDbContextModelTests
             typeof(PasswordResetRequest),
             typeof(Project),
             typeof(ProjectTask),
-            typeof(ProjectMember)
+            typeof(ProjectMember),
+            typeof(Product),
+            typeof(PurchaseRequest),
+            typeof(PurchaseRequestItem)
         };
 
         Assert.All(configuredTypes, type => Assert.NotNull(context.Model.FindEntityType(type)));

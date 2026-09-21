@@ -53,6 +53,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<UnitOfMeasure> UnitsOfMeasure => Set<UnitOfMeasure>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<PurchaseRequest> PurchaseRequests => Set<PurchaseRequest>();
+    public DbSet<PurchaseRequestItem> PurchaseRequestItems => Set<PurchaseRequestItem>();
 
     /// <summary>
     /// Konfiguracja modeli i relacji między encjami
