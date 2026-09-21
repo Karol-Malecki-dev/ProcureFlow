@@ -9,6 +9,7 @@ using FluentValidation.AspNetCore;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Modules.Notifications;
+using Infrastructure.Modules.Catalog;
 using Infrastructure.Modules.Organization;
 using Infrastructure.Modules.ProjectTasks;
 using Infrastructure.Modules.Projects;
@@ -357,6 +358,7 @@ namespace API.Services
             services.AddScoped<ISearchWorkspaceHandler, SearchWorkspaceHandler>();
             services.AddScoped<ISearchWorkspaceStore, EfSearchWorkspaceStore>();
             services.AddNotificationsModule();
+            services.AddCatalogModule();
             services.AddOrganizationModule();
             services.AddProjectTasksModule();
             services.AddProjectsModule();
