@@ -5,7 +5,6 @@ using Domain.ValueObjects;
 using Moq;
 using Application.Modules.Organization.Branch.CreateBranch;
 using Infrastructure.Modules.Organization.Branch.CreateBranch;
-using System.Net;
 
 namespace UnitTests.Modules.Organization.CreateBranch;
 
@@ -45,7 +44,6 @@ public sealed class CreateBranchHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(BranchOperationStatus.Success, result.Status);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.Equal("WAW", result.Value!.Code);
         Assert.Contains(organization.Branches, branch => branch.Id == result.Value.Id);

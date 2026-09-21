@@ -1,5 +1,6 @@
 using API.Contracts.Projects;
 using API.Modules.ProjectTasks;
+using API.Responses;
 using Application.Modules.ProjectTasks.DownloadProjectTaskAttachment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +49,7 @@ public sealed class DownloadProjectTaskAttachmentController : ProjectTaskControl
             cancellationToken);
         if (!result.IsSuccess)
         {
-            var statusCode = (int)result.StatusCode;
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<ProjectTaskAttachmentResponse>.Error(statusCode, result.Message));

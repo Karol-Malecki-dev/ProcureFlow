@@ -1,6 +1,8 @@
 using Application.Modules.Organization.Membership;
 using Application.Modules.Organization.Membership.Create;
+using API.Responses;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -32,21 +34,21 @@ public sealed class CreateMembershipController : ControllerBase
                 request.Role),
             cancellationToken);
 
-        var statusCode = (int)result.StatusCode;
-
         if (!result.IsSuccess)
         {
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<MembershipResponse>.Error(statusCode, result.Message));
         }
 
+        const int successStatusCode = StatusCodes.Status201Created;
         return StatusCode(
-            statusCode,
+            successStatusCode,
             ApiResponse<MembershipResponse>.Success(
                 MapMembership(result.Value!),
                 result.Message,
-                statusCode));
+                successStatusCode));
     }
 
     private static MembershipResponse MapMembership(MembershipView membership)

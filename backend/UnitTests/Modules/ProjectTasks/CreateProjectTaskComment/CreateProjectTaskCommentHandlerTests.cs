@@ -85,7 +85,7 @@ public sealed class CreateProjectTaskCommentHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+        Assert.Equal(ProjectOperationStatus.Success, result.Status);
         Assert.Same(expected, result.Value);
         _commentStore.Verify(
             store => store.CreateAsync(

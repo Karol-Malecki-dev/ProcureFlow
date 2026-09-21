@@ -202,7 +202,7 @@ public sealed class CreateProjectTaskAttachmentHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+        Assert.Equal(ProjectOperationStatus.Success, result.Status);
         Assert.Same(expected, result.Value);
         _storage.Verify(
             storage => storage.SaveAsync(

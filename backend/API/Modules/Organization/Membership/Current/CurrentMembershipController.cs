@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using API.Responses;
 using Application.Modules.Organization.Membership.Get;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,10 +36,9 @@ public sealed class CurrentMembershipController : ControllerBase
             new GetMembershipQueary(userId),
             cancellationToken);
 
-        var statusCode = (int)result.StatusCode;
-
         if (!result.IsSuccess)
         {
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<CurrentMembershipResponse>.Error(statusCode, result.Message));

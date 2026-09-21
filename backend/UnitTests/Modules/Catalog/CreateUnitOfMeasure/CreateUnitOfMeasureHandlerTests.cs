@@ -3,7 +3,6 @@ using Application.Modules.Catalog.UnitOfMeasure.CreateUnitOfMeasure;
 using Domain.ValueObjects;
 using Infrastructure.Modules.Catalog.UnitOfMeasure.CreateUnitOfMeasure;
 using Moq;
-using System.Net;
 using DomainOrganization = Domain.Models.Organizations.Organization;
 using DomainUnitOfMeasure = Domain.Models.Catalog.UnitOfMeasure;
 
@@ -30,7 +29,6 @@ public sealed class CreateUnitOfMeasureHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(UnitOfMeasureOperationStatus.Success, result.Status);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.Equal(organization.Id, result.Value!.OrganizationId);
         Assert.Equal("Kilogram", result.Value.Name);

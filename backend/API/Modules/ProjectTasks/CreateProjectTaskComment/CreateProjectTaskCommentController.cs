@@ -2,6 +2,7 @@ using API.Contracts.Projects;
 using API.Modules.ProjectTasks;
 using Application.Modules.ProjectTasks.CreateProjectTaskComment;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -42,6 +43,6 @@ public sealed class CreateProjectTaskCommentController : ProjectTaskControllerBa
         var result = await _handler.HandleAsync(
             new CreateProjectTaskCommentCommand(userId, projectId, taskId, request.Content),
             cancellationToken);
-        return ToActionResult(result, MapComment);
+        return ToActionResult(result, MapComment, StatusCodes.Status201Created);
     }
 }

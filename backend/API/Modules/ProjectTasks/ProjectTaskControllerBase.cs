@@ -3,6 +3,8 @@ using Application.Features.ProjectManagement.Tasks;
 using Application.Features.Projects;
 using Application.Modules.ProjectTasks.Attachments;
 using Application.Modules.ProjectTasks.Comments;
+using API.Responses;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,15 +19,15 @@ public abstract class ProjectTaskControllerBase : ControllerBase
 {
     protected IActionResult ToActionResult<TValue, TResponse>(
         ProjectOperationResult<TValue> result,
-        Func<TValue, TResponse> map)
+        Func<TValue, TResponse> map,
+        int successStatusCode = StatusCodes.Status200OK)
     {
         if (!result.IsSuccess)
         {
-            var statusCode = (int)result.StatusCode;
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(statusCode, ApiResponse<TResponse>.Error(statusCode, result.Message));
         }
 
-        var successStatusCode = (int)result.StatusCode;
         return StatusCode(
             successStatusCode,
             ApiResponse<TResponse>.Success(map(result.Value!), result.Message, successStatusCode));

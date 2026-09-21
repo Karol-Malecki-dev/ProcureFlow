@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using Application.Modules.Catalog.UnitOfMeasure;
 using Application.Modules.Catalog.UnitOfMeasure.CreateUnitOfMeasure;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
+using API.Responses;
 
 namespace API.Modules.Catalog.UnitOfMeasure.CreateUnitOfMeasure;
 
@@ -41,21 +43,21 @@ public sealed class CreateUnitOfMeasureController : ControllerBase
                 request.Symbol),
             cancellationToken);
 
-        var statusCode = (int)result.StatusCode;
-
         if (!result.IsSuccess)
         {
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<UnitOfMeasureResponse>.Error(statusCode, result.Message));
         }
 
+        const int successStatusCode = StatusCodes.Status201Created;
         return StatusCode(
-            statusCode,
+            successStatusCode,
             ApiResponse<UnitOfMeasureResponse>.Success(
                 MapUnitOfMeasure(result.Value!),
                 result.Message,
-                statusCode));
+                successStatusCode));
     }
 
     private bool TryGetCurrentUserId(out Guid userId)

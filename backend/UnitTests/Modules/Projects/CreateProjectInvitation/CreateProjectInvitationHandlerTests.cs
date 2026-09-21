@@ -239,7 +239,7 @@ public sealed class CreateProjectInvitationHandlerTests
         var result = await handler.HandleAsync(command, cancellationToken);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+        Assert.Equal(ProjectOperationStatus.Success, result.Status);
         Assert.NotNull(result.Value);
         Assert.NotNull(stagedInvitation);
         Assert.Equal(

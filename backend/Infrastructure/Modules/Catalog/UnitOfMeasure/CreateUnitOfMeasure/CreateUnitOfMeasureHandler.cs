@@ -3,7 +3,6 @@ using Application.Modules.Catalog.UnitOfMeasure.CreateUnitOfMeasure;
 using DomainUnitOfMeasure = Domain.Models.Catalog.UnitOfMeasure;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Infrastructure.Modules.Catalog.UnitOfMeasure.CreateUnitOfMeasure;
 
@@ -112,7 +111,6 @@ public sealed class CreateUnitOfMeasureHandler : ICreateUnitOfMeasureHandler
                 unitOfMeasure.Name,
                 unitOfMeasure.Symbol,
                 unitOfMeasure.IsActive),
-            "Unit of measure created",
-            HttpStatusCode.Created);
+            "Unit of measure created");
     }
 }

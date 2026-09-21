@@ -1,4 +1,5 @@
 using Application.Modules.Organization.Membership.GetList;
+using API.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
@@ -33,10 +34,9 @@ public sealed class ListMembershipsController : ControllerBase
                 includeInactive),
             cancellationToken);
 
-        var statusCode = (int)result.StatusCode;
-
         if (!result.IsSuccess)
         {
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<IReadOnlyList<MembershipListResponse>>.Error(
