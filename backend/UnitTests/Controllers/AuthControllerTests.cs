@@ -373,6 +373,50 @@ public class AuthControllerTests
         _jwtTokenServiceMock.Verify(
             x => x.RevokeAllUserTokensAsync(userId, RevocationReason.UserLogout, It.IsAny<CancellationToken>()),
             Times.Once);
+        _auditWriterMock.Verify(x => x.WriteAsync(
+            It.Is<AccountSecurityAuditEntry>(entry =>
+                entry.EventCode == "auth.logout.succeeded"
+                && entry.Outcome == "success"
+                && entry.SubjectUserId == userId
+                && entry.ActorUserId == userId),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegenerateAuthenticatorRecoveryCodes_Returns_ok_and_records_security_audit()
+    {
+        var userId = Guid.NewGuid();
+        var user = ControllerTestHelper.CreateAuthenticatedUser(userId.ToString(), "user@test.com");
+        var request = new RegenerateAuthenticatorRecoveryCodesRequestDto
+        {
+            CurrentPassword = "password123",
+            Code = "123456"
+        };
+        var confirmation = new AuthenticatorConfirmation(["AAAA-BBBB-CCCC-DDDD"]);
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = ControllerTestHelper.CreateHttpContext(user)
+        };
+        _authServiceMock
+            .Setup(x => x.RegenerateAuthenticatorRecoveryCodesAsync(userId, request.CurrentPassword, request.Code, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(confirmation);
+
+        var actionResult = await _controller.RegenerateAuthenticatorRecoveryCodes(request);
+
+        var okResult = Assert.IsType<OkObjectResult>(actionResult);
+        var response = Assert.IsType<ApiResponse<AuthenticatorConfirmationDto>>(okResult.Value);
+
+        Assert.Equal(200, okResult.StatusCode);
+        Assert.Equal("Recovery codes regenerated. Store them securely.", response.Message);
+        Assert.Equal(confirmation.RecoveryCodes, response.Data?.RecoveryCodes);
+        _auditWriterMock.Verify(x => x.WriteAsync(
+            It.Is<AccountSecurityAuditEntry>(entry =>
+                entry.EventCode == "auth.2fa.recovery-codes.regenerated"
+                && entry.Outcome == "success"
+                && entry.SubjectUserId == userId
+                && entry.ActorUserId == userId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
