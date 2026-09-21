@@ -7,4 +7,6 @@ export { organizationApi, OrganizationApi } from './OrganizationApi';
 export { runtimeConfigApi, RuntimeConfigApi } from './RuntimeConfigApi';
 export { tokenManager, TokenManager } from './TokenManager';
 export { userApi, UserApi } from './UserApi';
+export { catalogApi, CatalogApi } from './CatalogApi';
+export { purchaseRequestApi, PurchaseRequestApi } from './PurchaseRequestApi';
 export { emitApiNotice, subscribeToApiNotices } from './apiEvents';

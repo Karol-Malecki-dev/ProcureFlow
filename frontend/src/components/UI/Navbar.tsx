@@ -21,6 +21,7 @@ export function Navbar() {
   const searchItems: QuickSearchItem[] = [
     { label: 'Home', description: 'Landing page and auth overview', to: '/' },
     ...(isAuthenticated && dashboardOverviewEnabled ? [{ label: 'Dashboard', description: 'Protected workspace summary', to: '/dashboard' }] : []),
+    ...(isAuthenticated ? [{ label: 'Purchase requests', description: 'Build organization-scoped request drafts', to: '/purchase-requests', keywords: ['drafts', 'procurement', 'catalog'] }] : []),
     ...(isAuthenticated && projectsEnabled ? [{ label: 'Projects', description: 'Manage projects and tasks', to: '/projects' }] : []),
     ...(isAuthenticated ? [{ label: 'Profile', description: 'Manage your account details', to: '/profile' }] : []),
     ...(isAdmin && adminNavigationEnabled ? [{ label: 'Admin panel', description: 'Administration overview', to: '/admin' }] : []),
@@ -59,6 +60,7 @@ export function Navbar() {
       <nav className="navbar__links">
         <NavLink to="/">Home</NavLink>
         {isAuthenticated && dashboardOverviewEnabled ? <NavLink to="/dashboard">Dashboard</NavLink> : null}
+        {isAuthenticated ? <NavLink to="/purchase-requests">Purchase requests</NavLink> : null}
         {isAuthenticated && projectsEnabled ? <NavLink to="/projects">Projects</NavLink> : null}
         {isAuthenticated ? <NavLink to="/profile">Profile</NavLink> : null}
         {isAdmin && adminNavigationEnabled ? <NavLink to="/admin">Admin</NavLink> : null}

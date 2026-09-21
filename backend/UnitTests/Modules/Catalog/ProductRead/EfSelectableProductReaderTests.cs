@@ -48,5 +48,10 @@ public sealed class EfSelectableProductReaderTests
         Assert.Null(await reader.GetSelectableProductAsync(organizationId, archived.Id));
         Assert.Null(await reader.GetSelectableProductAsync(organizationId, unavailable.Id));
         Assert.Null(await reader.GetSelectableProductAsync(organizationId, foreignUnitProduct.Id));
+
+        var products = await reader.GetSelectableProductsAsync(organizationId);
+
+        var listedProduct = Assert.Single(products);
+        Assert.Equal(selectable.Id, listedProduct.ProductId);
     }
 }

@@ -20,10 +20,22 @@ public sealed class EfSelectableProductReader : ISelectableProductReader
         Guid organizationId,
         Guid productId,
         CancellationToken cancellationToken = default)
+        => BuildSelectableProductsQuery(organizationId)
+            .Where(product => product.ProductId == productId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<SelectableProductView>> GetSelectableProductsAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken = default)
+        => await BuildSelectableProductsQuery(organizationId)
+            .OrderBy(product => product.Name)
+            .ThenBy(product => product.ProductId)
+            .ToListAsync(cancellationToken);
+
+    private IQueryable<SelectableProductView> BuildSelectableProductsQuery(Guid organizationId)
         => _dbContext.Products
             .AsNoTracking()
-            .Where(product => product.Id == productId
-                && product.OrganizationId == organizationId
+            .Where(product => product.OrganizationId == organizationId
                 && product.IsActive
                 && product.IsAvailable)
             .Join(
@@ -40,5 +52,5 @@ public sealed class EfSelectableProductReader : ISelectableProductReader
                     unit.Name,
                     unit.Symbol,
                     product.UnitPrice))
-            .SingleOrDefaultAsync(cancellationToken);
+                    ;
 }
