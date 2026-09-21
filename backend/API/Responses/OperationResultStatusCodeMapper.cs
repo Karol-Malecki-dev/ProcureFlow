@@ -1,5 +1,6 @@
 using Application.Features.Projects;
 using Application.Modules.Catalog.UnitOfMeasure;
+using Application.Modules.PurchaseRequests;
 using Domain.Models.Organizations.Enums;
 using Microsoft.AspNetCore.Http;
 
@@ -22,6 +23,15 @@ internal static class OperationResultStatusCodeMapper
         UnitOfMeasureOperationStatus.Conflict => StatusCodes.Status409Conflict,
         UnitOfMeasureOperationStatus.ValidationError => StatusCodes.Status400BadRequest,
         UnitOfMeasureOperationStatus.Forbidden => StatusCodes.Status403Forbidden,
+        _ => StatusCodes.Status500InternalServerError
+    };
+
+    public static int Map(PurchaseRequestOperationStatus status) => status switch
+    {
+        PurchaseRequestOperationStatus.NotFound => StatusCodes.Status404NotFound,
+        PurchaseRequestOperationStatus.Conflict => StatusCodes.Status409Conflict,
+        PurchaseRequestOperationStatus.ValidationError => StatusCodes.Status400BadRequest,
+        PurchaseRequestOperationStatus.Forbidden => StatusCodes.Status403Forbidden,
         _ => StatusCodes.Status500InternalServerError
     };
 
