@@ -9,4 +9,8 @@ public interface ISelectableProductReader
         Guid organizationId,
         Guid productId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<SelectableProductView>> GetSelectableProductsAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken = default);
 }

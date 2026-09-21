@@ -1,4 +1,5 @@
 using Application.DTOs.Auth;
+using API.Modules.Catalog.ProductRead;
 using API.Modules.PurchaseRequests;
 using Domain.Entities;
 using Domain.Enums;
@@ -39,6 +40,35 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             new { Note = "Draft" });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Employee_can_list_selectable_catalog_products_in_membership_scope()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var email = UniqueEmail("catalog-products-employee");
+        var userId = await SeedUserAsync(email);
+        var unitId = await SeedUnitAsync(organizationId, userId);
+        var productId = await SeedProductAsync(organizationId, unitId, userId);
+        await SeedMembershipAsync(organizationId, userId, branchId, BusinessRole.Employee);
+        await AuthenticateAsync(email);
+
+        var response = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/catalog/products");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<IReadOnlyList<SelectableProductResponse>>>();
+
+        Assert.NotNull(payload?.Data);
+        var product = Assert.Single(payload.Data);
+        Assert.Equal(productId, product.Id);
+        Assert.Equal("Monitor", product.Name);
+        Assert.Equal("MON-1", product.Code);
+        Assert.Equal("Piece", product.UnitName);
+        Assert.Equal("pc", product.UnitSymbol);
+        Assert.Equal(10.50m, product.UnitPrice);
     }
 
     [Fact]

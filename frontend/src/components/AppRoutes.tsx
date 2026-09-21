@@ -11,6 +11,7 @@ import NotFound from '../pages/NotFound';
 import Notifications from '../pages/Notifications';
 import OrganizationBranches from '../pages/OrganizationBranches';
 import OrganizationMemberships from '../pages/OrganizationMemberships';
+import PurchaseRequestDrafts from '../pages/PurchaseRequestDrafts';
 import Profile from '../pages/Profile';
 import ProjectInvitation from '../pages/ProjectInvitation';
 import Projects from '../pages/Projects';
@@ -41,6 +42,8 @@ export function AppRoutes() {
         <Route path="/dashboard" element={dashboardOverviewEnabled ? <Dashboard /> : <Navigate to="/" replace />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/purchase-requests" element={<PurchaseRequestDrafts />} />
+        <Route path="/purchase-requests/:purchaseRequestId" element={<PurchaseRequestDrafts />} />
         <Route path="/projects" element={projectsEnabled ? <ProjectsProvider><Projects /></ProjectsProvider> : <Navigate to="/" replace />} />
         <Route path="/project-invitation" element={projectsEnabled ? <ProjectsProvider><ProjectInvitation /></ProjectsProvider> : <Navigate to="/" replace />} />
       </Route>

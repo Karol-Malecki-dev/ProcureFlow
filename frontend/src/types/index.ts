@@ -202,3 +202,22 @@ export type {
 
 export { BusinessRole } from './organization';
 
+// Catalog types
+export type { SelectableProductDto, SelectableProductsResponse } from './catalog';
+
+// Purchase-request draft types
+export { PurchaseRequestStatus } from './purchaseRequests';
+
+export type {
+  PurchaseRequestItemDto,
+  PurchaseRequestDto,
+  PurchaseRequestListItemDto,
+  PurchaseRequestListDto,
+  CreatePurchaseRequestRequest,
+  AddPurchaseRequestItemRequest,
+  UpdatePurchaseRequestItemQuantityRequest,
+  RemovePurchaseRequestItemRequest,
+  PurchaseRequestDetailsResponse,
+  PurchaseRequestListResponse,
+} from './purchaseRequests';
+
