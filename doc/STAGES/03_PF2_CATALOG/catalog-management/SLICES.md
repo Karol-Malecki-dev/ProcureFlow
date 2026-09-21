@@ -4,7 +4,7 @@ Implement one business result at a time. Each slice must have one clear
 invariant, one cheapest proving test and an independently valid checkpoint.
 
 ```text
-01 CreateUnitOfMeasure [Implemented; PostgreSQL validation pending]
+01 CreateUnitOfMeasure [Implemented; PostgreSQL validation passed]
     -> create one active organization-scoped unit with a normalized symbol
 
 02 CreateProductCategory [Planned]
@@ -49,8 +49,8 @@ implementation to PF2; PF3 consumes the catalog through a focused read
 contract and stores its own historical snapshot.
 
 `CreateUnitOfMeasure` is implemented across Domain, Application,
-Infrastructure and API. Its PostgreSQL/Testcontainers tests are present but
-cannot run locally until Docker Engine is available.
+Infrastructure and API. Its PostgreSQL/Testcontainers tests pass, including
+the active-symbol constraint and concurrent insert behavior.
 
 ## Shared rules for every slice
 

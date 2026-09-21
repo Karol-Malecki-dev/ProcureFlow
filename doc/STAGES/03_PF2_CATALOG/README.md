@@ -16,8 +16,8 @@ The catalog is shared by branches inside one organization. PF2 does not add a
 `BranchId` to catalog records and does not calculate branch-specific prices.
 
 The `CreateUnitOfMeasure` slice is implemented. Domain, handler and in-memory
-API tests pass; PostgreSQL integration execution is pending because Docker
-Engine is not running in the local environment.
+API tests pass, and PostgreSQL integration validation passes with Docker
+Testcontainers.
 
 ## Stage-level decisions
 

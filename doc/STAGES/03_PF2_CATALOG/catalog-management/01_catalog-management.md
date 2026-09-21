@@ -5,7 +5,7 @@
 ```text
 Slice: CreateUnitOfMeasure
 Technical operation: CreateUnitOfMeasure
-Status: Implemented; PostgreSQL execution blocked locally
+Status: Implemented; PostgreSQL validation passed
 Branch: feature/catalog-management
 Owner: Catalog module
 Source documents: PF2 roadmap, PF2 stage README, PF2 slice index
@@ -38,7 +38,7 @@ entity directly.
 - The `CreateUnitOfMeasure` Application, Infrastructure and API slice exists
 	with focused handler and in-memory API tests.
 - The catalog `DbSet`, EF configuration and generated migration exist. The
-	PostgreSQL tests are prepared but Docker Engine is unavailable locally.
+	PostgreSQL migration and constraint tests pass with Testcontainers.
 - No `PurchaseRequestItem` model currently exists; historical product snapshots
 	belong to the future PF3 purchase-request module.
 - Organization-scoped endpoints use the route shape
@@ -226,11 +226,11 @@ explicitly `CREATE` or `MODIFY`, not a claim that these paths already exist.
 | `backend/API/Modules/Catalog/UnitOfMeasure/CreateUnitOfMeasure/CreateUnitOfMeasureValidator.cs` | CREATE | Request shape validation | Reuse current validation convention |
 | `backend/API/Modules/Catalog/UnitOfMeasure/CreateUnitOfMeasure/CreateUnitOfMeasureController.cs` | CREATE | Route, authorization and response mapping | Follow organization controller conventions |
 | `backend/API/Modules/Catalog/UnitOfMeasure/UnitOfMeasureResponse.cs` | CREATE | API response DTO | Map from `UnitOfMeasureView` |
-| `backend/Infrastructure/Data/Migrations/20260921114859_AddCatalogUnitOfMeasures.cs` | VERIFY | Schema change | Migration generated and inspected; PostgreSQL execution remains pending |
+| `backend/Infrastructure/Data/Migrations/20260921114859_AddCatalogUnitOfMeasures.cs` | VERIFY | Schema change | Migration generated, inspected and applied by PostgreSQL integration tests |
 | `backend/UnitTests/Domain/Models/Catalog/UnitOfMeasureTests.cs` | VERIFY | Domain normalization and invalid-state tests | Focused Domain tests pass |
 | `backend/UnitTests/Modules/Catalog/CreateUnitOfMeasure/CreateUnitOfMeasureHandlerTests.cs` | CREATE | Scope, duplicate and result tests | Six focused handler tests pass without HTTP |
 | `backend/IntegrationTests/UnitOfMeasureApiInMemoryIntegrationTests.cs` | CREATE | Auth and API contract | Five in-memory API tests pass |
-| `backend/IntegrationTests/UnitOfMeasurePostgreSqlIntegrationTests.cs` | CREATE | PostgreSQL uniqueness and concurrency | Tests are present; Testcontainers execution is blocked until Docker is running |
+| `backend/IntegrationTests/UnitOfMeasurePostgreSqlIntegrationTests.cs` | VERIFY | PostgreSQL uniqueness and concurrency | Two focused tests pass with Testcontainers |
 | `backend/IntegrationTests/ModuleArchitectureIntegrationTests.cs` | VERIFY | Module registration and route uniqueness | Extend only if the existing architecture tests cover new module surfaces |
 
 Before implementation, inspect the nearest current organization controller,
@@ -318,9 +318,9 @@ Checkpoint 0: reconcile the plan with current organization conventions
 Checkpoint 1: create the Domain model and unit tests [completed]
 		-> focused UnitTests for UnitOfMeasure pass
 
-Checkpoint 2: add EF configuration and migration [completed; runtime validation pending]
+Checkpoint 2: add EF configuration and migration [completed]
 		-> generated migration and model snapshot inspected
-		-> focused PostgreSQL schema test awaits Docker Engine
+		-> PostgreSQL migration and constraint tests pass
 
 Checkpoint 3: add Application and Infrastructure contracts/handler/store [completed]
 		-> six focused handler tests pass
@@ -328,8 +328,8 @@ Checkpoint 3: add Application and Infrastructure contracts/handler/store [comple
 Checkpoint 4: add API request/response/controller and DI registration [completed]
 		-> five in-memory authorization and contract tests pass
 
-Checkpoint 5: prove PostgreSQL uniqueness and concurrency [pending locally]
-		-> run UnitOfMeasurePostgreSqlIntegrationTests with Docker available
+Checkpoint 5: prove PostgreSQL uniqueness and concurrency [completed]
+		-> UnitOfMeasurePostgreSqlIntegrationTests pass with Docker available
 
 Checkpoint 6: add frontend reference-data controls when the product slice is ready
 		-> run focused frontend tests and production build

@@ -34,13 +34,14 @@ public sealed class UnitOfMeasurePostgreSqlIntegrationTests
     {
         var organizationId = await SeedOrganizationAsync();
         var userId = await SeedUserAsync(UniqueEmail("catalog-constraint"));
+        var symbol = CreateUniqueSymbol();
 
         await using var firstScope = _factory.Services.CreateAsyncScope();
         var firstDbContext = firstScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         firstDbContext.UnitsOfMeasure.Add(new UnitOfMeasure(
             organizationId,
             "Kilogram",
-            "kg",
+            symbol,
             userId));
         await firstDbContext.SaveChangesAsync();
 
@@ -49,7 +50,7 @@ public sealed class UnitOfMeasurePostgreSqlIntegrationTests
         duplicateDbContext.UnitsOfMeasure.Add(new UnitOfMeasure(
             organizationId,
             "Kilo",
-            "KG",
+            symbol.ToUpperInvariant(),
             userId));
 
         var exception = await Assert.ThrowsAsync<DbUpdateException>(
@@ -67,16 +68,17 @@ public sealed class UnitOfMeasurePostgreSqlIntegrationTests
     {
         var organizationId = await SeedOrganizationAsync();
         var adminEmail = UniqueEmail("catalog-concurrent-admin");
+        var symbol = CreateUniqueSymbol();
         await SeedUserAsync(adminEmail, UserRole.Admin);
         await AuthenticateAsync(adminEmail);
 
         var responses = await Task.WhenAll(
             _client.PostAsJsonAsync(
                 $"/api/organizations/{organizationId}/catalog/units-of-measure",
-                new { Name = "Kilogram", Symbol = "kg" }),
+                new { Name = "Kilogram", Symbol = symbol }),
             _client.PostAsJsonAsync(
                 $"/api/organizations/{organizationId}/catalog/units-of-measure",
-                new { Name = "Kilo", Symbol = "KG" }));
+                new { Name = "Kilo", Symbol = symbol.ToUpperInvariant() }));
 
         Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Created));
         Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Conflict));
@@ -88,7 +90,7 @@ public sealed class UnitOfMeasurePostgreSqlIntegrationTests
             await dbContext.UnitsOfMeasure.CountAsync(unit =>
                 unit.OrganizationId == organizationId
                 && unit.IsActive
-                && unit.Symbol == "kg"));
+                && unit.Symbol == symbol));
     }
 
     private async Task AuthenticateAsync(string email)
@@ -125,6 +127,14 @@ public sealed class UnitOfMeasurePostgreSqlIntegrationTests
     {
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var existingOrganization = await dbContext.Organizations
+            .SingleOrDefaultAsync(organization => !organization.IsArchived);
+
+        if (existingOrganization is not null)
+        {
+            return existingOrganization.Id;
+        }
+
         var organization = new DomainOrganization(
             "Catalog PostgreSQL organization",
             CreateAddress(),
@@ -147,4 +157,7 @@ public sealed class UnitOfMeasurePostgreSqlIntegrationTests
 
     private static string UniqueEmail(string prefix)
         => $"{prefix}.{Guid.NewGuid():N}@example.com";
+
+    private static string CreateUniqueSymbol()
+        => $"u{Guid.NewGuid():N}"[..10];
 }
