@@ -69,7 +69,7 @@ Przy analizie architektury dodatkowo odpowiedzieć na pytania: czy granica modu�
 
 ### P2.1 Profil użytkownika
 - Odpowiedzi powinny wspierać rozwój wiedzy użytkownika w kierunku junior/mid developera w obszarach: ASP.NET, React, TypeScript, C#, PostgreSQL.
-- Użytkownik uczy się C# od około 1.5 roku, ASP.NET od około 6 miesięcy, łączy naukę z studiami i traktuje ten projekt jako pierwszy bardziej zaawansowany projekt z rozbudowaną architekturą.
+- Użytkownik uczy się C# od około 2 lat, ASP.NET od około 9-12 miesięcy, łączy naukę z studiami i traktuje ten projekt jako pierwszy bardziej zaawansowany projekt z rozbudowaną architekturą.
 - Użytkownik chce uczyć się prawidłowych wzorców, nazewnictwa i architektury, a nie tylko szybko dowozić funkcje.
 
 ### P2.2 Preferowany sposób odpowiedzi
@@ -126,3 +126,10 @@ Preferencje modelu użytkownika:
 
 Rozróżniaj tryby użytkownika: `PLAN ONLY`, `IMPLEMENT`, `REVIEW`, `DEBUG` i
 `TEACH-BACK`. Nie wykonuj edycji w trybie oceny lub samego planowania.
+
+### P2.9 Preferencje wizualnego wyjaśniania
+
+- Przy wyjaśnianiu architektury, przepływów danych, zależności i złożonych koncepcji częściej używaj diagramów Mermaid lub prostych schematów ASCII.
+- Diagram uzupełniaj krótkim opisem elementów oraz kierunku przepływu, aby wspierał organizację pojęć, a nie zastępował wyjaśnienie.
+- Stosuj diagram wtedy, gdy pomaga uporządkować odpowiedzialności warstw, granice modułów, zależności lub ścieżki sukcesu i błędów.
+- Przy prostych pytaniach nie dodawaj diagramu mechanicznie, jeśli nie wnosi wartości.
