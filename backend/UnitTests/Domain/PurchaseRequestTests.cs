@@ -98,6 +98,95 @@ public sealed class PurchaseRequestTests
     }
 
     [Fact]
+    public void Submit_rejects_an_empty_draft()
+    {
+        var request = CreateRequest();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => request.Submit());
+
+        Assert.Contains("at least one item", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(PurchaseRequestStatus.Draft, request.Status);
+    }
+
+    [Fact]
+    public void Submit_changes_status_and_rotates_concurrency_stamp()
+    {
+        var request = CreateRequest();
+        request.AddItem(
+            Guid.NewGuid(),
+            "Printer paper",
+            null,
+            "Pack",
+            "pkg",
+            12.50m,
+            2m);
+        var initialStamp = request.ConcurrencyStamp;
+
+        request.Submit();
+
+        Assert.Equal(PurchaseRequestStatus.Submitted, request.Status);
+        Assert.NotEqual(initialStamp, request.ConcurrencyStamp);
+    }
+
+    [Fact]
+    public void Cancel_is_allowed_for_draft_and_submitted_requests()
+    {
+        var draft = CreateRequest();
+        draft.Cancel();
+
+        var submitted = CreateRequest();
+        submitted.AddItem(
+            Guid.NewGuid(),
+            "Printer paper",
+            null,
+            "Pack",
+            "pkg",
+            12.50m,
+            1m);
+        submitted.Submit();
+        submitted.Cancel();
+
+        Assert.Equal(PurchaseRequestStatus.Cancelled, draft.Status);
+        Assert.Equal(PurchaseRequestStatus.Cancelled, submitted.Status);
+    }
+
+    [Fact]
+    public void Cancelled_request_cannot_be_submitted_or_cancelled_again()
+    {
+        var request = CreateRequest();
+        request.Cancel();
+
+        Assert.Throws<InvalidOperationException>(() => request.Submit());
+        Assert.Throws<InvalidOperationException>(() => request.Cancel());
+    }
+
+    [Fact]
+    public void Submitted_request_cannot_be_edited()
+    {
+        var request = CreateRequest();
+        var item = request.AddItem(
+            Guid.NewGuid(),
+            "Printer paper",
+            null,
+            "Pack",
+            "pkg",
+            12.50m,
+            1m);
+        request.Submit();
+
+        Assert.Throws<InvalidOperationException>(() => request.UpdateItemQuantity(item.Id, 2m));
+        Assert.Throws<InvalidOperationException>(() => request.RemoveItem(item.Id));
+        Assert.Throws<InvalidOperationException>(() => request.AddItem(
+            Guid.NewGuid(),
+            "Ink",
+            null,
+            "Piece",
+            "pc",
+            5m,
+            1m));
+    }
+
+    [Fact]
     public void Add_item_rejects_a_duplicate_product()
     {
         var request = CreateRequest();

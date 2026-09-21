@@ -17,7 +17,19 @@ public sealed class PostgreSqlWebApplicationFactory : CustomWebApplicationFactor
         .WithPassword("postgres")
         .Build();
 
-    public Task InitializeAsync() => _database.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _database.StartAsync();
+
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql(
+                _database.GetConnectionString(),
+                npgsql => npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+            .Options;
+
+        await using var dbContext = new ApplicationDbContext(options);
+        await dbContext.Database.MigrateAsync();
+    }
 
     public new async Task DisposeAsync()
     {

@@ -260,6 +260,7 @@ public sealed class PurchaseRequestHandlerTests
                 membership,
                 query.Page,
                 query.PageSize,
+                query.Status,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(page);
 
