@@ -5,7 +5,6 @@ using Domain.Models.Organizations.Enums;
 using DomainMembership = Domain.Models.Organizations.Membership;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Infrastructure.Modules.Organization.Membership.Create
 {
@@ -127,8 +126,7 @@ namespace Infrastructure.Modules.Organization.Membership.Create
                     membership.BranchId,
                     membership.Role,
                     membership.IsActive),
-                "Membership created",
-                HttpStatusCode.Created);
+                "Membership created");
         }
 
     }

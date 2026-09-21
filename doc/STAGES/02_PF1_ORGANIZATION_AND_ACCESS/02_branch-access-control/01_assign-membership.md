@@ -160,9 +160,10 @@ and `IsActive`. The API owns the response DTO; it should map from the existing
 | User already has an active membership | `Conflict` | `409 Conflict` |
 | Concurrent request violates the active-membership constraint | `Conflict` after existing PostgreSQL error classification | `409 Conflict` |
 
-Use the existing `MembershipResult<T>` status mapping and the existing
-`PostgreSqlErrorClassifier` pattern. The Application layer returns an
-application result; it does not return `IActionResult`.
+Use the application status from `MembershipResult<T>` and map it to HTTP in the
+API layer with the existing `OperationResultStatusCodeMapper` pattern. Keep the
+existing `PostgreSqlErrorClassifier` pattern. The Application layer returns an
+application result; it does not return HTTP status codes or `IActionResult`.
 
 ## 6. Invariants
 
@@ -216,7 +217,8 @@ actions.
 | `backend/Domain/Models/Organizations/Membership.cs` | REUSE | Membership state and role/branch validation | Keep as the domain owner; add focused tests only if coverage is missing |
 | `backend/Domain/Models/Organizations/Enums/BusinessRole.cs` | REUSE | Business role values | Keep; do not move these roles into global `UserRole` |
 | `backend/Domain/Models/Organizations/Enums/MembershipOperationStatus.cs` | REUSE | Application outcome statuses | Keep existing statuses and mapping |
-| `backend/Application/Modules/Organization/Membership/MembershipResult.cs` | REUSE | Generic application result and HTTP status metadata | Reuse; do not return HTTP results from stores |
+| `backend/Application/Modules/Organization/Membership/MembershipResult.cs` | REUSE | Generic application result with application status, value and message | Keep the application contract free of HTTP metadata |
+| `backend/API/Responses/OperationResultStatusCodeMapper.cs` | IMPLEMENTED | Maps application outcomes to HTTP status codes | Keep HTTP mapping in the API layer |
 | `backend/Application/Modules/Organization/Membership/MembershipView.cs` | REUSE | Application output view | Reuse as the handler output |
 | `backend/Application/Modules/Organization/Membership/Create/CreateMembershipCommand.cs` | REUSE | Command includes organization, user, branch and role | Build organization scope from the route; do not trust a duplicate body field |
 | `backend/Application/Modules/Organization/Membership/Create/ICreateMembershipHandler.cs` | REUSE | Create use-case port | Keep |

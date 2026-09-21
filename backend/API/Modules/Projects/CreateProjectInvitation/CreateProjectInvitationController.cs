@@ -1,6 +1,7 @@
 using API.Contracts.Projects;
 using Application.Modules.Projects.CreateProjectInvitation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -63,6 +64,7 @@ public sealed class CreateProjectInvitationController : ProjectControllerBase
             result,
             created => new CreatedProjectInvitationResponse(
                 MapInvitation(created.Invitation),
-                created.Token));
+                created.Token),
+            StatusCodes.Status201Created);
     }
 }

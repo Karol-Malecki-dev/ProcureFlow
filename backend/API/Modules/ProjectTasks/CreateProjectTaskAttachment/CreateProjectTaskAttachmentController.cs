@@ -2,6 +2,7 @@ using API.Contracts.Projects;
 using API.Modules.ProjectTasks;
 using Application.Modules.ProjectTasks.CreateProjectTaskAttachment;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -59,6 +60,6 @@ public sealed class CreateProjectTaskAttachmentController : ProjectTaskControlle
                 file.Length,
                 content),
             cancellationToken);
-        return ToActionResult(result, MapAttachment);
+        return ToActionResult(result, MapAttachment, StatusCodes.Status201Created);
     }
 }

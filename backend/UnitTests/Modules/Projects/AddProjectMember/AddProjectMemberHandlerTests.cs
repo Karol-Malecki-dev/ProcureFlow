@@ -125,7 +125,7 @@ public sealed class AddProjectMemberHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+        Assert.Equal(ProjectOperationStatus.Success, result.Status);
         Assert.Equal(command.UserId, result.Value!.UserId);
         Assert.Equal(ProjectMemberRole.Member, result.Value.Role);
         _store.Verify(store => store.AddMember(It.Is<ProjectMember>(member =>

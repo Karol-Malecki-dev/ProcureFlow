@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Domain.Entities.Auth;
 using Domain.Entities.JWT;
+using Domain.Models.Catalog;
 using Domain.Models.Organizations;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,6 +52,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Membership> Memberships => Set<Membership>();
+    public DbSet<UnitOfMeasure> UnitsOfMeasure => Set<UnitOfMeasure>();
 
     /// <summary>
     /// Konfiguracja modeli i relacji między encjami

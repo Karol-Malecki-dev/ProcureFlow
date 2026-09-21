@@ -1,5 +1,7 @@
 using API.Contracts.Projects;
+using API.Responses;
 using Application.Features.Projects;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,15 +16,15 @@ public abstract class ProjectControllerBase : ControllerBase
 {
     protected IActionResult ToActionResult<TValue, TResponse>(
         ProjectOperationResult<TValue> result,
-        Func<TValue, TResponse> map)
+        Func<TValue, TResponse> map,
+        int successStatusCode = StatusCodes.Status200OK)
     {
         if (!result.IsSuccess)
         {
-            var statusCode = (int)result.StatusCode;
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(statusCode, ApiResponse<TResponse>.Error(statusCode, result.Message));
         }
 
-        var successStatusCode = (int)result.StatusCode;
         return StatusCode(
             successStatusCode,
             ApiResponse<TResponse>.Success(map(result.Value!), result.Message, successStatusCode));

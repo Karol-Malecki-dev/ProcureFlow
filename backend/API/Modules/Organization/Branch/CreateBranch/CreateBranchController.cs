@@ -1,6 +1,8 @@
 ﻿using Application.Modules.Organization.Branch.CreateBranch;
 using Domain.ValueObjects;
+using API.Responses;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -44,14 +46,14 @@ public sealed class CreateBranchController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            var statusCode = (int)result.StatusCode;
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<BranchResponse>.Error(statusCode, result.Message));
         }
 
         var response = MapBranch(result.Value!);
-        var successStatusCode = (int)result.StatusCode;
+        const int successStatusCode = StatusCodes.Status201Created;
 
         return StatusCode(
             successStatusCode,

@@ -2,7 +2,6 @@ using Application.Modules.Organization.Branch.CreateBranch;
 using Domain.Models.Organizations.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 using BranchEntity = Domain.Models.Organizations.Branch;
 
 namespace Infrastructure.Modules.Organization.Branch.CreateBranch;
@@ -97,7 +96,6 @@ public sealed class CreateBranchHandler : ICreateBranchHandler
 
         return BranchOperationResult<BranchView>.Success(
             branchView,
-            "Branch created",
-            HttpStatusCode.Created);
+            "Branch created");
     }
 }

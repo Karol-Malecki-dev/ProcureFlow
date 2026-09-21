@@ -2,6 +2,7 @@ using API.Contracts.Projects;
 using API.Modules.ProjectTasks;
 using Application.Modules.ProjectTasks.CreateProjectTask;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -48,6 +49,6 @@ public sealed class CreateProjectTaskController : ProjectTaskControllerBase
                 request.Labels ?? []),
             cancellationToken);
 
-        return ToActionResult(result, MapTask);
+        return ToActionResult(result, MapTask, StatusCodes.Status201Created);
     }
 }

@@ -1,5 +1,6 @@
 using Application.Modules.Organization.Membership;
 using Application.Modules.Organization.Membership.Update;
+using API.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
@@ -33,10 +34,9 @@ public sealed class UpdateMembershipController : ControllerBase
                 request.Role),
             cancellationToken);
 
-        var statusCode = (int)result.StatusCode;
-
         if (!result.IsSuccess)
         {
+            var statusCode = OperationResultStatusCodeMapper.Map(result.Status);
             return StatusCode(
                 statusCode,
                 ApiResponse<MembershipResponse>.Error(statusCode, result.Message));

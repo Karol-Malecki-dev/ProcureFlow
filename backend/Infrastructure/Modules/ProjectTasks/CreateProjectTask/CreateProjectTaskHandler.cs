@@ -4,7 +4,6 @@ using Application.Modules.ProjectTasks.AssignmentNotifications;
 using Application.Modules.ProjectTasks.CreateProjectTask;
 using Domain.Entities;
 using Domain.Enums;
-using System.Net;
 
 namespace Infrastructure.Modules.ProjectTasks.CreateProjectTask;
 
@@ -95,8 +94,7 @@ public sealed class CreateProjectTaskHandler : ICreateProjectTaskHandler
 
         return ProjectOperationResult<ProjectTaskView>.Success(
             MapToView(task),
-            "Project task created",
-            HttpStatusCode.Created);
+            "Project task created");
     }
 
     private async Task<string?> ValidateAssignedUserAsync(

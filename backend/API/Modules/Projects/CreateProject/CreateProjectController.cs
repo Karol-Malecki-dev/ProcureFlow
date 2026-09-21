@@ -2,6 +2,7 @@ using API.Contracts.Projects;
 using API.Modules.Projects;
 using Application.Modules.Projects.CreateProject;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -39,6 +40,6 @@ public sealed class CreateProjectController : ProjectControllerBase
             new CreateProjectCommand(ownerId, request.Name, request.Description),
             cancellationToken);
 
-        return ToActionResult(result, MapProject);
+        return ToActionResult(result, MapProject, StatusCodes.Status201Created);
     }
 }

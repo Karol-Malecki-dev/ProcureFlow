@@ -72,7 +72,7 @@ public sealed class CreateProjectTaskHandlerTests
         var result = await CreateHandler().HandleAsync(command);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+        Assert.Equal(ProjectOperationStatus.Success, result.Status);
         Assert.Equal("Project task created", result.Message);
         Assert.NotNull(result.Value);
         Assert.Equal(command.Title, result.Value!.Title);

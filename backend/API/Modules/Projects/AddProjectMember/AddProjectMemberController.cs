@@ -2,6 +2,7 @@ using API.Contracts.Projects;
 using API.Modules.Projects;
 using Application.Modules.Projects.AddProjectMember;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Responses;
 
@@ -40,6 +41,6 @@ public sealed class AddProjectMemberController : ProjectControllerBase
             new AddProjectMemberCommand(ownerId, projectId, request.UserId),
             cancellationToken);
 
-        return ToActionResult(result, MapMember);
+        return ToActionResult(result, MapMember, StatusCodes.Status201Created);
     }
 }

@@ -32,7 +32,6 @@ public sealed class CreateMembershipHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(MembershipOperationStatus.Success, result.Status);
-        Assert.Equal(System.Net.HttpStatusCode.Created, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.Equal(organization.Id, result.Value!.OrganizationId);
         Assert.Equal(user.Id, result.Value.UserId);
