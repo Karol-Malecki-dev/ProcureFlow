@@ -1,4 +1,5 @@
 using Application.Modules.PurchaseRequests;
+using Application.Modules.PurchaseRequests.Approval.DecidePurchaseRequest;
 using Domain.Entities;
 using Domain.Entities.Auth;
 using Domain.Enums;
@@ -7,7 +8,9 @@ using Domain.Models.Organizations;
 using Domain.Models.Organizations.Enums;
 using Domain.ValueObjects;
 using Infrastructure.Data;
+using Infrastructure.Modules.PurchaseRequests.Approval;
 using Infrastructure.Modules.PurchaseRequests.ListMyPurchaseRequests;
+using Infrastructure.Modules.PurchaseRequests.PurchaseRequestMembershipReader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -185,6 +188,266 @@ public sealed class PurchaseRequestsPostgreSqlIntegrationTests
         Assert.Equal(expectedIds[2..], secondPage.Items.Select(item => item.Id));
     }
 
+    [Fact]
+    public async Task PostgreSql_parallel_manager_approvals_cannot_overallocate_monthly_budget()
+    {
+        var data = await SeedApprovalScopeAsync([1m, 1m], 10.50m);
+
+        var results = await Task.WhenAll(
+            data.Requests.Select(request => ExecuteManagerDecisionAsync(data, request)));
+
+        Assert.Equal(
+            1,
+            results.Count(result =>
+                result.IsSuccess
+                && result.Value?.Status == PurchaseRequestStatus.Approved));
+        Assert.All(
+            results,
+            result => Assert.True(
+                result.IsSuccess || result.Status == PurchaseRequestOperationStatus.Conflict));
+
+        await using var verificationScope = _factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var requests = await verificationContext.PurchaseRequests
+            .Where(request => data.Requests.Select(seed => seed.Id).Contains(request.Id))
+            .ToListAsync();
+        var budget = await verificationContext.BranchMonthlyBudgets
+            .SingleAsync(item => item.Id == data.BudgetId);
+        var decisions = await verificationContext.PurchaseRequestApprovalDecisions
+            .Where(decision => data.Requests.Select(seed => seed.Id).Contains(decision.PurchaseRequestId))
+            .ToListAsync();
+
+        Assert.Single(requests, request => request.Status == PurchaseRequestStatus.Approved);
+        Assert.Equal(10.50m, budget.UsedAmount);
+        Assert.Single(decisions, decision => decision.Decision == PurchaseRequestDecisionType.Approved);
+        Assert.DoesNotContain(
+            requests,
+            request => request.Status == PurchaseRequestStatus.Approved
+                && decisions.Count(decision => decision.PurchaseRequestId == request.Id) != 1);
+    }
+
+    [Fact]
+    public async Task PostgreSql_parallel_decisions_for_one_request_have_one_winner_and_one_atomic_result()
+    {
+        var data = await SeedApprovalScopeAsync([1m], 100m);
+        var request = Assert.Single(data.Requests);
+
+        var results = await Task.WhenAll(
+            ExecuteManagerDecisionAsync(data, request),
+            ExecuteManagerDecisionAsync(data, request));
+
+        Assert.Equal(1, results.Count(result => result.IsSuccess));
+        Assert.Equal(
+            1,
+            results.Count(result =>
+                !result.IsSuccess
+                && result.Status == PurchaseRequestOperationStatus.Conflict));
+
+        await using var verificationScope = _factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedRequest = await verificationContext.PurchaseRequests
+            .SingleAsync(item => item.Id == request.Id);
+        var persistedBudget = await verificationContext.BranchMonthlyBudgets
+            .SingleAsync(item => item.Id == data.BudgetId);
+        var decisions = await verificationContext.PurchaseRequestApprovalDecisions
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .ToListAsync();
+        var history = await verificationContext.PurchaseRequestStatusHistories
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .ToListAsync();
+
+        Assert.Equal(PurchaseRequestStatus.Approved, persistedRequest.Status);
+        Assert.Equal(10.50m, persistedBudget.UsedAmount);
+        Assert.Single(decisions);
+        Assert.Single(history);
+    }
+
+    [Fact]
+    public async Task PostgreSql_failed_approval_does_not_leave_partial_budget_usage()
+    {
+        var data = await SeedApprovalScopeAsync([1m], 100m);
+        var request = Assert.Single(data.Requests);
+        var period = (DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+
+        await using (var seedScope = _factory.Services.CreateAsyncScope())
+        {
+            var seedContext = seedScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            seedContext.PurchaseRequestApprovalDecisions.Add(
+                PurchaseRequestApprovalDecision.Create(
+                    request.Id,
+                    data.ManagerUserId,
+                    BusinessRole.Manager,
+                    PurchaseRequestDecisionType.Escalated,
+                    request.TotalValue,
+                    availableBudget: 0m,
+                    overBudgetAmount: request.TotalValue,
+                    budgetYear: period.Year,
+                    budgetMonth: period.Month));
+            await seedContext.SaveChangesAsync();
+        }
+
+        var result = await ExecuteManagerDecisionAsync(data, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PurchaseRequestOperationStatus.Conflict, result.Status);
+
+        await using var verificationScope = _factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedRequest = await verificationContext.PurchaseRequests
+            .SingleAsync(item => item.Id == request.Id);
+        var persistedBudget = await verificationContext.BranchMonthlyBudgets
+            .SingleAsync(item => item.Id == data.BudgetId);
+        var decisions = await verificationContext.PurchaseRequestApprovalDecisions
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .ToListAsync();
+        var history = await verificationContext.PurchaseRequestStatusHistories
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .ToListAsync();
+
+        Assert.Equal(PurchaseRequestStatus.Submitted, persistedRequest.Status);
+        Assert.Equal(0m, persistedBudget.UsedAmount);
+        Assert.Single(decisions);
+        Assert.Empty(history);
+    }
+
+    private async Task<PurchaseRequestOperationResult<PurchaseRequestDetailsView>> ExecuteManagerDecisionAsync(
+        ApprovalSeed data,
+        ApprovalRequestSeed request,
+        string? expectedConcurrencyStamp = null)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var handler = new DecidePurchaseRequestHandler(
+            new EfPurchaseRequestMembershipReader(dbContext),
+            new EfPurchaseRequestApprovalStore(dbContext));
+
+        return await handler.HandleAsync(
+            new DecidePurchaseRequestCommand(
+                data.ManagerUserId,
+                data.OrganizationId,
+                request.Id,
+                expectedConcurrencyStamp ?? request.ConcurrencyStamp,
+                Approve: true,
+                RejectionReason: null));
+    }
+
+    private async Task<ApprovalSeed> SeedApprovalScopeAsync(
+        IReadOnlyList<decimal> quantities,
+        decimal budgetLimit)
+    {
+        if (quantities.Count == 0)
+        {
+            throw new ArgumentException("At least one approval request is required.", nameof(quantities));
+        }
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var employee = User.Create(
+            EmailAddress.Create($"purchase-request-approval-employee-{Guid.NewGuid():N}@example.com"),
+            DisplayName.Create("Purchase request approval employee"),
+            UserRole.User,
+            isActive: true,
+            isEmailConfirmed: true);
+        var manager = User.Create(
+            EmailAddress.Create($"purchase-request-approval-manager-{Guid.NewGuid():N}@example.com"),
+            DisplayName.Create("Purchase request approval manager"),
+            UserRole.User,
+            isActive: true,
+            isEmailConfirmed: true);
+        dbContext.Users.AddRange(employee, manager);
+        await dbContext.SaveChangesAsync();
+
+        var organization = await dbContext.Organizations
+            .SingleOrDefaultAsync(candidate => !candidate.IsArchived);
+        if (organization is null)
+        {
+            organization = new DomainOrganization(
+                "Purchase request approval PostgreSQL organization",
+                CreateAddress(),
+                $"PA{Guid.NewGuid():N}"[..10],
+                null);
+            dbContext.Organizations.Add(organization);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var branch = new DomainBranch(
+            $"Purchase request approval PostgreSQL branch {Guid.NewGuid():N}",
+            CreateAddress(),
+            $"PB{Guid.NewGuid():N}"[..10],
+            organization.Id);
+        dbContext.Branches.Add(branch);
+        await dbContext.SaveChangesAsync();
+
+        var unit = new UnitOfMeasure(
+            organization.Id,
+            "Piece",
+            $"u{Guid.NewGuid():N}"[..10],
+            employee.Id);
+        var product = new Product(
+            organization.Id,
+            "Monitor",
+            $"MON-{Guid.NewGuid():N}",
+            unit.Id,
+            10.50m,
+            employee.Id);
+        dbContext.UnitsOfMeasure.Add(unit);
+        dbContext.Products.Add(product);
+        dbContext.Memberships.AddRange(
+            new DomainMembership(
+                organization.Id,
+                employee.Id,
+                branch.Id,
+                BusinessRole.Employee),
+            new DomainMembership(
+                organization.Id,
+                manager.Id,
+                branch.Id,
+                BusinessRole.Manager));
+
+        var requests = quantities
+            .Select(quantity =>
+            {
+                var request = PurchaseRequest.Create(
+                    employee.Id,
+                    organization.Id,
+                    branch.Id,
+                    "PostgreSQL approval concurrency request");
+                request.AddItem(
+                    product.Id,
+                    "Monitor",
+                    "MON-1",
+                    "Piece",
+                    "pc",
+                    10.50m,
+                    quantity);
+                request.Submit();
+                return request;
+            })
+            .ToList();
+        var period = (DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+        var budget = BranchMonthlyBudget.Create(
+            branch.Id,
+            period.Year,
+            period.Month,
+            budgetLimit);
+
+        dbContext.PurchaseRequests.AddRange(requests);
+        dbContext.BranchMonthlyBudgets.Add(budget);
+        await dbContext.SaveChangesAsync();
+
+        return new ApprovalSeed(
+            organization.Id,
+            branch.Id,
+            manager.Id,
+            budget.Id,
+            requests
+                .Select(request => new ApprovalRequestSeed(
+                    request.Id,
+                    request.ConcurrencyStamp,
+                    request.TotalValue))
+                .ToArray());
+    }
+
     private async Task<PurchaseRequestSeed> SeedDraftAsync(bool includeItem)
     {
         var data = await SeedScopeAsync();
@@ -306,4 +569,16 @@ public sealed class PurchaseRequestsPostgreSqlIntegrationTests
         Guid MembershipId,
         Guid ProductId,
         Guid RequestId);
+
+    private sealed record ApprovalSeed(
+        Guid OrganizationId,
+        Guid BranchId,
+        Guid ManagerUserId,
+        Guid BudgetId,
+        IReadOnlyList<ApprovalRequestSeed> Requests);
+
+    private sealed record ApprovalRequestSeed(
+        Guid Id,
+        string ConcurrencyStamp,
+        decimal TotalValue);
 }

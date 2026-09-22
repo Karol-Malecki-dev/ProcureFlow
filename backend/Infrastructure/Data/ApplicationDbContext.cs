@@ -57,6 +57,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<PurchaseRequest> PurchaseRequests => Set<PurchaseRequest>();
     public DbSet<PurchaseRequestItem> PurchaseRequestItems => Set<PurchaseRequestItem>();
     public DbSet<PurchaseRequestStatusHistory> PurchaseRequestStatusHistories => Set<PurchaseRequestStatusHistory>();
+    public DbSet<BranchMonthlyBudget> BranchMonthlyBudgets => Set<BranchMonthlyBudget>();
+    public DbSet<PurchaseRequestApprovalDecision> PurchaseRequestApprovalDecisions => Set<PurchaseRequestApprovalDecision>();
 
     /// <summary>
     /// Konfiguracja modeli i relacji między encjami

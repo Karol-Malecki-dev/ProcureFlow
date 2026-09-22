@@ -1,5 +1,9 @@
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using Application.Modules.PurchaseRequests.Approval.DecidePurchaseRequest;
+using Application.Modules.PurchaseRequests.Approval.ListPurchaseRequestApprovalQueue;
+using Application.Modules.PurchaseRequests.Budget.GetBranchMonthlyBudget;
+using Application.Modules.PurchaseRequests.Budget.UpsertBranchMonthlyBudget;
 using Application.Modules.PurchaseRequests.CancelPurchaseRequest;
 using Application.Modules.PurchaseRequests.CreatePurchaseRequest;
 using Application.Modules.PurchaseRequests.GetPurchaseRequestDetails;
@@ -8,6 +12,8 @@ using Application.Modules.PurchaseRequests.RemovePurchaseRequestItem;
 using Application.Modules.PurchaseRequests.SubmitPurchaseRequest;
 using Application.Modules.PurchaseRequests.UpdatePurchaseRequestItemQuantity;
 using Infrastructure.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using Infrastructure.Modules.PurchaseRequests.Approval;
+using Infrastructure.Modules.PurchaseRequests.Budget;
 using Infrastructure.Modules.PurchaseRequests.CancelPurchaseRequest;
 using Infrastructure.Modules.PurchaseRequests.CreatePurchaseRequest;
 using Infrastructure.Modules.PurchaseRequests.Draft;
@@ -23,7 +29,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Infrastructure.Modules.PurchaseRequests;
 
 /// <summary>
-/// Registers all PF3 purchase-request draft ports and handlers.
+/// Registers purchase-request draft, budget and approval ports and handlers.
 /// </summary>
 public static class PurchaseRequestsModule
 {
@@ -32,6 +38,7 @@ public static class PurchaseRequestsModule
         services.AddScoped<IPurchaseRequestMembershipReader, EfPurchaseRequestMembershipReader>();
         services.AddScoped<IPurchaseRequestDraftStore, EfPurchaseRequestDraftStore>();
         services.AddScoped<IPurchaseRequestWorkflowStore, EfPurchaseRequestWorkflowStore>();
+        services.AddScoped<IPurchaseRequestApprovalStore, EfPurchaseRequestApprovalStore>();
 
         services.AddScoped<ICreatePurchaseRequestStore, EfCreatePurchaseRequestStore>();
         services.AddScoped<ICreatePurchaseRequestHandler, CreatePurchaseRequestHandler>();
@@ -47,6 +54,11 @@ public static class PurchaseRequestsModule
 
         services.AddScoped<IListMyPurchaseRequestsStore, EfListMyPurchaseRequestsStore>();
         services.AddScoped<IListMyPurchaseRequestsHandler, ListMyPurchaseRequestsHandler>();
+
+        services.AddScoped<IGetBranchMonthlyBudgetHandler, GetBranchMonthlyBudgetHandler>();
+        services.AddScoped<IUpsertBranchMonthlyBudgetHandler, UpsertBranchMonthlyBudgetHandler>();
+        services.AddScoped<IListPurchaseRequestApprovalQueueHandler, ListPurchaseRequestApprovalQueueHandler>();
+        services.AddScoped<IDecidePurchaseRequestHandler, DecidePurchaseRequestHandler>();
 
         return services;
     }

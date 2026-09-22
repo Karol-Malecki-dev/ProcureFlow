@@ -1,9 +1,13 @@
 import type {
   AddPurchaseRequestItemRequest,
+  BranchMonthlyBudgetResponse,
   CreatePurchaseRequestRequest,
+  DecidePurchaseRequestRequest,
   PurchaseRequestDetailsResponse,
+  PurchaseRequestApprovalQueueResponse,
   PurchaseRequestListResponse,
   RemovePurchaseRequestItemRequest,
+  UpsertBranchMonthlyBudgetRequest,
   UpdatePurchaseRequestItemQuantityRequest,
 } from '../../types/purchaseRequests';
 import { httpClient, type HttpClient } from './HttpClient';
@@ -15,6 +19,47 @@ export class PurchaseRequestApi {
     const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     return this.client.get<PurchaseRequestListResponse>(
       `/organizations/${organizationId}/purchase-requests?${query.toString()}`,
+    );
+  }
+
+  listApprovalQueue(organizationId: string): Promise<PurchaseRequestApprovalQueueResponse> {
+    return this.client.get<PurchaseRequestApprovalQueueResponse>(
+      `/organizations/${organizationId}/purchase-requests/approval-queue`,
+    );
+  }
+
+  getBudget(
+    organizationId: string,
+    branchId: string,
+    year: number,
+    month: number,
+  ): Promise<BranchMonthlyBudgetResponse> {
+    return this.client.get<BranchMonthlyBudgetResponse>(
+      `/organizations/${organizationId}/purchase-requests/budgets/${branchId}/${year}/${month}`,
+    );
+  }
+
+  upsertBudget(
+    organizationId: string,
+    branchId: string,
+    year: number,
+    month: number,
+    request: UpsertBranchMonthlyBudgetRequest,
+  ): Promise<BranchMonthlyBudgetResponse> {
+    return this.client.put<BranchMonthlyBudgetResponse, UpsertBranchMonthlyBudgetRequest>(
+      `/organizations/${organizationId}/purchase-requests/budgets/${branchId}/${year}/${month}`,
+      request,
+    );
+  }
+
+  decide(
+    organizationId: string,
+    purchaseRequestId: string,
+    request: DecidePurchaseRequestRequest,
+  ): Promise<PurchaseRequestDetailsResponse> {
+    return this.client.post<PurchaseRequestDetailsResponse, DecidePurchaseRequestRequest>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/decision`,
+      request,
     );
   }
 

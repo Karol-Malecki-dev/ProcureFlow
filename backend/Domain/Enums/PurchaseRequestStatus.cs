@@ -11,5 +11,6 @@ public enum PurchaseRequestStatus
     Rejected = 4,
     Ordered = 5,
     Delivered = 6,
-    Cancelled = 7
+    Cancelled = 7,
+    AwaitingProcurementApproval = 8
 }

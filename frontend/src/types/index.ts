@@ -207,6 +207,7 @@ export type { SelectableProductDto, SelectableProductsResponse } from './catalog
 
 // Purchase-request draft types
 export { PurchaseRequestStatus } from './purchaseRequests';
+export { PurchaseRequestDecisionType } from './purchaseRequests';
 
 export type {
   PurchaseRequestItemDto,
@@ -219,5 +220,11 @@ export type {
   RemovePurchaseRequestItemRequest,
   PurchaseRequestDetailsResponse,
   PurchaseRequestListResponse,
+  BranchMonthlyBudgetDto,
+  BranchMonthlyBudgetResponse,
+  PurchaseRequestApprovalQueueItemDto,
+  PurchaseRequestApprovalQueueDto,
+  PurchaseRequestApprovalQueueResponse,
+  UpsertBranchMonthlyBudgetRequest,
+  DecidePurchaseRequestRequest,
 } from './purchaseRequests';
-

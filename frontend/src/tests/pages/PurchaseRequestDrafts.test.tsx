@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi } from 'vitest';
@@ -173,7 +173,10 @@ describe('PurchaseRequestDrafts page', () => {
     await screen.findByRole('heading', { name: 'Purchase request drafts' });
 
     await user.type(screen.getByLabelText('Note'), 'Office supplies');
-    await user.click(screen.getByRole('button', { name: /create draft/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /create draft/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedPurchaseRequestApi.createDraft).toHaveBeenCalledWith(
       membership.organizationId,
@@ -185,7 +188,10 @@ describe('PurchaseRequestDrafts page', () => {
     await user.selectOptions(screen.getByLabelText('Product'), product.id);
     await user.clear(screen.getByLabelText('Quantity'));
     await user.type(screen.getByLabelText('Quantity'), '2');
-    await user.click(screen.getByRole('button', { name: /add item/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /add item/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedPurchaseRequestApi.addItem).toHaveBeenCalledWith(
       membership.organizationId,
@@ -209,7 +215,10 @@ describe('PurchaseRequestDrafts page', () => {
     const itemQuantity = within(itemArticle).getByLabelText('Quantity');
     await user.clear(itemQuantity);
     await user.type(itemQuantity, '3');
-    await user.click(screen.getByRole('button', { name: /save quantity/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /save quantity/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedPurchaseRequestApi.updateItemQuantity).toHaveBeenCalledWith(
       membership.organizationId,
@@ -220,7 +229,10 @@ describe('PurchaseRequestDrafts page', () => {
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Quantity updated.'));
     await waitFor(() => expect(screen.getByRole('button', { name: /save quantity/i })).not.toBeDisabled());
 
-    await user.click(screen.getByRole('button', { name: /remove/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /remove/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedPurchaseRequestApi.removeItem).toHaveBeenCalledWith(
       membership.organizationId,
@@ -253,7 +265,10 @@ describe('PurchaseRequestDrafts page', () => {
   const itemQuantity = within(itemArticle).getByLabelText('Quantity');
   await user.clear(itemQuantity);
   await user.type(itemQuantity, '3');
-    await user.click(screen.getByRole('button', { name: /save quantity/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /save quantity/i }));
+      await Promise.resolve();
+    });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('This draft changed in another session. The latest version has been loaded.');
     await waitFor(() => expect(within(screen.getByRole('article')).getByLabelText('Quantity')).toHaveValue(4));

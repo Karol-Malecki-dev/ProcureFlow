@@ -7,6 +7,22 @@ równoległe decyzje nie mogą po cichu przekroczyć dostępnego budżetu. Manag
 zatwierdza zwykły wniosek, natomiast przekroczenie limitu wymaga decyzji
 Procurement.
 
+## Stan implementacji
+
+Vertical slice PF4 został domknięty na branchu
+`feature/purchase-request-approvals`:
+
+- backend udostępnia kolejkę, odczyt i zapis budżetu oraz decyzję Managera lub
+  Procurement;
+- zapis decyzji obejmuje status wniosku, budżet, decyzję i historię w jednej
+  transakcji;
+- frontend obsługuje kolejkę Managera i Procurement, odrzucenie z przyczyną
+  oraz odświeżenie po `409 Conflict`;
+- testy PostgreSQL obejmują równoległe akceptacje budżetu, konkurencyjne decyzje
+  tego samego wniosku i rollback po błędzie zapisu.
+
+Pełny krytyczny przepływ przeglądarkowy pozostaje elementem etapu PF5/E2E.
+
 ## Kolejność branchy
 
 ### 1. `feature/branch-monthly-budgets`

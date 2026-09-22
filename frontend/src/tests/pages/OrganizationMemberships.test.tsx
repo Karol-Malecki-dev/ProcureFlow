@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi } from 'vitest';
@@ -124,7 +124,10 @@ describe('OrganizationMemberships page', () => {
     await user.selectOptions(screen.getByLabelText('User'), activeUser.id);
     await user.selectOptions(screen.getByLabelText('Business role'), String(BusinessRole.Manager));
     await user.selectOptions(screen.getByRole('combobox', { name: /^Branch$/ }), activeBranch.id);
-    await user.click(screen.getByRole('button', { name: /assign membership/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /assign membership/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.createMembership).toHaveBeenCalledWith(
       'org-1',
@@ -156,7 +159,10 @@ describe('OrganizationMemberships page', () => {
     await user.selectOptions(screen.getByLabelText('Business role'), String(BusinessRole.Procurement));
 
     expect(screen.queryByRole('combobox', { name: /^Branch$/ })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /assign membership/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /assign membership/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.createMembership).toHaveBeenCalledWith(
       'org-1',
@@ -186,7 +192,10 @@ describe('OrganizationMemberships page', () => {
 
     await user.click(screen.getByRole('button', { name: /^edit$/i }));
     await user.selectOptions(screen.getByLabelText('Business role'), String(BusinessRole.Procurement));
-    await user.click(screen.getByRole('button', { name: /save assignment/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /save assignment/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.updateMembership).toHaveBeenCalledWith(
       'org-1',
@@ -194,7 +203,10 @@ describe('OrganizationMemberships page', () => {
       { role: BusinessRole.Procurement, branchId: null },
     ));
 
-    await user.click(screen.getByRole('button', { name: /deactivate/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /deactivate/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.archiveMembership).toHaveBeenCalledWith(
       'org-1',
@@ -213,7 +225,10 @@ describe('OrganizationMemberships page', () => {
 
     await user.selectOptions(screen.getByLabelText('User'), activeUser.id);
     await user.selectOptions(screen.getByRole('combobox', { name: /^Branch$/ }), activeBranch.id);
-    await user.click(screen.getByRole('button', { name: /assign membership/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /assign membership/i }));
+      await Promise.resolve();
+    });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('User already has an active membership.');
     expect(screen.getByLabelText('User')).toHaveValue(activeUser.id);

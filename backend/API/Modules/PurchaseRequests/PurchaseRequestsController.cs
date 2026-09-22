@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using API.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using API.Modules.PurchaseRequests.Approval;
+using API.Modules.PurchaseRequests.Budget;
 using API.Modules.PurchaseRequests.ChangePurchaseRequestStatus;
 using API.Modules.PurchaseRequests.CreatePurchaseRequest;
 using API.Modules.PurchaseRequests.RemovePurchaseRequestItem;
@@ -9,6 +11,10 @@ using API.Responses;
 using Application.Modules.PurchaseRequests.CancelPurchaseRequest;
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using Application.Modules.PurchaseRequests.Approval.DecidePurchaseRequest;
+using Application.Modules.PurchaseRequests.Approval.ListPurchaseRequestApprovalQueue;
+using Application.Modules.PurchaseRequests.Budget.GetBranchMonthlyBudget;
+using Application.Modules.PurchaseRequests.Budget.UpsertBranchMonthlyBudget;
 using Application.Modules.PurchaseRequests.CreatePurchaseRequest;
 using Application.Modules.PurchaseRequests.GetPurchaseRequestDetails;
 using Application.Modules.PurchaseRequests.ListMyPurchaseRequests;
@@ -24,7 +30,7 @@ using Shared.Responses;
 namespace API.Modules.PurchaseRequests;
 
 /// <summary>
-/// HTTP adapter for the PF3 purchase-request draft workflow.
+/// HTTP adapter for the purchase-request draft, budget and approval workflows.
 /// </summary>
 [ApiController]
 [Route("api/organizations/{organizationId:guid}/purchase-requests")]
@@ -39,6 +45,10 @@ public sealed class PurchaseRequestsController : ControllerBase
     private readonly ICancelPurchaseRequestHandler _cancelHandler;
     private readonly IGetPurchaseRequestDetailsHandler _detailsHandler;
     private readonly IListMyPurchaseRequestsHandler _listHandler;
+    private readonly IGetBranchMonthlyBudgetHandler _getBudgetHandler;
+    private readonly IUpsertBranchMonthlyBudgetHandler _upsertBudgetHandler;
+    private readonly IListPurchaseRequestApprovalQueueHandler _approvalQueueHandler;
+    private readonly IDecidePurchaseRequestHandler _decisionHandler;
 
     public PurchaseRequestsController(
         ICreatePurchaseRequestHandler createHandler,
@@ -48,7 +58,11 @@ public sealed class PurchaseRequestsController : ControllerBase
         ISubmitPurchaseRequestHandler submitHandler,
         ICancelPurchaseRequestHandler cancelHandler,
         IGetPurchaseRequestDetailsHandler detailsHandler,
-        IListMyPurchaseRequestsHandler listHandler)
+        IListMyPurchaseRequestsHandler listHandler,
+        IGetBranchMonthlyBudgetHandler getBudgetHandler,
+        IUpsertBranchMonthlyBudgetHandler upsertBudgetHandler,
+        IListPurchaseRequestApprovalQueueHandler approvalQueueHandler,
+        IDecidePurchaseRequestHandler decisionHandler)
     {
         _createHandler = createHandler;
         _addItemHandler = addItemHandler;
@@ -58,6 +72,10 @@ public sealed class PurchaseRequestsController : ControllerBase
         _cancelHandler = cancelHandler;
         _detailsHandler = detailsHandler;
         _listHandler = listHandler;
+        _getBudgetHandler = getBudgetHandler;
+        _upsertBudgetHandler = upsertBudgetHandler;
+        _approvalQueueHandler = approvalQueueHandler;
+        _decisionHandler = decisionHandler;
     }
 
     /// <summary>Creates an empty draft in the current user's active Employee branch.</summary>
@@ -111,6 +129,131 @@ public sealed class PurchaseRequestsController : ControllerBase
             cancellationToken);
 
         return ToActionResult(result, MapList);
+    }
+
+    /// <summary>Returns the Manager or Procurement queue for the current membership.</summary>
+    [HttpGet("approval-queue")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestApprovalQueueResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ApprovalQueue(
+        Guid organizationId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestApprovalQueueResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _approvalQueueHandler.HandleAsync(
+            new ListPurchaseRequestApprovalQueueQuery(userId, organizationId),
+            cancellationToken);
+
+        return ToActionResult(result, MapApprovalQueue);
+    }
+
+    /// <summary>Reads one monthly budget in the current user's authorized branch scope.</summary>
+    [HttpGet("budgets/{branchId:guid}/{year:int}/{month:int}")]
+    [ProducesResponseType(typeof(ApiResponse<BranchMonthlyBudgetResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBudget(
+        Guid organizationId,
+        Guid branchId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<BranchMonthlyBudgetResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _getBudgetHandler.HandleAsync(
+            new GetBranchMonthlyBudgetQuery(userId, organizationId, branchId, year, month),
+            cancellationToken);
+
+        return ToActionResult(result, MapBudget);
+    }
+
+    /// <summary>Creates or updates a branch-month budget for Procurement or an admin.</summary>
+    [HttpPut("budgets/{branchId:guid}/{year:int}/{month:int}")]
+    [ProducesResponseType(typeof(ApiResponse<BranchMonthlyBudgetResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> UpsertBudget(
+        Guid organizationId,
+        Guid branchId,
+        int year,
+        int month,
+        UpsertBranchMonthlyBudgetRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<BranchMonthlyBudgetResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _upsertBudgetHandler.HandleAsync(
+            new UpsertBranchMonthlyBudgetCommand(
+                userId,
+                organizationId,
+                branchId,
+                year,
+                month,
+                request.LimitAmount,
+                request.ExpectedConcurrencyStamp),
+            cancellationToken);
+
+        return ToActionResult(result, MapBudget);
+    }
+
+    /// <summary>Approves or rejects one request from the current user's approval queue.</summary>
+    [HttpPost("{purchaseRequestId:guid}/decision")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Decide(
+        Guid organizationId,
+        Guid purchaseRequestId,
+        DecidePurchaseRequestRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _decisionHandler.HandleAsync(
+            new DecidePurchaseRequestCommand(
+                userId,
+                organizationId,
+                purchaseRequestId,
+                request.ConcurrencyStamp,
+                request.Approve,
+                request.RejectionReason),
+            cancellationToken);
+
+        return ToActionResult(result, MapDetails);
     }
 
     /// <summary>Returns one own draft without exposing requests from another scope.</summary>
@@ -340,6 +483,39 @@ public sealed class PurchaseRequestsController : ControllerBase
             view.CreatedAt,
             view.UpdatedAt,
             view.ConcurrencyStamp);
+
+    private static BranchMonthlyBudgetResponse MapBudget(BranchMonthlyBudgetView view)
+        => new(
+            view.Id,
+            view.OrganizationId,
+            view.BranchId,
+            view.Year,
+            view.Month,
+            view.LimitAmount,
+            view.UsedAmount,
+            view.AvailableAmount,
+            view.ConcurrencyStamp);
+
+    private static PurchaseRequestApprovalQueueResponse MapApprovalQueue(
+        PurchaseRequestApprovalQueueView view)
+        => new(
+            view.Items
+                .Select(item => new PurchaseRequestApprovalQueueItemResponse(
+                    item.Id,
+                    item.AuthorUserId,
+                    item.OrganizationId,
+                    item.BranchId,
+                    item.Status,
+                    item.Note,
+                    item.Items.Select(MapItem).ToList(),
+                    item.TotalValue,
+                    item.CreatedAt,
+                    item.UpdatedAt,
+                    item.ConcurrencyStamp,
+                    item.CanDecide,
+                    item.QueueRole))
+                .ToList(),
+            view.QueueRole);
 
     private static PurchaseRequestItemResponse MapItem(PurchaseRequestItemView item)
         => new(

@@ -465,6 +465,8 @@ feat(budgets): add monthly branch budgets
 
 #### Branch: `feature/purchase-request-approvals`
 
+**Status:** ukończony w ramach bieżącego vertical slice'a.
+
 **Write:** Manager queue, approval in budget, escalation to Procurement,
 Procurement approval or rejection, mandatory rejection reason, decision history
 and atomic status-budget-decision writes.

@@ -13,7 +13,8 @@ public sealed record PurchaseRequestMembership(
     BusinessRole Role,
     bool IsUserActive,
     bool IsOrganizationActive,
-    bool IsBranchActive)
+    bool IsBranchActive,
+    bool IsPlatformAdmin = false)
 {
     public bool IsActiveEmployeeScope
         => Role == BusinessRole.Employee
@@ -21,4 +22,25 @@ public sealed record PurchaseRequestMembership(
             && IsUserActive
             && IsOrganizationActive
             && IsBranchActive;
+
+    public bool IsActiveManagerScope
+        => Role == BusinessRole.Manager
+            && BranchId.HasValue
+            && IsUserActive
+            && IsOrganizationActive
+            && IsBranchActive;
+
+    public bool IsActiveProcurementScope
+        => Role == BusinessRole.Procurement
+            && IsUserActive
+            && IsOrganizationActive;
+
+    public bool IsActivePlatformAdminScope
+        => IsPlatformAdmin
+            && IsUserActive
+            && IsOrganizationActive;
+
+    public bool CanManageBudgets
+        => IsActivePlatformAdminScope
+            || IsActiveProcurementScope;
 }

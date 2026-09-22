@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi } from 'vitest';
@@ -130,7 +130,10 @@ describe('OrganizationBranches page', () => {
     await user.type(screen.getByLabelText('City'), 'Warsaw');
     await user.type(screen.getByLabelText('Postal code'), '00-001');
     await user.type(screen.getByLabelText('Country'), 'Poland');
-    await user.click(screen.getByRole('button', { name: /create branch/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /create branch/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.createBranch).toHaveBeenCalledWith(
       'org-1',
@@ -157,7 +160,10 @@ describe('OrganizationBranches page', () => {
     const nameInput = screen.getByLabelText('Branch name');
     await user.clear(nameInput);
     await user.type(nameInput, 'Updated branch');
-    await user.click(screen.getByRole('button', { name: /save changes/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /save changes/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.updateBranch).toHaveBeenCalledWith(
       'org-1',
@@ -165,7 +171,10 @@ describe('OrganizationBranches page', () => {
       expect.objectContaining({ name: 'Updated branch' }),
     ));
 
-    await user.click(screen.getByRole('button', { name: /archive/i }));
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /archive/i }));
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockedOrganizationApi.archiveBranch).toHaveBeenCalledWith('org-1', 'branch-1'));
     expect(await screen.findByText('Branch archived.')).toBeInTheDocument();
@@ -179,7 +188,10 @@ describe('OrganizationBranches page', () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Warsaw branch' })).toBeInTheDocument();
 
-    await user.click(screen.getByLabelText('Include archived branches'));
+    await act(async () => {
+      await user.click(screen.getByLabelText('Include archived branches'));
+      await Promise.resolve();
+    });
 
     expect(await screen.findByRole('heading', { name: 'Archived branch' })).toBeInTheDocument();
     expect(mockedOrganizationApi.getBranches).toHaveBeenLastCalledWith('org-1', true);
