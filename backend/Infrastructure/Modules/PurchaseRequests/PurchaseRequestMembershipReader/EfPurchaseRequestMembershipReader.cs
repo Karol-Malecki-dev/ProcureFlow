@@ -1,4 +1,5 @@
 using Application.Modules.PurchaseRequests;
+using Domain.Enums;
 using Domain.Models.Organizations.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,9 @@ public sealed class EfPurchaseRequestMembershipReader : IPurchaseRequestMembersh
                     && _dbContext.Branches.Any(branch =>
                         branch.Id == membership.BranchId.Value
                         && branch.OrganizationId == membership.OrganizationId
-                        && !branch.IsArchived)))
+                        && !branch.IsArchived),
+                _dbContext.Users.Any(user =>
+                    user.Id == membership.UserId
+                    && user.Role == UserRole.Admin)))
             .SingleOrDefaultAsync(cancellationToken);
 }

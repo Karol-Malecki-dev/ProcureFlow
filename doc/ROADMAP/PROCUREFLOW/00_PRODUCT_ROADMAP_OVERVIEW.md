@@ -84,7 +84,7 @@ według etapów poniżej, nie według starej roadmapy startera.
 | PF1 | Organizacja, oddziały i dostęp do zasobów | W toku: branch organizacji i oddziałów ukończony | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
 | PF2 | Katalog produktów | Planowany | [03_PF2_CATALOG.md](03_PF2_CATALOG.md) |
 | PF3 | Draft i wysłanie zapotrzebowania | Planowany | [04_PF3_PURCHASE_REQUEST_CORE.md](04_PF3_PURCHASE_REQUEST_CORE.md) |
-| PF4 | Budżety, zatwierdzanie i concurrency | Planowany | [05_PF4_APPROVALS_AND_BUDGETS.md](05_PF4_APPROVALS_AND_BUDGETS.md) |
+| PF4 | Budżety, zatwierdzanie i concurrency | Ukończony na `feature/purchase-request-approvals` | [05_PF4_APPROVALS_AND_BUDGETS.md](05_PF4_APPROVALS_AND_BUDGETS.md) |
 | PF5 | Realizacja, kompletność produktu i E2E | Planowany | [06_PF5_PRODUCT_COMPLETENESS.md](06_PF5_PRODUCT_COMPLETENESS.md) |
 | PF6 | Usunięcie domeny demo i release `v1.0.0` | Planowany | [07_PF6_CLEANUP_AND_RELEASE.md](07_PF6_CLEANUP_AND_RELEASE.md) |
 | PF7 | Rozszerzenia po MVP | Opcjonalny | [08_PF7_POST_MVP_OPTIONS.md](08_PF7_POST_MVP_OPTIONS.md) |

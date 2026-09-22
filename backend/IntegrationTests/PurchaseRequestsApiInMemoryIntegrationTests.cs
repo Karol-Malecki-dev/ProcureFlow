@@ -248,6 +248,504 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
         Assert.Equal(0m, listItem.TotalValue);
     }
 
+    [Fact]
+    public async Task Procurement_can_create_and_manager_can_read_a_branch_monthly_budget()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var procurementEmail = UniqueEmail("budget-procurement");
+        var managerEmail = UniqueEmail("budget-manager");
+        var procurementUserId = await SeedUserAsync(procurementEmail);
+        var managerUserId = await SeedUserAsync(managerEmail);
+        await SeedMembershipAsync(
+            organizationId,
+            procurementUserId,
+            null,
+            BusinessRole.Procurement);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+
+        var period = (DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+        await AuthenticateAsync(procurementEmail);
+
+        var createResponse = await _client.PutAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/budgets/{branchId}/{period.Year}/{period.Month}",
+            new { LimitAmount = 5_000m });
+        var created = await createResponse.Content
+            .ReadFromJsonAsync<ApiResponse<BranchMonthlyBudgetResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
+        Assert.NotNull(created?.Data);
+        Assert.Equal(5_000m, created.Data.LimitAmount);
+        Assert.Equal(0m, created.Data.UsedAmount);
+
+        await AuthenticateAsync(managerEmail);
+        var readResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/budgets/{branchId}/{period.Year}/{period.Month}");
+        var read = await readResponse.Content
+            .ReadFromJsonAsync<ApiResponse<BranchMonthlyBudgetResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
+        Assert.NotNull(read?.Data);
+        Assert.Equal(created.Data.Id, read.Data.Id);
+        Assert.Equal(created.Data.ConcurrencyStamp, read.Data.ConcurrencyStamp);
+        Assert.Equal(5_000m, read.Data.AvailableAmount);
+    }
+
+    [Fact]
+    public async Task Manager_can_approve_a_submitted_request_and_reserve_the_budget()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("approval-employee");
+        var managerEmail = UniqueEmail("approval-manager");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+
+        var request = await SeedSubmittedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            2m);
+        var period = (DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+        await SeedBudgetAsync(branchId, period.Year, period.Month, 1_000m);
+        await AuthenticateAsync(managerEmail);
+
+        var queueResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/approval-queue");
+        var queue = await queueResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestApprovalQueueResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, queueResponse.StatusCode);
+        Assert.NotNull(queue?.Data);
+        var queueItem = Assert.Single(queue.Data.Items);
+        Assert.Equal(request.Id, queueItem.Id);
+        Assert.True(queueItem.CanDecide);
+        Assert.Equal(PurchaseRequestStatus.Submitted, queueItem.Status);
+
+        var decisionResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = request.ConcurrencyStamp,
+                Approve = true,
+                RejectionReason = (string?)null
+            });
+        var decision = await decisionResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, decisionResponse.StatusCode);
+        Assert.NotNull(decision?.Data);
+        Assert.Equal(PurchaseRequestStatus.Approved, decision.Data.Status);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedRequest = await dbContext.PurchaseRequests
+            .SingleAsync(item => item.Id == request.Id);
+        var persistedBudget = await dbContext.BranchMonthlyBudgets
+            .SingleAsync(item => item.BranchId == branchId);
+        var persistedDecision = await dbContext.PurchaseRequestApprovalDecisions
+            .SingleAsync(item => item.PurchaseRequestId == request.Id);
+        var persistedHistory = await dbContext.PurchaseRequestStatusHistories
+            .SingleAsync(item => item.PurchaseRequestId == request.Id);
+
+        Assert.Equal(PurchaseRequestStatus.Approved, persistedRequest.Status);
+        Assert.Equal(request.TotalValue, persistedBudget.UsedAmount);
+        Assert.Equal(PurchaseRequestDecisionType.Approved, persistedDecision.Decision);
+        Assert.Equal(PurchaseRequestStatus.Submitted, persistedHistory.FromStatus);
+        Assert.Equal(PurchaseRequestStatus.Approved, persistedHistory.ToStatus);
+    }
+
+    [Fact]
+    public async Task Manager_escalates_over_budget_and_procurement_can_approve_the_request()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("escalation-employee");
+        var managerEmail = UniqueEmail("escalation-manager");
+        var procurementEmail = UniqueEmail("escalation-procurement");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var procurementUserId = await SeedUserAsync(procurementEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+        await SeedMembershipAsync(
+            organizationId,
+            procurementUserId,
+            null,
+            BusinessRole.Procurement);
+
+        var request = await SeedSubmittedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            10m);
+        var period = (DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+        await SeedBudgetAsync(branchId, period.Year, period.Month, 100m);
+
+        await AuthenticateAsync(managerEmail);
+        var escalationResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = request.ConcurrencyStamp,
+                Approve = true,
+                RejectionReason = (string?)null
+            });
+        var escalation = await escalationResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, escalationResponse.StatusCode);
+        Assert.NotNull(escalation?.Data);
+        Assert.Equal(
+            PurchaseRequestStatus.AwaitingProcurementApproval,
+            escalation.Data.Status);
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var budget = await dbContext.BranchMonthlyBudgets
+                .SingleAsync(item => item.BranchId == branchId);
+            Assert.Equal(0m, budget.UsedAmount);
+        }
+
+        await AuthenticateAsync(procurementEmail);
+        var queueResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/approval-queue");
+        var queue = await queueResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestApprovalQueueResponse>>();
+        Assert.Equal(HttpStatusCode.OK, queueResponse.StatusCode);
+        Assert.NotNull(queue?.Data);
+        var queueItem = Assert.Single(queue.Data.Items);
+        Assert.Equal(PurchaseRequestStatus.AwaitingProcurementApproval, queueItem.Status);
+
+        var approvalResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = queueItem.ConcurrencyStamp,
+                Approve = true,
+                RejectionReason = (string?)null
+            });
+        var approval = await approvalResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, approvalResponse.StatusCode);
+        Assert.NotNull(approval?.Data);
+        Assert.Equal(PurchaseRequestStatus.Approved, approval.Data.Status);
+
+        await using var verificationScope = _factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedBudget = await verificationContext.BranchMonthlyBudgets
+            .SingleAsync(item => item.BranchId == branchId);
+        var persistedDecisions = await verificationContext.PurchaseRequestApprovalDecisions
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .OrderBy(item => item.DecidedAt)
+            .ToListAsync();
+
+        Assert.Equal(request.TotalValue, persistedBudget.UsedAmount);
+        Assert.Equal(2, persistedDecisions.Count);
+        Assert.Equal(PurchaseRequestDecisionType.Escalated, persistedDecisions[0].Decision);
+        Assert.Equal(PurchaseRequestDecisionType.Approved, persistedDecisions[1].Decision);
+        Assert.Equal(5m, persistedDecisions[1].OverBudgetAmount);
+    }
+
+    [Fact]
+    public async Task Manager_can_reject_a_submitted_request_with_a_reason()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("rejection-employee");
+        var managerEmail = UniqueEmail("rejection-manager");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+
+        var request = await SeedSubmittedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            1m);
+        await AuthenticateAsync(managerEmail);
+
+        var response = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = request.ConcurrencyStamp,
+                Approve = false,
+                RejectionReason = "The request is outside this month's plan."
+            });
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.Data);
+        Assert.Equal(PurchaseRequestStatus.Rejected, payload.Data.Status);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var decision = await dbContext.PurchaseRequestApprovalDecisions
+            .SingleAsync(item => item.PurchaseRequestId == request.Id);
+        Assert.Equal(PurchaseRequestDecisionType.Rejected, decision.Decision);
+        Assert.Equal("The request is outside this month's plan.", decision.Reason);
+    }
+
+    [Fact]
+    public async Task Manager_cannot_decide_their_own_submitted_request()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var managerEmail = UniqueEmail("approval-self");
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var unitId = await SeedUnitAsync(organizationId, managerUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, managerUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+
+        var request = await SeedSubmittedRequestAsync(
+            managerUserId,
+            organizationId,
+            branchId,
+            productId,
+            1m);
+        await AuthenticateAsync(managerEmail);
+
+        var queueResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/approval-queue");
+        var queue = await queueResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestApprovalQueueResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, queueResponse.StatusCode);
+        Assert.NotNull(queue?.Data);
+        var queueItem = Assert.Single(queue.Data.Items);
+        Assert.False(queueItem.CanDecide);
+
+        var decisionResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = request.ConcurrencyStamp,
+                Approve = true,
+                RejectionReason = (string?)null
+            });
+
+        Assert.Equal(HttpStatusCode.Forbidden, decisionResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Manager_approval_queue_is_limited_to_their_assigned_branch()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var managerBranchId = await SeedBranchAsync(organizationId);
+        var otherBranchId = await SeedBranchAsync(organizationId);
+        var managerEmail = UniqueEmail("approval-scope-manager");
+        var firstEmployeeEmail = UniqueEmail("approval-scope-first-employee");
+        var secondEmployeeEmail = UniqueEmail("approval-scope-second-employee");
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var firstEmployeeUserId = await SeedUserAsync(firstEmployeeEmail);
+        var secondEmployeeUserId = await SeedUserAsync(secondEmployeeEmail);
+        var firstUnitId = await SeedUnitAsync(organizationId, firstEmployeeUserId);
+        var secondUnitId = await SeedUnitAsync(organizationId, secondEmployeeUserId);
+        var firstProductId = await SeedProductAsync(organizationId, firstUnitId, firstEmployeeUserId);
+        var secondProductId = await SeedProductAsync(organizationId, secondUnitId, secondEmployeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            managerBranchId,
+            BusinessRole.Manager);
+        await SeedMembershipAsync(
+            organizationId,
+            firstEmployeeUserId,
+            managerBranchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            secondEmployeeUserId,
+            otherBranchId,
+            BusinessRole.Employee);
+
+        var visibleRequest = await SeedSubmittedRequestAsync(
+            firstEmployeeUserId,
+            organizationId,
+            managerBranchId,
+            firstProductId,
+            1m);
+        var hiddenRequest = await SeedSubmittedRequestAsync(
+            secondEmployeeUserId,
+            organizationId,
+            otherBranchId,
+            secondProductId,
+            1m);
+        await AuthenticateAsync(managerEmail);
+
+        var response = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/approval-queue");
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestApprovalQueueResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.Data);
+        var item = Assert.Single(payload.Data.Items);
+        Assert.Equal(visibleRequest.Id, item.Id);
+        Assert.DoesNotContain(payload.Data.Items, queueItem => queueItem.Id == hiddenRequest.Id);
+    }
+
+    [Fact]
+    public async Task Manager_rejection_without_a_reason_returns_bad_request()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("rejection-validation-employee");
+        var managerEmail = UniqueEmail("rejection-validation-manager");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+        var request = await SeedSubmittedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            1m);
+        await AuthenticateAsync(managerEmail);
+
+        var response = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = request.ConcurrencyStamp,
+                Approve = false,
+                RejectionReason = "   "
+            });
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<object>>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(payload?.Errors);
+        Assert.Contains(payload.Errors, error => error.Field == "RejectionReason");
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedRequest = await dbContext.PurchaseRequests
+            .SingleAsync(item => item.Id == request.Id);
+        Assert.Equal(PurchaseRequestStatus.Submitted, persistedRequest.Status);
+        Assert.Empty(await dbContext.PurchaseRequestApprovalDecisions
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .ToListAsync());
+    }
+
+    [Fact]
+    public async Task Manager_decision_with_a_stale_request_version_returns_conflict()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("approval-concurrency-employee");
+        var managerEmail = UniqueEmail("approval-concurrency-manager");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var managerUserId = await SeedUserAsync(managerEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            managerUserId,
+            branchId,
+            BusinessRole.Manager);
+        var request = await SeedSubmittedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            1m);
+        var period = (DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+        await SeedBudgetAsync(branchId, period.Year, period.Month, 100m);
+        await AuthenticateAsync(managerEmail);
+
+        var response = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/decision",
+            new
+            {
+                ConcurrencyStamp = $"{request.ConcurrencyStamp}-stale",
+                Approve = true,
+                RejectionReason = (string?)null
+            });
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<object>>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Contains("modified concurrently", payload.Message, StringComparison.OrdinalIgnoreCase);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedRequest = await dbContext.PurchaseRequests
+            .SingleAsync(item => item.Id == request.Id);
+        var persistedBudget = await dbContext.BranchMonthlyBudgets
+            .SingleAsync(item => item.BranchId == branchId);
+        Assert.Equal(PurchaseRequestStatus.Submitted, persistedRequest.Status);
+        Assert.Equal(0m, persistedBudget.UsedAmount);
+        Assert.Empty(await dbContext.PurchaseRequestApprovalDecisions
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .ToListAsync());
+    }
+
     public void Dispose()
     {
         _factory.Dispose();
@@ -344,7 +842,7 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
     private async Task SeedMembershipAsync(
         Guid organizationId,
         Guid userId,
-        Guid branchId,
+        Guid? branchId,
         BusinessRole role)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
@@ -355,6 +853,48 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             branchId,
             role));
         await dbContext.SaveChangesAsync();
+    }
+
+    private async Task<PurchaseRequest> SeedSubmittedRequestAsync(
+        Guid authorUserId,
+        Guid organizationId,
+        Guid branchId,
+        Guid productId,
+        decimal quantity)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var request = PurchaseRequest.Create(
+            authorUserId,
+            organizationId,
+            branchId,
+            "Approval test request");
+        request.AddItem(
+            productId,
+            "Monitor",
+            "MON-1",
+            "Piece",
+            "pc",
+            10.50m,
+            quantity);
+        request.Submit();
+        dbContext.PurchaseRequests.Add(request);
+        await dbContext.SaveChangesAsync();
+        return request;
+    }
+
+    private async Task<BranchMonthlyBudget> SeedBudgetAsync(
+        Guid branchId,
+        int year,
+        int month,
+        decimal limitAmount)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var budget = BranchMonthlyBudget.Create(branchId, year, month, limitAmount);
+        dbContext.BranchMonthlyBudgets.Add(budget);
+        await dbContext.SaveChangesAsync();
+        return budget;
     }
 
     private static async Task<ApiResponse<PurchaseRequestResponse>> ReadResponseAsync(

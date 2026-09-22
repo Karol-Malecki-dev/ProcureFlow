@@ -7,6 +7,7 @@ function createClientMock() {
   return {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
     patch: vi.fn(),
     delete: vi.fn(),
   } as unknown as jest.Mocked<HttpClient>;
@@ -71,6 +72,44 @@ describe('PurchaseRequestApi', () => {
     expect(client.delete).toHaveBeenCalledWith(
       '/organizations/organization-1/purchase-requests/draft-1/items/item-1',
       { concurrencyStamp: 'stamp-3' },
+    );
+  });
+
+  it('builds approval queue, budget, and decision requests', async () => {
+    const client = createClientMock();
+    const api = new PurchaseRequestApi(client);
+
+    await api.listApprovalQueue('organization-1');
+    await api.getBudget('organization-1', 'branch-1', 2026, 9);
+    await api.upsertBudget('organization-1', 'branch-1', 2026, 9, {
+      limitAmount: 5000,
+      expectedConcurrencyStamp: null,
+    });
+    await api.decide('organization-1', 'request-1', {
+      concurrencyStamp: 'stamp-1',
+      approve: false,
+      rejectionReason: 'Not required',
+    });
+
+    expect(client.get).toHaveBeenNthCalledWith(
+      1,
+      '/organizations/organization-1/purchase-requests/approval-queue',
+    );
+    expect(client.get).toHaveBeenNthCalledWith(
+      2,
+      '/organizations/organization-1/purchase-requests/budgets/branch-1/2026/9',
+    );
+    expect(client.put).toHaveBeenCalledWith(
+      '/organizations/organization-1/purchase-requests/budgets/branch-1/2026/9',
+      { limitAmount: 5000, expectedConcurrencyStamp: null },
+    );
+    expect(client.post).toHaveBeenLastCalledWith(
+      '/organizations/organization-1/purchase-requests/request-1/decision',
+      {
+        concurrencyStamp: 'stamp-1',
+        approve: false,
+        rejectionReason: 'Not required',
+      },
     );
   });
 });

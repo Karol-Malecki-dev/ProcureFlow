@@ -1,4 +1,5 @@
 using Domain.Enums;
+using Domain.Models.Organizations.Enums;
 
 namespace API.Modules.PurchaseRequests;
 
@@ -46,3 +47,36 @@ public sealed record PurchaseRequestListResponse(
     int Page,
     int PageSize,
     int TotalCount);
+
+/// <summary>HTTP response for one branch-month budget.</summary>
+public sealed record BranchMonthlyBudgetResponse(
+    Guid Id,
+    Guid OrganizationId,
+    Guid BranchId,
+    int Year,
+    int Month,
+    decimal LimitAmount,
+    decimal UsedAmount,
+    decimal AvailableAmount,
+    string ConcurrencyStamp);
+
+/// <summary>HTTP response for one request in an approval queue.</summary>
+public sealed record PurchaseRequestApprovalQueueItemResponse(
+    Guid Id,
+    Guid AuthorUserId,
+    Guid OrganizationId,
+    Guid BranchId,
+    PurchaseRequestStatus Status,
+    string? Note,
+    IReadOnlyList<PurchaseRequestItemResponse> Items,
+    decimal TotalValue,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    string ConcurrencyStamp,
+    bool CanDecide,
+    BusinessRole QueueRole);
+
+/// <summary>HTTP response for the current user's approval queue.</summary>
+public sealed record PurchaseRequestApprovalQueueResponse(
+    IReadOnlyList<PurchaseRequestApprovalQueueItemResponse> Items,
+    BusinessRole QueueRole);

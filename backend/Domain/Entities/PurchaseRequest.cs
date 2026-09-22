@@ -9,6 +9,7 @@ namespace Domain.Entities;
 public sealed class PurchaseRequest
 {
     public const int NoteMaxLength = 2_000;
+    public const int DecisionReasonMaxLength = 1_000;
 
     private readonly List<PurchaseRequestItem> _items = [];
 
@@ -175,6 +176,54 @@ public sealed class PurchaseRequest
         }
 
         Status = PurchaseRequestStatus.Cancelled;
+        Touch();
+    }
+
+    /// <summary>Approves a submitted request or an escalated procurement request.</summary>
+    public void Approve()
+    {
+        if (Status is not (PurchaseRequestStatus.Submitted or PurchaseRequestStatus.AwaitingProcurementApproval))
+        {
+            throw new InvalidOperationException("Only submitted or escalated purchase requests can be approved.");
+        }
+
+        Status = PurchaseRequestStatus.Approved;
+        Touch();
+    }
+
+    /// <summary>Escalates a submitted request to the Procurement role.</summary>
+    public void EscalateToProcurement()
+    {
+        if (Status != PurchaseRequestStatus.Submitted)
+        {
+            throw new InvalidOperationException("Only submitted purchase requests can be escalated.");
+        }
+
+        Status = PurchaseRequestStatus.AwaitingProcurementApproval;
+        Touch();
+    }
+
+    /// <summary>Rejects a submitted or escalated request with a mandatory reason.</summary>
+    public void Reject(string reason)
+    {
+        if (Status is not (PurchaseRequestStatus.Submitted or PurchaseRequestStatus.AwaitingProcurementApproval))
+        {
+            throw new InvalidOperationException("Only submitted or escalated purchase requests can be rejected.");
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("A rejection reason is required.", nameof(reason));
+        }
+
+        if (reason.Trim().Length > DecisionReasonMaxLength)
+        {
+            throw new ArgumentException(
+                $"A rejection reason cannot exceed {DecisionReasonMaxLength} characters.",
+                nameof(reason));
+        }
+
+        Status = PurchaseRequestStatus.Rejected;
         Touch();
     }
 

@@ -7,6 +7,20 @@ namespace Application.Modules.PurchaseRequests;
 /// </summary>
 public static class PurchaseRequestViewMapper
 {
+    public static BranchMonthlyBudgetView ToBudgetView(
+        BranchMonthlyBudget budget,
+        Guid organizationId)
+        => new(
+            budget.Id,
+            organizationId,
+            budget.BranchId,
+            budget.Year,
+            budget.Month,
+            budget.LimitAmount,
+            budget.UsedAmount,
+            budget.AvailableAmount,
+            budget.ConcurrencyStamp);
+
     public static PurchaseRequestDetailsView ToDetailsView(PurchaseRequest request)
         => new(
             request.Id,
