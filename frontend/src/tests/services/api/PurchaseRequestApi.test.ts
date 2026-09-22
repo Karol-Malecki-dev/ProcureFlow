@@ -6,6 +6,7 @@ import type { HttpClient } from '../../../services/api/HttpClient';
 function createClientMock() {
   return {
     get: vi.fn(),
+    getBlob: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
     patch: vi.fn(),
@@ -142,6 +143,31 @@ describe('PurchaseRequestApi', () => {
         concurrencyStamp: 'stamp-3',
         fulfillmentNote: 'Received',
       },
+    );
+  });
+
+  it('builds attachment list, upload, download, and delete requests', async () => {
+    const client = createClientMock();
+    const api = new PurchaseRequestApi(client);
+    const file = new File(['quote'], 'quote.txt', { type: 'text/plain' });
+
+    await api.listAttachments('organization-1', 'request-1');
+    await api.uploadAttachment('organization-1', 'request-1', file);
+    await api.downloadAttachment('organization-1', 'request-1', 'attachment-1');
+    await api.deleteAttachment('organization-1', 'request-1', 'attachment-1');
+
+    expect(client.get).toHaveBeenCalledWith(
+      '/organizations/organization-1/purchase-requests/request-1/attachments',
+    );
+    expect(client.post).toHaveBeenCalledWith(
+      '/organizations/organization-1/purchase-requests/request-1/attachments',
+      expect.any(FormData),
+    );
+    expect(client.getBlob).toHaveBeenCalledWith(
+      '/organizations/organization-1/purchase-requests/request-1/attachments/attachment-1/download',
+    );
+    expect(client.delete).toHaveBeenCalledWith(
+      '/organizations/organization-1/purchase-requests/request-1/attachments/attachment-1',
     );
   });
 });

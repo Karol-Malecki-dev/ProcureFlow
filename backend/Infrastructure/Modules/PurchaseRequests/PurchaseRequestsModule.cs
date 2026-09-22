@@ -1,5 +1,10 @@
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using Application.Modules.PurchaseRequests.Attachments;
+using Application.Modules.PurchaseRequests.Attachments.CreatePurchaseRequestAttachment;
+using Application.Modules.PurchaseRequests.Attachments.DeletePurchaseRequestAttachment;
+using Application.Modules.PurchaseRequests.Attachments.DownloadPurchaseRequestAttachment;
+using Application.Modules.PurchaseRequests.Attachments.ListPurchaseRequestAttachments;
 using Application.Modules.PurchaseRequests.Approval.DecidePurchaseRequest;
 using Application.Modules.PurchaseRequests.Approval.ListPurchaseRequestApprovalQueue;
 using Application.Modules.PurchaseRequests.Budget.GetBranchMonthlyBudget;
@@ -15,6 +20,7 @@ using Application.Modules.PurchaseRequests.RemovePurchaseRequestItem;
 using Application.Modules.PurchaseRequests.SubmitPurchaseRequest;
 using Application.Modules.PurchaseRequests.UpdatePurchaseRequestItemQuantity;
 using Infrastructure.Modules.PurchaseRequests.AddPurchaseRequestItem;
+using Infrastructure.Modules.PurchaseRequests.Attachments;
 using Infrastructure.Modules.PurchaseRequests.Approval;
 using Infrastructure.Modules.PurchaseRequests.Budget;
 using Infrastructure.Modules.PurchaseRequests.CancelPurchaseRequest;
@@ -44,6 +50,8 @@ public static class PurchaseRequestsModule
         services.AddScoped<IPurchaseRequestWorkflowStore, EfPurchaseRequestWorkflowStore>();
         services.AddScoped<IPurchaseRequestApprovalStore, EfPurchaseRequestApprovalStore>();
         services.AddScoped<IPurchaseRequestFulfillmentStore, EfPurchaseRequestFulfillmentStore>();
+        services.AddScoped<IPurchaseRequestAttachmentStore, EfPurchaseRequestAttachmentStore>();
+        services.AddScoped<IPurchaseRequestAttachmentCleanupProcessor, PurchaseRequestAttachmentCleanupProcessor>();
 
         services.AddScoped<ICreatePurchaseRequestStore, EfCreatePurchaseRequestStore>();
         services.AddScoped<ICreatePurchaseRequestHandler, CreatePurchaseRequestHandler>();
@@ -67,6 +75,11 @@ public static class PurchaseRequestsModule
         services.AddScoped<IListPurchaseRequestFulfillmentQueueHandler, ListPurchaseRequestFulfillmentQueueHandler>();
         services.AddScoped<IMarkPurchaseRequestOrderedHandler, MarkPurchaseRequestOrderedHandler>();
         services.AddScoped<IMarkPurchaseRequestDeliveredHandler, MarkPurchaseRequestDeliveredHandler>();
+        services.AddScoped<ICreatePurchaseRequestAttachmentHandler, CreatePurchaseRequestAttachmentHandler>();
+        services.AddScoped<IListPurchaseRequestAttachmentsHandler, ListPurchaseRequestAttachmentsHandler>();
+        services.AddScoped<IDownloadPurchaseRequestAttachmentHandler, DownloadPurchaseRequestAttachmentHandler>();
+        services.AddScoped<IDeletePurchaseRequestAttachmentHandler, DeletePurchaseRequestAttachmentHandler>();
+        services.AddHostedService<PurchaseRequestAttachmentCleanupWorker>();
 
         return services;
     }

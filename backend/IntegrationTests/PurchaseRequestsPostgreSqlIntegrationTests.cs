@@ -1,5 +1,6 @@
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.Approval.DecidePurchaseRequest;
+using Application.Modules.PurchaseRequests.Attachments;
 using Domain.Entities;
 using Domain.Entities.Auth;
 using Domain.Enums;
@@ -9,6 +10,7 @@ using Domain.Models.Organizations.Enums;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Modules.PurchaseRequests.Approval;
+using Infrastructure.Modules.PurchaseRequests.Attachments;
 using Infrastructure.Modules.PurchaseRequests.ListMyPurchaseRequests;
 using Infrastructure.Modules.PurchaseRequests.PurchaseRequestMembershipReader;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +65,47 @@ public sealed class PurchaseRequestsPostgreSqlIntegrationTests
                 """));
 
         Assert.Equal(PostgresErrorCodes.UniqueViolation, duplicateException.SqlState);
+    }
+
+    [Fact]
+    public async Task PostgreSql_purchase_request_attachment_foreign_key_and_cleanup_queue_are_persisted()
+    {
+        var data = await SeedDraftAsync(includeItem: false);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var attachment = PurchaseRequestAttachment.Create(
+            data.RequestId,
+            data.UserId,
+            "quote.txt",
+            $"{Guid.NewGuid():N}.txt",
+            "text/plain",
+            10);
+        dbContext.PurchaseRequestAttachments.Add(attachment);
+        await dbContext.SaveChangesAsync();
+
+        var cleanupMessage = PurchaseRequestAttachmentCleanupMessage.Create(
+            attachment.StoredFileName);
+        dbContext.PurchaseRequestAttachmentCleanupMessages.Add(cleanupMessage);
+        await dbContext.SaveChangesAsync();
+
+        Assert.Equal(
+            attachment.StoredFileName,
+            await dbContext.PurchaseRequestAttachmentCleanupMessages
+                .Select(message => message.StoredFileName)
+                .SingleAsync());
+
+        var foreignKeyException = await Assert.ThrowsAsync<PostgresException>(() =>
+            dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO "PurchaseRequestAttachments"
+                    ("Id", "PurchaseRequestId", "UploadedByUserId", "OriginalFileName",
+                     "StoredFileName", "ContentType", "SizeBytes", "CreatedAt")
+                VALUES
+                    ({Guid.NewGuid()}, {Guid.NewGuid()}, {data.UserId}, 'orphan.txt',
+                     '{Guid.NewGuid():N}.txt', 'text/plain', {10L}, {DateTime.UtcNow});
+                """));
+
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, foreignKeyException.SqlState);
     }
 
     [Fact]
@@ -139,6 +182,50 @@ public sealed class PurchaseRequestsPostgreSqlIntegrationTests
         var persistedItem = await verificationContext.PurchaseRequestItems
             .SingleAsync(item => item.Id == itemId);
         Assert.Equal(3m, persistedItem.Quantity);
+    }
+
+    [Fact]
+    public async Task PostgreSql_concurrent_request_attachment_uploads_enforce_count_quota()
+    {
+        var data = await SeedDraftAsync(includeItem: false);
+
+        await using var firstScope = _factory.Services.CreateAsyncScope();
+        await using var secondScope = _factory.Services.CreateAsyncScope();
+        var firstStore = new EfPurchaseRequestAttachmentStore(
+            firstScope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
+        var secondStore = new EfPurchaseRequestAttachmentStore(
+            secondScope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
+
+        var results = await Task.WhenAll(
+            CaptureAttachmentCreateResultAsync(
+                firstStore,
+                PurchaseRequestAttachment.Create(
+                    data.RequestId,
+                    data.UserId,
+                    "first.txt",
+                    $"{Guid.NewGuid():N}.txt",
+                    "text/plain",
+                    4)),
+            CaptureAttachmentCreateResultAsync(
+                secondStore,
+                PurchaseRequestAttachment.Create(
+                    data.RequestId,
+                    data.UserId,
+                    "second.txt",
+                    $"{Guid.NewGuid():N}.txt",
+                    "text/plain",
+                    4)));
+
+        Assert.Single(results, result => result is null);
+        Assert.Single(results, result => result is PurchaseRequestAttachmentQuotaExceededException);
+
+        await using var verificationScope = _factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+        Assert.Equal(
+            1,
+            await verificationContext.PurchaseRequestAttachments
+                .CountAsync(attachment => attachment.PurchaseRequestId == data.RequestId));
     }
 
     [Fact]
@@ -561,6 +648,21 @@ public sealed class PurchaseRequestsPostgreSqlIntegrationTests
             PostalCode = "00-001",
             Country = "Poland"
         };
+
+    private static async Task<Exception?> CaptureAttachmentCreateResultAsync(
+        EfPurchaseRequestAttachmentStore store,
+        PurchaseRequestAttachment attachment)
+    {
+        try
+        {
+            await store.CreateAsync(attachment, maxCount: 1, maxBytes: 100);
+            return null;
+        }
+        catch (Exception exception)
+        {
+            return exception;
+        }
+    }
 
     private sealed record PurchaseRequestSeed(
         Guid UserId,

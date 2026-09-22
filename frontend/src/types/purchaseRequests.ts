@@ -160,8 +160,21 @@ export interface MarkPurchaseRequestDeliveredRequest {
   fulfillmentNote: string | null;
 }
 
+export interface PurchaseRequestAttachmentDto {
+  id: string;
+  purchaseRequestId: string;
+  uploadedByUserId: string;
+  originalFileName: string;
+  contentType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
 export type PurchaseRequestDetailsResponse = ApiResponse<PurchaseRequestDto>;
 export type PurchaseRequestListResponse = ApiResponse<PurchaseRequestListDto>;
 export type BranchMonthlyBudgetResponse = ApiResponse<BranchMonthlyBudgetDto>;
 export type PurchaseRequestApprovalQueueResponse = ApiResponse<PurchaseRequestApprovalQueueDto>;
 export type PurchaseRequestFulfillmentQueueResponse = ApiResponse<PurchaseRequestFulfillmentQueueDto>;
+export type PurchaseRequestAttachmentsResponse = ApiResponse<PurchaseRequestAttachmentDto[]>;
+export type PurchaseRequestAttachmentResponse = ApiResponse<PurchaseRequestAttachmentDto>;
+export type PurchaseRequestOperationResponse = ApiResponse<boolean>;

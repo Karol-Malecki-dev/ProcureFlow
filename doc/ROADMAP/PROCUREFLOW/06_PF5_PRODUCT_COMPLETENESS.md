@@ -151,3 +151,22 @@ Pierwszy slice PF5 jest zaimplementowany i zweryfikowany:
 
 Pozostałe elementy PF5 pozostają zakresem kolejnych branchy wymienionych powyżej:
 załączniki, powiadomienia, dashboard i krytyczny browser E2E.
+
+## Stan implementacji `feature/purchase-request-attachments`
+
+Drugi slice PF5 jest zaimplementowany end-to-end:
+
+- metadane załączników i trwała kolejka cleanupu w osobnych tabelach EF Core;
+- upload, lista, download i delete wniosków przez API;
+- walidacja nazwy, rozszerzenia, MIME, rozmiaru i rzeczywistej zawartości pliku;
+- fail-closed malware scanning z ponownym wykorzystaniem istniejącego storage i skanera;
+- autoryzacja autora, oddziału, Procurement i platformowego Admina;
+- kompensacyjne usuwanie binarium po błędzie zapisu metadanych;
+- retry cleanupu do trzech prób z obcięciem błędu do 2000 znaków;
+- blokada wiersza `PurchaseRequest` w PostgreSQL podczas sprawdzania limitów quota;
+- frontendowa sekcja załączników dla draftów z loadingiem, błędami, konfliktem `409`,
+  pobieraniem i usuwaniem;
+- migracja `AddPurchaseRequestAttachments`;
+- testy domenowe/cleanup, API InMemory, PostgreSQL, klienta API i UI.
+
+Do kolejnego slice'a pozostają powiadomienia, dashboard i krytyczny browser E2E.
