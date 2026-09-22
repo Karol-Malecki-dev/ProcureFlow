@@ -1,6 +1,9 @@
 using Application.DTOs.Auth;
 using API.Modules.Catalog.ProductRead;
 using API.Modules.PurchaseRequests;
+using API.Modules.PurchaseRequests.Attachments;
+using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.PurchaseRequests.Attachments;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Models.Catalog;
@@ -14,6 +17,7 @@ using Shared.Responses;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using DomainBranch = Domain.Models.Organizations.Branch;
 using DomainMembership = Domain.Models.Organizations.Membership;
 using DomainOrganization = Domain.Models.Organizations.Organization;
@@ -948,6 +952,118 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
         var persistedRequest = await dbContext.PurchaseRequests
             .SingleAsync(item => item.Id == request.Id);
         Assert.Equal(PurchaseRequestStatus.Approved, persistedRequest.Status);
+    }
+
+    [Fact]
+    public async Task Employee_can_upload_list_download_and_delete_a_draft_attachment()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var email = UniqueEmail("purchase-request-attachment-owner");
+        var userId = await SeedUserAsync(email);
+        await SeedMembershipAsync(organizationId, userId, branchId, BusinessRole.Employee);
+        await AuthenticateAsync(email);
+
+        var createResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests",
+            new { Note = "Attachment request" });
+        var created = await ReadResponseAsync(createResponse);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.NotNull(created.Data);
+
+        var bytes = Encoding.UTF8.GetBytes("supplier quote");
+        using var uploadContent = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(bytes);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+        uploadContent.Add(fileContent, "file", "supplier-quote.txt");
+
+        var uploadResponse = await _client.PostAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/attachments",
+            uploadContent);
+        var uploaded = await uploadResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestAttachmentResponse>>();
+
+        Assert.Equal(HttpStatusCode.Created, uploadResponse.StatusCode);
+        Assert.NotNull(uploaded?.Data);
+        Assert.Equal("supplier-quote.txt", uploaded.Data.OriginalFileName);
+        Assert.Equal(userId, uploaded.Data.UploadedByUserId);
+        Assert.Equal(bytes.Length, uploaded.Data.SizeBytes);
+
+        var listResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/attachments");
+        var listed = await listResponse.Content
+            .ReadFromJsonAsync<ApiResponse<IReadOnlyList<PurchaseRequestAttachmentResponse>>>();
+
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+        Assert.NotNull(listed?.Data);
+        Assert.Single(listed.Data);
+        Assert.Equal(uploaded.Data.Id, listed.Data[0].Id);
+
+        var downloadResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/attachments/{uploaded.Data.Id}/download");
+        Assert.Equal(HttpStatusCode.OK, downloadResponse.StatusCode);
+        Assert.Equal(bytes, await downloadResponse.Content.ReadAsByteArrayAsync());
+
+        var deleteResponse = await _client.DeleteAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/attachments/{uploaded.Data.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+        string storedFileName;
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            Assert.DoesNotContain(
+                dbContext.PurchaseRequestAttachments,
+                attachment => attachment.Id == uploaded.Data.Id);
+            storedFileName = await dbContext.PurchaseRequestAttachmentCleanupMessages
+                .Select(message => message.StoredFileName)
+                .SingleAsync();
+
+            var cleanupProcessor = scope.ServiceProvider
+                .GetRequiredService<IPurchaseRequestAttachmentCleanupProcessor>();
+            await cleanupProcessor.ProcessPendingMessagesAsync();
+
+            var storage = scope.ServiceProvider
+                .GetRequiredService<IProjectTaskAttachmentStorage>();
+            await using var deletedFile = await storage.OpenReadAsync(storedFileName);
+            Assert.Null(deletedFile);
+        }
+    }
+
+    [Fact]
+    public async Task Employee_cannot_read_a_request_attachment_from_another_branch()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var ownerBranchId = await SeedBranchAsync(organizationId);
+        var otherBranchId = await SeedBranchAsync(organizationId);
+        var ownerEmail = UniqueEmail("purchase-request-attachment-branch-owner");
+        var otherEmployeeEmail = UniqueEmail("purchase-request-attachment-branch-outsider");
+        var ownerId = await SeedUserAsync(ownerEmail);
+        var otherEmployeeId = await SeedUserAsync(otherEmployeeEmail);
+        await SeedMembershipAsync(organizationId, ownerId, ownerBranchId, BusinessRole.Employee);
+        await SeedMembershipAsync(organizationId, otherEmployeeId, otherBranchId, BusinessRole.Employee);
+        await AuthenticateAsync(ownerEmail);
+
+        var createResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests",
+            new { Note = "Branch-private attachment request" });
+        var created = await ReadResponseAsync(createResponse);
+        Assert.NotNull(created.Data);
+
+        using var uploadContent = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes("private"));
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+        uploadContent.Add(fileContent, "file", "private.txt");
+        var uploadResponse = await _client.PostAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/attachments",
+            uploadContent);
+        Assert.Equal(HttpStatusCode.Created, uploadResponse.StatusCode);
+
+        await AuthenticateAsync(otherEmployeeEmail);
+        var listResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/attachments");
+
+        Assert.Equal(HttpStatusCode.Forbidden, listResponse.StatusCode);
     }
 
     public void Dispose()

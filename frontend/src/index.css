@@ -755,6 +755,44 @@ textarea { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--border); b
   width: 100%;
 }
 
+.purchase-request-attachments__list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.purchase-request-attachments__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem;
+  border-left: 2px solid var(--accent);
+  background: rgba(72, 209, 201, 0.06);
+}
+
+.purchase-request-attachments__item > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.purchase-request-attachments__item small {
+  color: var(--muted);
+}
+
+.purchase-request-attachments__actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.purchase-request-attachments__form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
 .purchase-request-total {
   display: flex;
   justify-content: space-between;
@@ -899,6 +937,7 @@ textarea { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--border); b
   .task-board { grid-template-columns: 1fr; overflow-x: visible; }
   .task-discussion__comment > div { flex-direction: column; gap: 0.2rem; }
   .task-attachments__item { align-items: stretch; flex-direction: column; }
+  .purchase-request-attachments__item { align-items: stretch; flex-direction: column; }
   .notification-list__item, .notification-list__heading { flex-direction: column; }
   .task-item__actions { justify-content: start; }
   .member-add { align-items: stretch; flex-direction: column; }
@@ -916,4 +955,3 @@ textarea { width: 100%; padding: 0.9rem 1rem; border: 1px solid var(--border); b
   .dashboard__metrics div { border-right: 0; border-top: 1px solid var(--border); }
   .dashboard__metrics div:first-child { border-top: 0; }
 }
-

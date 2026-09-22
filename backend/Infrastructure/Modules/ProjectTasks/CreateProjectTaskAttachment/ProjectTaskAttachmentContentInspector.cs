@@ -6,7 +6,7 @@ namespace Infrastructure.Modules.ProjectTasks.CreateProjectTaskAttachment;
 /// <summary>
 /// Inspects attachment bytes without trusting the client-provided file name or content type.
 /// </summary>
-internal static class ProjectTaskAttachmentContentInspector
+public static class ProjectTaskAttachmentContentInspector
 {
     private static readonly byte[] PdfSignature = "%PDF-"u8.ToArray();
     private static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];

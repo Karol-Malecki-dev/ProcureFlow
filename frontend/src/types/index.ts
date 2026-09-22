@@ -232,4 +232,8 @@ export type {
   DecidePurchaseRequestRequest,
   MarkPurchaseRequestOrderedRequest,
   MarkPurchaseRequestDeliveredRequest,
+  PurchaseRequestAttachmentDto,
+  PurchaseRequestAttachmentsResponse,
+  PurchaseRequestAttachmentResponse,
+  PurchaseRequestOperationResponse,
 } from './purchaseRequests';

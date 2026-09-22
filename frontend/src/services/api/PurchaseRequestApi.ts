@@ -5,6 +5,9 @@ import type {
   DecidePurchaseRequestRequest,
   MarkPurchaseRequestDeliveredRequest,
   MarkPurchaseRequestOrderedRequest,
+  PurchaseRequestAttachmentResponse,
+  PurchaseRequestAttachmentsResponse,
+  PurchaseRequestOperationResponse,
   PurchaseRequestDetailsResponse,
   PurchaseRequestApprovalQueueResponse,
   PurchaseRequestFulfillmentQueueResponse,
@@ -91,6 +94,48 @@ export class PurchaseRequestApi {
     return this.client.post<PurchaseRequestDetailsResponse, MarkPurchaseRequestDeliveredRequest>(
       `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/fulfillment/deliver`,
       request,
+    );
+  }
+
+  listAttachments(
+    organizationId: string,
+    purchaseRequestId: string,
+  ): Promise<PurchaseRequestAttachmentsResponse> {
+    return this.client.get<PurchaseRequestAttachmentsResponse>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/attachments`,
+    );
+  }
+
+  uploadAttachment(
+    organizationId: string,
+    purchaseRequestId: string,
+    file: File,
+  ): Promise<PurchaseRequestAttachmentResponse> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.client.post<PurchaseRequestAttachmentResponse, FormData>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/attachments`,
+      form,
+    );
+  }
+
+  downloadAttachment(
+    organizationId: string,
+    purchaseRequestId: string,
+    attachmentId: string,
+  ): Promise<Blob> {
+    return this.client.getBlob(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/attachments/${attachmentId}/download`,
+    );
+  }
+
+  deleteAttachment(
+    organizationId: string,
+    purchaseRequestId: string,
+    attachmentId: string,
+  ): Promise<PurchaseRequestOperationResponse> {
+    return this.client.delete<PurchaseRequestOperationResponse>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/attachments/${attachmentId}`,
     );
   }
 

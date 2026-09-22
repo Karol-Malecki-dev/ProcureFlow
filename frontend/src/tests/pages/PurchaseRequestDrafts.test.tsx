@@ -5,7 +5,11 @@ import { vi } from 'vitest';
 import PurchaseRequestDrafts from '../../pages/PurchaseRequestDrafts';
 import { catalogApi, HttpError, organizationApi, purchaseRequestApi } from '../../services/api';
 import { BusinessRole, PurchaseRequestStatus } from '../../types';
-import type { PurchaseRequestDto, PurchaseRequestListItemDto } from '../../types';
+import type {
+  PurchaseRequestAttachmentDto,
+  PurchaseRequestDto,
+  PurchaseRequestListItemDto,
+} from '../../types';
 
 vi.mock('../../services/api', async () => {
   const actual = await vi.importActual<typeof import('../../services/api')>('../../services/api');
@@ -25,6 +29,10 @@ vi.mock('../../services/api', async () => {
       addItem: vi.fn(),
       updateItemQuantity: vi.fn(),
       removeItem: vi.fn(),
+      listAttachments: vi.fn(),
+      uploadAttachment: vi.fn(),
+      downloadAttachment: vi.fn(),
+      deleteAttachment: vi.fn(),
     },
   };
 });
@@ -86,6 +94,22 @@ const populatedDraft: PurchaseRequestDto = {
   totalValue: 25,
 };
 
+const attachment: PurchaseRequestAttachmentDto = {
+  id: 'attachment-1',
+  purchaseRequestId: emptyDraft.id,
+  uploadedByUserId: membership.userId,
+  originalFileName: 'quote.txt',
+  contentType: 'text/plain',
+  sizeBytes: 12,
+  createdAt: '2026-09-21T09:10:00Z',
+};
+
+const uploadedAttachment: PurchaseRequestAttachmentDto = {
+  ...attachment,
+  id: 'attachment-2',
+  originalFileName: 'new.txt',
+};
+
 function apiResponse<T>(data: T) {
   return {
     statusCode: 200,
@@ -130,6 +154,9 @@ function setupBaseApi(draftList: PurchaseRequestListItemDto[] = [], details: Pur
     totalCount: draftList.length,
   }));
   mockedPurchaseRequestApi.getDetails.mockResolvedValue(apiResponse(details ?? emptyDraft));
+  mockedPurchaseRequestApi.listAttachments.mockResolvedValue(apiResponse([]));
+  mockedPurchaseRequestApi.uploadAttachment.mockResolvedValue(apiResponse(uploadedAttachment));
+  mockedPurchaseRequestApi.deleteAttachment.mockResolvedValue(apiResponse(true));
 }
 
 describe('PurchaseRequestDrafts page', () => {
@@ -244,6 +271,48 @@ describe('PurchaseRequestDrafts page', () => {
     ));
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Item removed.'));
     expect(await screen.findByText('This draft has no items yet.')).toBeInTheDocument();
+  });
+
+  it('lists, uploads, and deletes draft attachments', async () => {
+    const user = userEvent;
+    setupBaseApi([listItem(emptyDraft)], emptyDraft);
+    mockedPurchaseRequestApi.listAttachments.mockResolvedValue(apiResponse([attachment]));
+
+    renderPage('/purchase-requests/draft-1');
+
+    expect(await screen.findByText('quote.txt')).toBeInTheDocument();
+    expect(mockedPurchaseRequestApi.listAttachments).toHaveBeenCalledWith(
+      membership.organizationId,
+      emptyDraft.id,
+    );
+
+    const file = new File(['new attachment'], 'new.txt', { type: 'text/plain' });
+    await act(async () => {
+      await user.upload(screen.getByLabelText('Choose a file'), file);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /upload attachment/i }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(mockedPurchaseRequestApi.uploadAttachment).toHaveBeenCalledWith(
+      membership.organizationId,
+      emptyDraft.id,
+      file,
+    ));
+    expect(await screen.findByText('Attachment uploaded.')).toBeInTheDocument();
+
+    await act(async () => {
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(mockedPurchaseRequestApi.deleteAttachment).toHaveBeenCalledWith(
+      membership.organizationId,
+      emptyDraft.id,
+      uploadedAttachment.id,
+    ));
+    expect(await screen.findByText('Attachment deleted.')).toBeInTheDocument();
   });
 
   it('reloads the server version after an optimistic-concurrency conflict', async () => {

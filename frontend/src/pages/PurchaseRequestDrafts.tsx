@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useState } from 'react';
-import { FilePlus2, RefreshCw, Save, ShoppingCart, Trash2 } from 'lucide-react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { Download, FilePlus2, Paperclip, RefreshCw, Save, ShoppingCart, Trash2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   BusinessRole,
@@ -7,6 +7,7 @@ import {
   type CurrentMembershipDto,
   type PurchaseRequestDetailsResponse,
   type PurchaseRequestDto,
+  type PurchaseRequestAttachmentDto,
   type PurchaseRequestItemDto,
   type PurchaseRequestListItemDto,
   type SelectableProductDto,
@@ -46,6 +47,8 @@ export default function PurchaseRequestDrafts() {
   const [quantity, setQuantity] = useState('1');
   const [comment, setComment] = useState('');
   const [quantityValues, setQuantityValues] = useState<Record<string, string>>({});
+  const [attachments, setAttachments] = useState<PurchaseRequestAttachmentDto[]>([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [loadingMembership, setLoadingMembership] = useState(true);
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -57,6 +60,9 @@ export default function PurchaseRequestDrafts() {
   const canEditDraft = membership?.isActive === true
     && membership.role === BusinessRole.Employee
     && Boolean(membership.branchId);
+  const canModifyAttachments = canEditDraft
+    && selectedDraft?.status === PurchaseRequestStatus.Draft
+    && selectedDraft.authorUserId === membership?.userId;
 
   useEffect(() => {
     let active = true;
@@ -212,6 +218,43 @@ export default function PurchaseRequestDrafts() {
       selectedDraft.items.map((item) => [item.id, String(item.quantity)]),
     ));
   }, [selectedDraft]);
+
+  useEffect(() => {
+    if (!membership || !selectedDraft) {
+      setAttachments([]);
+      setLoadingAttachments(false);
+      return undefined;
+    }
+
+    let active = true;
+    setAttachments([]);
+    setLoadingAttachments(true);
+
+    void purchaseRequestApi.listAttachments(membership.organizationId, selectedDraft.id)
+      .then((response) => {
+        if (!response.data) {
+          throw new Error('Purchase request attachment response missing data.');
+        }
+
+        if (active) {
+          setAttachments(response.data);
+        }
+      })
+      .catch((caughtError) => {
+        if (active) {
+          setError(getApiErrorMessage(caughtError, { defaultMessage: 'Unable to load request attachments.' }));
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoadingAttachments(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [membership, selectedDraft?.id]);
 
   const reloadDrafts = async () => {
     if (!membership) {
@@ -373,6 +416,106 @@ export default function PurchaseRequestDrafts() {
         { concurrencyStamp },
       ),
     );
+  };
+
+  const handleUploadAttachment = async (file: File): Promise<boolean> => {
+    if (!membership || !selectedDraft || !canModifyAttachments) {
+      return false;
+    }
+
+    if (file.size <= 0 || file.size > 10 * 1024 * 1024) {
+      setError('Attachments must be greater than zero and 10 MB or smaller.');
+      return false;
+    }
+
+    setBusyKey('attachment-upload');
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await purchaseRequestApi.uploadAttachment(
+        membership.organizationId,
+        selectedDraft.id,
+        file,
+      );
+      if (!response.data) {
+        throw new Error('Uploaded attachment response missing data.');
+      }
+
+      setAttachments((current) => [response.data!, ...current]);
+      setNotice('Attachment uploaded.');
+      return true;
+    } catch (caughtError) {
+      if (isConflict(caughtError)) {
+        setError('This draft changed in another session. The latest version has been loaded.');
+        await reloadSelectedDraft();
+      } else {
+        setError(getApiErrorMessage(caughtError, { defaultMessage: 'Unable to upload the attachment.' }));
+      }
+      return false;
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleDownloadAttachment = async (attachment: PurchaseRequestAttachmentDto) => {
+    if (!membership || !selectedDraft) {
+      return;
+    }
+
+    setBusyKey(`attachment-download-${attachment.id}`);
+    setError(null);
+
+    try {
+      const blob = await purchaseRequestApi.downloadAttachment(
+        membership.organizationId,
+        selectedDraft.id,
+        attachment.id,
+      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.originalFileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (caughtError) {
+      setError(getApiErrorMessage(caughtError, { defaultMessage: 'Unable to download the attachment.' }));
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!membership || !selectedDraft || !canModifyAttachments) {
+      return;
+    }
+
+    setBusyKey(`attachment-delete-${attachmentId}`);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const response = await purchaseRequestApi.deleteAttachment(
+        membership.organizationId,
+        selectedDraft.id,
+        attachmentId,
+      );
+      if (!response.data) {
+        throw new Error('Attachment delete response missing data.');
+      }
+
+      setAttachments((current) => current.filter((attachment) => attachment.id !== attachmentId));
+      setNotice('Attachment deleted.');
+    } catch (caughtError) {
+      if (isConflict(caughtError)) {
+        setError('This draft changed in another session. The latest version has been loaded.');
+        await reloadSelectedDraft();
+      } else {
+        setError(getApiErrorMessage(caughtError, { defaultMessage: 'Unable to delete the attachment.' }));
+      }
+    } finally {
+      setBusyKey(null);
+    }
   };
 
   const totalPages = Math.max(1, Math.ceil(totalCount / 20));
@@ -554,6 +697,46 @@ export default function PurchaseRequestDrafts() {
                 )}
               </section>
 
+              <section className="card purchase-request-attachments" aria-label="Purchase request attachments">
+                <div className="purchase-request-section-heading">
+                  <div>
+                    <p className="eyebrow">Supporting files</p>
+                    <h2>Attachments</h2>
+                  </div>
+                  <Paperclip aria-hidden="true" size={22} />
+                </div>
+                {loadingAttachments ? <p className="page-note">Loading attachments...</p> : attachments.length === 0 ? <p className="page-note">No attachments yet.</p> : (
+                  <div className="purchase-request-attachments__list">
+                    {attachments.map((attachment) => (
+                      <article className="purchase-request-attachments__item" key={attachment.id}>
+                        <div>
+                          <strong>{attachment.originalFileName}</strong>
+                          <small>{formatDate(attachment.createdAt)} · {formatAttachmentSize(attachment.sizeBytes)}</small>
+                        </div>
+                        <div className="purchase-request-attachments__actions">
+                          <button className="button button--ghost" type="button" disabled={busyKey === `attachment-download-${attachment.id}`} onClick={() => void handleDownloadAttachment(attachment)}>
+                            <Download aria-hidden="true" size={16} />
+                            {busyKey === `attachment-download-${attachment.id}` ? 'Downloading...' : 'Download'}
+                          </button>
+                          {canModifyAttachments && attachment.uploadedByUserId === membership?.userId ? (
+                            <button className="button button--danger" type="button" disabled={busyKey === `attachment-delete-${attachment.id}`} onClick={() => void handleDeleteAttachment(attachment.id)}>
+                              <Trash2 aria-hidden="true" size={16} />
+                              {busyKey === `attachment-delete-${attachment.id}` ? 'Deleting...' : 'Delete'}
+                            </button>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+                {canModifyAttachments ? (
+                  <AttachmentUploadForm
+                    busy={busyKey === 'attachment-upload'}
+                    onUpload={handleUploadAttachment}
+                  />
+                ) : <p className="page-note">Attachments can be added or removed only while this request is your draft.</p>}
+              </section>
+
               <section className="purchase-request-total" aria-label="Purchase request total">
                 <span>Total value</span>
                 <strong>{formatMoney(selectedDraft.totalValue)}</strong>
@@ -569,5 +752,56 @@ export default function PurchaseRequestDrafts() {
         </main>
       </div>
     </section>
+  );
+}
+
+function formatAttachmentSize(sizeBytes: number): string {
+  if (sizeBytes < 1024) return `${sizeBytes} B`;
+  if (sizeBytes < 1024 * 1024) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+  return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function AttachmentUploadForm({
+  busy,
+  onUpload,
+}: {
+  busy: boolean;
+  onUpload: (file: File) => Promise<boolean>;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedFile) {
+      return;
+    }
+
+    const uploaded = await onUpload(selectedFile);
+    if (!uploaded) {
+      return;
+    }
+
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <form className="purchase-request-attachments__form" onSubmit={(event) => void submit(event)}>
+      <label className="field__label" htmlFor="purchase-request-attachment">Choose a file</label>
+      <input
+        ref={fileInputRef}
+        id="purchase-request-attachment"
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx,.txt"
+        onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+      />
+      <button className="button" type="submit" disabled={!selectedFile || busy}>
+        <Paperclip aria-hidden="true" size={17} />
+        {busy ? 'Uploading...' : 'Upload attachment'}
+      </button>
+    </form>
   );
 }
