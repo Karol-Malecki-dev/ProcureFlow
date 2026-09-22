@@ -135,3 +135,19 @@ Nie trzeba przenosić wszystkich testów API do Playwright.
 - Dlaczego dashboard powinien agregować dane w PostgreSQL?
 - Który przepływ daje największą wartość jako browser E2E?
 - Jak udowodnić, że Manager nie widzi danych innego oddziału?
+
+## Stan implementacji `feature/procurement-fulfillment`
+
+Pierwszy slice PF5 jest zaimplementowany i zweryfikowany:
+
+- kolejka Procurement dla statusów `Approved` i `Ordered`;
+- przejścia `Approved -> Ordered -> Delivered`;
+- opcjonalny numer zamówienia i notatka realizacji;
+- autoryzacja aktywnego Procurement oraz platformowego Admina z aktywnym członkostwem;
+- optimistic concurrency oraz historia aktora i czasu każdej zmiany;
+- frontendowa kolejka z obsługą pustego stanu, błędów i konfliktu `409`;
+- migracja `AddPurchaseRequestFulfillmentMetadata`;
+- testy domenowe, API InMemory, frontendowe oraz pełna integracja backendu.
+
+Pozostałe elementy PF5 pozostają zakresem kolejnych branchy wymienionych powyżej:
+załączniki, powiadomienia, dashboard i krytyczny browser E2E.

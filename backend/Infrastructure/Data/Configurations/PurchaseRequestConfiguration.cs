@@ -31,6 +31,10 @@ public sealed class PurchaseRequestConfiguration : IEntityTypeConfiguration<Purc
             .IsRequired();
         builder.Property(request => request.Note)
             .HasMaxLength(PurchaseRequest.NoteMaxLength);
+        builder.Property(request => request.FulfillmentOrderNumber)
+            .HasMaxLength(PurchaseRequest.FulfillmentOrderNumberMaxLength);
+        builder.Property(request => request.FulfillmentNote)
+            .HasMaxLength(PurchaseRequest.FulfillmentNoteMaxLength);
         builder.Property(request => request.TotalValue)
             .HasPrecision(12, PurchaseRequestItem.MoneyScale)
             .IsRequired();

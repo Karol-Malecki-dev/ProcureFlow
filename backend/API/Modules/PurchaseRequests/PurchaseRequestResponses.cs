@@ -24,6 +24,8 @@ public sealed record PurchaseRequestResponse(
     Guid BranchId,
     PurchaseRequestStatus Status,
     string? Note,
+    string? FulfillmentOrderNumber,
+    string? FulfillmentNote,
     IReadOnlyList<PurchaseRequestItemResponse> Items,
     decimal TotalValue,
     DateTime CreatedAt,
@@ -80,3 +82,23 @@ public sealed record PurchaseRequestApprovalQueueItemResponse(
 public sealed record PurchaseRequestApprovalQueueResponse(
     IReadOnlyList<PurchaseRequestApprovalQueueItemResponse> Items,
     BusinessRole QueueRole);
+
+/// <summary>HTTP response for one accepted request awaiting Procurement fulfillment.</summary>
+public sealed record PurchaseRequestFulfillmentQueueItemResponse(
+    Guid Id,
+    Guid AuthorUserId,
+    Guid OrganizationId,
+    Guid BranchId,
+    PurchaseRequestStatus Status,
+    string? Note,
+    string? FulfillmentOrderNumber,
+    string? FulfillmentNote,
+    IReadOnlyList<PurchaseRequestItemResponse> Items,
+    decimal TotalValue,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    string ConcurrencyStamp);
+
+/// <summary>HTTP response for the Procurement fulfillment queue.</summary>
+public sealed record PurchaseRequestFulfillmentQueueResponse(
+    IReadOnlyList<PurchaseRequestFulfillmentQueueItemResponse> Items);

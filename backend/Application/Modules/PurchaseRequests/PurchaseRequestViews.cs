@@ -23,6 +23,8 @@ public sealed record PurchaseRequestDetailsView(
     Guid BranchId,
     PurchaseRequestStatus Status,
     string? Note,
+    string? FulfillmentOrderNumber,
+    string? FulfillmentNote,
     IReadOnlyList<PurchaseRequestItemView> Items,
     decimal TotalValue,
     DateTime CreatedAt,
@@ -46,3 +48,23 @@ public sealed record PurchaseRequestListView(
     int Page,
     int PageSize,
     int TotalCount);
+
+/// <summary>Read-only projection of one request in the Procurement fulfillment queue.</summary>
+public sealed record PurchaseRequestFulfillmentQueueItemView(
+    Guid Id,
+    Guid AuthorUserId,
+    Guid OrganizationId,
+    Guid BranchId,
+    PurchaseRequestStatus Status,
+    string? Note,
+    string? FulfillmentOrderNumber,
+    string? FulfillmentNote,
+    IReadOnlyList<PurchaseRequestItemView> Items,
+    decimal TotalValue,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    string ConcurrencyStamp);
+
+/// <summary>Read-only projection of accepted requests awaiting fulfillment.</summary>
+public sealed record PurchaseRequestFulfillmentQueueView(
+    IReadOnlyList<PurchaseRequestFulfillmentQueueItemView> Items);

@@ -746,6 +746,210 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             .ToListAsync());
     }
 
+    [Fact]
+    public async Task Procurement_can_move_an_approved_request_to_ordered_and_delivered()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("fulfillment-employee");
+        var procurementEmail = UniqueEmail("fulfillment-procurement");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var procurementUserId = await SeedUserAsync(procurementEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            procurementUserId,
+            null,
+            BusinessRole.Procurement);
+
+        var request = await SeedApprovedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            2m);
+        await AuthenticateAsync(procurementEmail);
+
+        var queueResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/fulfillment-queue");
+        var queue = await queueResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestFulfillmentQueueResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, queueResponse.StatusCode);
+        Assert.NotNull(queue?.Data);
+        var queueItem = Assert.Single(queue.Data.Items);
+        Assert.Equal(request.Id, queueItem.Id);
+        Assert.Equal(PurchaseRequestStatus.Approved, queueItem.Status);
+
+        var orderResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/fulfillment/order",
+            new
+            {
+                ConcurrencyStamp = queueItem.ConcurrencyStamp,
+                OrderNumber = "PO-2026-001",
+                FulfillmentNote = "Supplier confirmed the order."
+            });
+        var ordered = await orderResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, orderResponse.StatusCode);
+        Assert.NotNull(ordered?.Data);
+        Assert.Equal(PurchaseRequestStatus.Ordered, ordered.Data.Status);
+        Assert.Equal("PO-2026-001", ordered.Data.FulfillmentOrderNumber);
+        Assert.Equal("Supplier confirmed the order.", ordered.Data.FulfillmentNote);
+
+        var deliverResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/fulfillment/deliver",
+            new
+            {
+                ConcurrencyStamp = ordered.Data.ConcurrencyStamp,
+                FulfillmentNote = "Received by the branch warehouse."
+            });
+        var delivered = await deliverResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, deliverResponse.StatusCode);
+        Assert.NotNull(delivered?.Data);
+        Assert.Equal(PurchaseRequestStatus.Delivered, delivered.Data.Status);
+        Assert.Equal("PO-2026-001", delivered.Data.FulfillmentOrderNumber);
+        Assert.Equal("Received by the branch warehouse.", delivered.Data.FulfillmentNote);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var histories = await dbContext.PurchaseRequestStatusHistories
+            .Where(item => item.PurchaseRequestId == request.Id)
+            .OrderBy(item => item.ChangedAt)
+            .ToListAsync();
+
+        Assert.Equal(
+            new[]
+            {
+                PurchaseRequestStatus.Approved,
+                PurchaseRequestStatus.Ordered,
+                PurchaseRequestStatus.Delivered
+            },
+            histories.Select(item => item.ToStatus));
+        Assert.Equal(procurementUserId, histories[1].ChangedByUserId);
+        Assert.Equal(procurementUserId, histories[2].ChangedByUserId);
+    }
+
+    [Fact]
+    public async Task Employee_cannot_access_the_procurement_fulfillment_queue()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("fulfillment-forbidden-employee");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await AuthenticateAsync(employeeEmail);
+
+        var response = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/fulfillment-queue");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Platform_admin_with_an_active_membership_can_access_the_fulfillment_queue()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("fulfillment-admin-employee");
+        var adminEmail = UniqueEmail("fulfillment-admin");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var adminUserId = await SeedUserAsync(adminEmail, UserRole.Admin);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            adminUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedApprovedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            1m);
+        await AuthenticateAsync(adminEmail);
+
+        var response = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/fulfillment-queue");
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestFulfillmentQueueResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload?.Data);
+        Assert.Single(payload.Data.Items);
+        Assert.Equal(PurchaseRequestStatus.Approved, payload.Data.Items[0].Status);
+    }
+
+    [Fact]
+    public async Task Procurement_fulfillment_with_a_stale_request_version_returns_conflict()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var employeeEmail = UniqueEmail("fulfillment-concurrency-employee");
+        var procurementEmail = UniqueEmail("fulfillment-concurrency-procurement");
+        var employeeUserId = await SeedUserAsync(employeeEmail);
+        var procurementUserId = await SeedUserAsync(procurementEmail);
+        var unitId = await SeedUnitAsync(organizationId, employeeUserId);
+        var productId = await SeedProductAsync(organizationId, unitId, employeeUserId);
+        await SeedMembershipAsync(
+            organizationId,
+            employeeUserId,
+            branchId,
+            BusinessRole.Employee);
+        await SeedMembershipAsync(
+            organizationId,
+            procurementUserId,
+            null,
+            BusinessRole.Procurement);
+
+        var request = await SeedApprovedRequestAsync(
+            employeeUserId,
+            organizationId,
+            branchId,
+            productId,
+            1m);
+        await AuthenticateAsync(procurementEmail);
+
+        var response = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{request.Id}/fulfillment/order",
+            new
+            {
+                ConcurrencyStamp = $"{request.ConcurrencyStamp}-stale",
+                OrderNumber = "PO-STALE"
+            });
+        var payload = await response.Content
+            .ReadFromJsonAsync<ApiResponse<object>>();
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Contains("modified concurrently", payload.Message, StringComparison.OrdinalIgnoreCase);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var persistedRequest = await dbContext.PurchaseRequests
+            .SingleAsync(item => item.Id == request.Id);
+        Assert.Equal(PurchaseRequestStatus.Approved, persistedRequest.Status);
+    }
+
     public void Dispose()
     {
         _factory.Dispose();
@@ -764,7 +968,9 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             new AuthenticationHeaderValue("Bearer", apiResponse.Data.AccessToken);
     }
 
-    private async Task<Guid> SeedUserAsync(string email)
+    private async Task<Guid> SeedUserAsync(
+        string email,
+        UserRole role = UserRole.User)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -772,7 +978,7 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
         var user = User.Create(
             EmailAddress.Create(email),
             DisplayName.Create("Purchase request test user"),
-            UserRole.User,
+            role,
             isActive: true,
             isEmailConfirmed: true);
         user.SetPasswordHash(passwordHasher.HashPassword(user, "password123"));
@@ -879,6 +1085,41 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             quantity);
         request.Submit();
         dbContext.PurchaseRequests.Add(request);
+        await dbContext.SaveChangesAsync();
+        return request;
+    }
+
+    private async Task<PurchaseRequest> SeedApprovedRequestAsync(
+        Guid authorUserId,
+        Guid organizationId,
+        Guid branchId,
+        Guid productId,
+        decimal quantity)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var request = PurchaseRequest.Create(
+            authorUserId,
+            organizationId,
+            branchId,
+            "Fulfillment test request");
+        request.AddItem(
+            productId,
+            "Monitor",
+            "MON-1",
+            "Piece",
+            "pc",
+            10.50m,
+            quantity);
+        request.Submit();
+        var previousStatus = request.Status;
+        request.Approve();
+        dbContext.PurchaseRequests.Add(request);
+        dbContext.PurchaseRequestStatusHistories.Add(PurchaseRequestStatusHistory.Create(
+            request.Id,
+            previousStatus,
+            request.Status,
+            authorUserId));
         await dbContext.SaveChangesAsync();
         return request;
     }

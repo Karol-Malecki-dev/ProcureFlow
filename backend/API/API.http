@@ -4,3 +4,46 @@ GET {{API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+@organizationId = 00000000-0000-0000-0000-000000000000
+@purchaseRequestId = 00000000-0000-0000-0000-000000000000
+@concurrencyStamp = replace-with-current-request-stamp
+@accessToken = replace-with-access-token
+
+### Get the Procurement fulfillment queue
+GET {{API_HostAddress}}/api/organizations/{{organizationId}}/purchase-requests/fulfillment-queue
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+### Mark an approved request as ordered
+POST {{API_HostAddress}}/api/organizations/{{organizationId}}/purchase-requests/{{purchaseRequestId}}/fulfillment/order
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "concurrencyStamp": "{{concurrencyStamp}}",
+  "orderNumber": "PO-2026-001",
+  "fulfillmentNote": "Supplier confirmed the order."
+}
+
+### Mark an ordered request as delivered
+POST {{API_HostAddress}}/api/organizations/{{organizationId}}/purchase-requests/{{purchaseRequestId}}/fulfillment/deliver
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "concurrencyStamp": "{{concurrencyStamp}}",
+  "fulfillmentNote": "Received by the branch warehouse."
+}
+
+### Expected conflict: use an old concurrency stamp
+POST {{API_HostAddress}}/api/organizations/{{organizationId}}/purchase-requests/{{purchaseRequestId}}/fulfillment/order
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "concurrencyStamp": "stale-stamp"
+}

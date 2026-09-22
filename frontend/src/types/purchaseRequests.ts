@@ -38,6 +38,8 @@ export interface PurchaseRequestDto {
   branchId: string;
   status: PurchaseRequestStatus;
   note: string | null;
+  fulfillmentOrderNumber: string | null;
+  fulfillmentNote: string | null;
   items: PurchaseRequestItemDto[];
   totalValue: number;
   createdAt: string;
@@ -116,6 +118,26 @@ export interface PurchaseRequestApprovalQueueDto {
   queueRole: BusinessRole;
 }
 
+export interface PurchaseRequestFulfillmentQueueItemDto {
+  id: string;
+  authorUserId: string;
+  organizationId: string;
+  branchId: string;
+  status: PurchaseRequestStatus;
+  note: string | null;
+  fulfillmentOrderNumber: string | null;
+  fulfillmentNote: string | null;
+  items: PurchaseRequestItemDto[];
+  totalValue: number;
+  createdAt: string;
+  updatedAt: string;
+  concurrencyStamp: string;
+}
+
+export interface PurchaseRequestFulfillmentQueueDto {
+  items: PurchaseRequestFulfillmentQueueItemDto[];
+}
+
 export interface UpsertBranchMonthlyBudgetRequest {
   limitAmount: number;
   expectedConcurrencyStamp: string | null;
@@ -127,7 +149,19 @@ export interface DecidePurchaseRequestRequest {
   rejectionReason: string | null;
 }
 
+export interface MarkPurchaseRequestOrderedRequest {
+  concurrencyStamp: string;
+  orderNumber: string | null;
+  fulfillmentNote: string | null;
+}
+
+export interface MarkPurchaseRequestDeliveredRequest {
+  concurrencyStamp: string;
+  fulfillmentNote: string | null;
+}
+
 export type PurchaseRequestDetailsResponse = ApiResponse<PurchaseRequestDto>;
 export type PurchaseRequestListResponse = ApiResponse<PurchaseRequestListDto>;
 export type BranchMonthlyBudgetResponse = ApiResponse<BranchMonthlyBudgetDto>;
 export type PurchaseRequestApprovalQueueResponse = ApiResponse<PurchaseRequestApprovalQueueDto>;
+export type PurchaseRequestFulfillmentQueueResponse = ApiResponse<PurchaseRequestFulfillmentQueueDto>;

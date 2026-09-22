@@ -13,6 +13,7 @@ import OrganizationBranches from '../pages/OrganizationBranches';
 import OrganizationMemberships from '../pages/OrganizationMemberships';
 import PurchaseRequestDrafts from '../pages/PurchaseRequestDrafts';
 import PurchaseRequestApprovals from '../pages/PurchaseRequestApprovals';
+import PurchaseRequestFulfillment from '../pages/PurchaseRequestFulfillment';
 import Profile from '../pages/Profile';
 import ProjectInvitation from '../pages/ProjectInvitation';
 import Projects from '../pages/Projects';
@@ -46,6 +47,7 @@ export function AppRoutes() {
         <Route path="/purchase-requests" element={<PurchaseRequestDrafts />} />
         <Route path="/purchase-requests/:purchaseRequestId" element={<PurchaseRequestDrafts />} />
         <Route path="/purchase-requests/approvals" element={<PurchaseRequestApprovals />} />
+        <Route path="/purchase-requests/fulfillment" element={<PurchaseRequestFulfillment />} />
         <Route path="/projects" element={projectsEnabled ? <ProjectsProvider><Projects /></ProjectsProvider> : <Navigate to="/" replace />} />
         <Route path="/project-invitation" element={projectsEnabled ? <ProjectsProvider><ProjectInvitation /></ProjectsProvider> : <Navigate to="/" replace />} />
       </Route>

@@ -23,6 +23,7 @@ export function Navbar() {
     ...(isAuthenticated && dashboardOverviewEnabled ? [{ label: 'Dashboard', description: 'Protected workspace summary', to: '/dashboard' }] : []),
     ...(isAuthenticated ? [{ label: 'Purchase requests', description: 'Build organization-scoped request drafts', to: '/purchase-requests', keywords: ['drafts', 'procurement', 'catalog'] }] : []),
     ...(isAuthenticated ? [{ label: 'Approval queue', description: 'Review purchase requests in your business role', to: '/purchase-requests/approvals', keywords: ['approvals', 'budget', 'manager', 'procurement'] }] : []),
+    ...(isAuthenticated ? [{ label: 'Fulfillment queue', description: 'Order and deliver approved purchase requests', to: '/purchase-requests/fulfillment', keywords: ['fulfillment', 'orders', 'delivery', 'procurement'] }] : []),
     ...(isAuthenticated && projectsEnabled ? [{ label: 'Projects', description: 'Manage projects and tasks', to: '/projects' }] : []),
     ...(isAuthenticated ? [{ label: 'Profile', description: 'Manage your account details', to: '/profile' }] : []),
     ...(isAdmin && adminNavigationEnabled ? [{ label: 'Admin panel', description: 'Administration overview', to: '/admin' }] : []),
@@ -63,6 +64,7 @@ export function Navbar() {
         {isAuthenticated && dashboardOverviewEnabled ? <NavLink to="/dashboard">Dashboard</NavLink> : null}
         {isAuthenticated ? <NavLink to="/purchase-requests">Purchase requests</NavLink> : null}
         {isAuthenticated ? <NavLink to="/purchase-requests/approvals">Approval queue</NavLink> : null}
+        {isAuthenticated ? <NavLink to="/purchase-requests/fulfillment">Fulfillment</NavLink> : null}
         {isAuthenticated && projectsEnabled ? <NavLink to="/projects">Projects</NavLink> : null}
         {isAuthenticated ? <NavLink to="/profile">Profile</NavLink> : null}
         {isAdmin && adminNavigationEnabled ? <NavLink to="/admin">Admin</NavLink> : null}

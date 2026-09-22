@@ -222,6 +222,8 @@ public sealed class PurchaseRequestHandlerTests
             membership.BranchId!.Value,
             DomainPurchaseRequestStatus.Draft,
             "Office equipment",
+            null,
+            null,
             [],
             0m,
             DateTime.UtcNow,

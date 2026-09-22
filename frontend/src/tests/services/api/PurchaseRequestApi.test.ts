@@ -75,11 +75,12 @@ describe('PurchaseRequestApi', () => {
     );
   });
 
-  it('builds approval queue, budget, and decision requests', async () => {
+  it('builds approval, budget, decision, and fulfillment requests', async () => {
     const client = createClientMock();
     const api = new PurchaseRequestApi(client);
 
     await api.listApprovalQueue('organization-1');
+    await api.listFulfillmentQueue('organization-1');
     await api.getBudget('organization-1', 'branch-1', 2026, 9);
     await api.upsertBudget('organization-1', 'branch-1', 2026, 9, {
       limitAmount: 5000,
@@ -90,6 +91,15 @@ describe('PurchaseRequestApi', () => {
       approve: false,
       rejectionReason: 'Not required',
     });
+    await api.markOrdered('organization-1', 'request-1', {
+      concurrencyStamp: 'stamp-2',
+      orderNumber: 'PO-2026-001',
+      fulfillmentNote: 'Supplier confirmed',
+    });
+    await api.markDelivered('organization-1', 'request-1', {
+      concurrencyStamp: 'stamp-3',
+      fulfillmentNote: 'Received',
+    });
 
     expect(client.get).toHaveBeenNthCalledWith(
       1,
@@ -97,18 +107,40 @@ describe('PurchaseRequestApi', () => {
     );
     expect(client.get).toHaveBeenNthCalledWith(
       2,
+      '/organizations/organization-1/purchase-requests/fulfillment-queue',
+    );
+    expect(client.get).toHaveBeenNthCalledWith(
+      3,
       '/organizations/organization-1/purchase-requests/budgets/branch-1/2026/9',
     );
     expect(client.put).toHaveBeenCalledWith(
       '/organizations/organization-1/purchase-requests/budgets/branch-1/2026/9',
       { limitAmount: 5000, expectedConcurrencyStamp: null },
     );
-    expect(client.post).toHaveBeenLastCalledWith(
+    expect(client.post).toHaveBeenNthCalledWith(
+      1,
       '/organizations/organization-1/purchase-requests/request-1/decision',
       {
         concurrencyStamp: 'stamp-1',
         approve: false,
         rejectionReason: 'Not required',
+      },
+    );
+    expect(client.post).toHaveBeenNthCalledWith(
+      2,
+      '/organizations/organization-1/purchase-requests/request-1/fulfillment/order',
+      {
+        concurrencyStamp: 'stamp-2',
+        orderNumber: 'PO-2026-001',
+        fulfillmentNote: 'Supplier confirmed',
+      },
+    );
+    expect(client.post).toHaveBeenNthCalledWith(
+      3,
+      '/organizations/organization-1/purchase-requests/request-1/fulfillment/deliver',
+      {
+        concurrencyStamp: 'stamp-3',
+        fulfillmentNote: 'Received',
       },
     );
   });

@@ -133,6 +133,8 @@ describe('PurchaseRequestApprovals page', () => {
       branchId: membership.branchId,
       status: PurchaseRequestStatus.Rejected,
       note: queue.items[0].note,
+      fulfillmentOrderNumber: null,
+      fulfillmentNote: null,
       items: queue.items[0].items,
       totalValue: queue.items[0].totalValue,
       createdAt: queue.items[0].createdAt,

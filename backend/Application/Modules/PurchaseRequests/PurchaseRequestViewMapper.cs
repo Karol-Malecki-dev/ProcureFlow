@@ -29,6 +29,28 @@ public static class PurchaseRequestViewMapper
             request.BranchId,
             request.Status,
             request.Note,
+            request.FulfillmentOrderNumber,
+            request.FulfillmentNote,
+            request.Items
+                .OrderBy(item => item.Id)
+                .Select(ToItemView)
+                .ToList(),
+            request.TotalValue,
+            request.CreatedAt,
+            request.UpdatedAt,
+            request.ConcurrencyStamp);
+
+    public static PurchaseRequestFulfillmentQueueItemView ToFulfillmentQueueItemView(
+        PurchaseRequest request)
+        => new(
+            request.Id,
+            request.AuthorUserId,
+            request.OrganizationId,
+            request.BranchId,
+            request.Status,
+            request.Note,
+            request.FulfillmentOrderNumber,
+            request.FulfillmentNote,
             request.Items
                 .OrderBy(item => item.Id)
                 .Select(ToItemView)

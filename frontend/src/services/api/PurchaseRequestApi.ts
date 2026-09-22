@@ -3,8 +3,11 @@ import type {
   BranchMonthlyBudgetResponse,
   CreatePurchaseRequestRequest,
   DecidePurchaseRequestRequest,
+  MarkPurchaseRequestDeliveredRequest,
+  MarkPurchaseRequestOrderedRequest,
   PurchaseRequestDetailsResponse,
   PurchaseRequestApprovalQueueResponse,
+  PurchaseRequestFulfillmentQueueResponse,
   PurchaseRequestListResponse,
   RemovePurchaseRequestItemRequest,
   UpsertBranchMonthlyBudgetRequest,
@@ -25,6 +28,12 @@ export class PurchaseRequestApi {
   listApprovalQueue(organizationId: string): Promise<PurchaseRequestApprovalQueueResponse> {
     return this.client.get<PurchaseRequestApprovalQueueResponse>(
       `/organizations/${organizationId}/purchase-requests/approval-queue`,
+    );
+  }
+
+  listFulfillmentQueue(organizationId: string): Promise<PurchaseRequestFulfillmentQueueResponse> {
+    return this.client.get<PurchaseRequestFulfillmentQueueResponse>(
+      `/organizations/${organizationId}/purchase-requests/fulfillment-queue`,
     );
   }
 
@@ -59,6 +68,28 @@ export class PurchaseRequestApi {
   ): Promise<PurchaseRequestDetailsResponse> {
     return this.client.post<PurchaseRequestDetailsResponse, DecidePurchaseRequestRequest>(
       `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/decision`,
+      request,
+    );
+  }
+
+  markOrdered(
+    organizationId: string,
+    purchaseRequestId: string,
+    request: MarkPurchaseRequestOrderedRequest,
+  ): Promise<PurchaseRequestDetailsResponse> {
+    return this.client.post<PurchaseRequestDetailsResponse, MarkPurchaseRequestOrderedRequest>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/fulfillment/order`,
+      request,
+    );
+  }
+
+  markDelivered(
+    organizationId: string,
+    purchaseRequestId: string,
+    request: MarkPurchaseRequestDeliveredRequest,
+  ): Promise<PurchaseRequestDetailsResponse> {
+    return this.client.post<PurchaseRequestDetailsResponse, MarkPurchaseRequestDeliveredRequest>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/fulfillment/deliver`,
       request,
     );
   }

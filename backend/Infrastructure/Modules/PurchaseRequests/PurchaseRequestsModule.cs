@@ -6,6 +6,9 @@ using Application.Modules.PurchaseRequests.Budget.GetBranchMonthlyBudget;
 using Application.Modules.PurchaseRequests.Budget.UpsertBranchMonthlyBudget;
 using Application.Modules.PurchaseRequests.CancelPurchaseRequest;
 using Application.Modules.PurchaseRequests.CreatePurchaseRequest;
+using Application.Modules.PurchaseRequests.Fulfillment.ListPurchaseRequestFulfillmentQueue;
+using Application.Modules.PurchaseRequests.Fulfillment.MarkPurchaseRequestDelivered;
+using Application.Modules.PurchaseRequests.Fulfillment.MarkPurchaseRequestOrdered;
 using Application.Modules.PurchaseRequests.GetPurchaseRequestDetails;
 using Application.Modules.PurchaseRequests.ListMyPurchaseRequests;
 using Application.Modules.PurchaseRequests.RemovePurchaseRequestItem;
@@ -17,6 +20,7 @@ using Infrastructure.Modules.PurchaseRequests.Budget;
 using Infrastructure.Modules.PurchaseRequests.CancelPurchaseRequest;
 using Infrastructure.Modules.PurchaseRequests.CreatePurchaseRequest;
 using Infrastructure.Modules.PurchaseRequests.Draft;
+using Infrastructure.Modules.PurchaseRequests.Fulfillment;
 using Infrastructure.Modules.PurchaseRequests.GetPurchaseRequestDetails;
 using Infrastructure.Modules.PurchaseRequests.ListMyPurchaseRequests;
 using Infrastructure.Modules.PurchaseRequests.PurchaseRequestMembershipReader;
@@ -39,6 +43,7 @@ public static class PurchaseRequestsModule
         services.AddScoped<IPurchaseRequestDraftStore, EfPurchaseRequestDraftStore>();
         services.AddScoped<IPurchaseRequestWorkflowStore, EfPurchaseRequestWorkflowStore>();
         services.AddScoped<IPurchaseRequestApprovalStore, EfPurchaseRequestApprovalStore>();
+        services.AddScoped<IPurchaseRequestFulfillmentStore, EfPurchaseRequestFulfillmentStore>();
 
         services.AddScoped<ICreatePurchaseRequestStore, EfCreatePurchaseRequestStore>();
         services.AddScoped<ICreatePurchaseRequestHandler, CreatePurchaseRequestHandler>();
@@ -59,6 +64,9 @@ public static class PurchaseRequestsModule
         services.AddScoped<IUpsertBranchMonthlyBudgetHandler, UpsertBranchMonthlyBudgetHandler>();
         services.AddScoped<IListPurchaseRequestApprovalQueueHandler, ListPurchaseRequestApprovalQueueHandler>();
         services.AddScoped<IDecidePurchaseRequestHandler, DecidePurchaseRequestHandler>();
+        services.AddScoped<IListPurchaseRequestFulfillmentQueueHandler, ListPurchaseRequestFulfillmentQueueHandler>();
+        services.AddScoped<IMarkPurchaseRequestOrderedHandler, MarkPurchaseRequestOrderedHandler>();
+        services.AddScoped<IMarkPurchaseRequestDeliveredHandler, MarkPurchaseRequestDeliveredHandler>();
 
         return services;
     }

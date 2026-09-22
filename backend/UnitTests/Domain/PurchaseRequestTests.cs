@@ -187,6 +187,67 @@ public sealed class PurchaseRequestTests
     }
 
     [Fact]
+    public void Approved_request_can_be_marked_as_ordered_with_fulfillment_metadata()
+    {
+        var request = CreateRequestInStatus(PurchaseRequestStatus.Approved);
+        var initialStamp = request.ConcurrencyStamp;
+
+        request.MarkOrdered("  PO-2026-001  ", "  Ordered by Procurement  ");
+
+        Assert.Equal(PurchaseRequestStatus.Ordered, request.Status);
+        Assert.Equal("PO-2026-001", request.FulfillmentOrderNumber);
+        Assert.Equal("Ordered by Procurement", request.FulfillmentNote);
+        Assert.NotEqual(initialStamp, request.ConcurrencyStamp);
+    }
+
+    [Fact]
+    public void Only_ordered_request_can_be_marked_as_delivered()
+    {
+        var request = CreateRequestInStatus(PurchaseRequestStatus.Approved);
+
+        Assert.Throws<InvalidOperationException>(() => request.MarkDelivered());
+
+        request.MarkOrdered();
+        request.MarkDelivered("  Received in branch warehouse  ");
+
+        Assert.Equal(PurchaseRequestStatus.Delivered, request.Status);
+        Assert.Equal("Received in branch warehouse", request.FulfillmentNote);
+    }
+
+    [Fact]
+    public void Delivered_request_is_final_and_cannot_be_marked_as_ordered_again()
+    {
+        var request = CreateRequestInStatus(PurchaseRequestStatus.Approved);
+        request.MarkOrdered("PO-2026-001");
+        request.MarkDelivered();
+
+        Assert.Throws<InvalidOperationException>(() => request.MarkOrdered("PO-2026-002"));
+        Assert.Throws<InvalidOperationException>(() => request.MarkDelivered());
+        Assert.Equal(PurchaseRequestStatus.Delivered, request.Status);
+        Assert.Equal("PO-2026-001", request.FulfillmentOrderNumber);
+    }
+
+    [Theory]
+    [InlineData(nameof(PurchaseRequest.FulfillmentOrderNumber), 101)]
+    [InlineData(nameof(PurchaseRequest.FulfillmentNote), 1_001)]
+    public void Fulfillment_metadata_rejects_values_above_the_contract_limit(
+        string field,
+        int length)
+    {
+        var request = CreateRequestInStatus(PurchaseRequestStatus.Approved);
+
+        var exception = Assert.Throws<ArgumentException>(() => request.MarkOrdered(
+            field == nameof(PurchaseRequest.FulfillmentOrderNumber)
+                ? new string('x', length)
+                : null,
+            field == nameof(PurchaseRequest.FulfillmentNote)
+                ? new string('x', length)
+                : null));
+
+        Assert.Contains("cannot exceed", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Add_item_rejects_a_duplicate_product()
     {
         var request = CreateRequest();
@@ -271,4 +332,25 @@ public sealed class PurchaseRequestTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid());
+
+    private static PurchaseRequest CreateRequestInStatus(PurchaseRequestStatus status)
+    {
+        var request = CreateRequest();
+        request.AddItem(
+            Guid.NewGuid(),
+            "Printer paper",
+            null,
+            "Pack",
+            "pkg",
+            12.50m,
+            1m);
+        request.Submit();
+
+        if (status == PurchaseRequestStatus.Approved)
+        {
+            request.Approve();
+        }
+
+        return request;
+    }
 }

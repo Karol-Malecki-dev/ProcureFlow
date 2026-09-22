@@ -5,6 +5,7 @@ using API.Modules.PurchaseRequests.Approval;
 using API.Modules.PurchaseRequests.Budget;
 using API.Modules.PurchaseRequests.ChangePurchaseRequestStatus;
 using API.Modules.PurchaseRequests.CreatePurchaseRequest;
+using API.Modules.PurchaseRequests.Fulfillment;
 using API.Modules.PurchaseRequests.RemovePurchaseRequestItem;
 using API.Modules.PurchaseRequests.UpdatePurchaseRequestItemQuantity;
 using API.Responses;
@@ -16,6 +17,9 @@ using Application.Modules.PurchaseRequests.Approval.ListPurchaseRequestApprovalQ
 using Application.Modules.PurchaseRequests.Budget.GetBranchMonthlyBudget;
 using Application.Modules.PurchaseRequests.Budget.UpsertBranchMonthlyBudget;
 using Application.Modules.PurchaseRequests.CreatePurchaseRequest;
+using Application.Modules.PurchaseRequests.Fulfillment.ListPurchaseRequestFulfillmentQueue;
+using Application.Modules.PurchaseRequests.Fulfillment.MarkPurchaseRequestDelivered;
+using Application.Modules.PurchaseRequests.Fulfillment.MarkPurchaseRequestOrdered;
 using Application.Modules.PurchaseRequests.GetPurchaseRequestDetails;
 using Application.Modules.PurchaseRequests.ListMyPurchaseRequests;
 using Application.Modules.PurchaseRequests.RemovePurchaseRequestItem;
@@ -49,6 +53,9 @@ public sealed class PurchaseRequestsController : ControllerBase
     private readonly IUpsertBranchMonthlyBudgetHandler _upsertBudgetHandler;
     private readonly IListPurchaseRequestApprovalQueueHandler _approvalQueueHandler;
     private readonly IDecidePurchaseRequestHandler _decisionHandler;
+    private readonly IListPurchaseRequestFulfillmentQueueHandler _fulfillmentQueueHandler;
+    private readonly IMarkPurchaseRequestOrderedHandler _markOrderedHandler;
+    private readonly IMarkPurchaseRequestDeliveredHandler _markDeliveredHandler;
 
     public PurchaseRequestsController(
         ICreatePurchaseRequestHandler createHandler,
@@ -62,7 +69,10 @@ public sealed class PurchaseRequestsController : ControllerBase
         IGetBranchMonthlyBudgetHandler getBudgetHandler,
         IUpsertBranchMonthlyBudgetHandler upsertBudgetHandler,
         IListPurchaseRequestApprovalQueueHandler approvalQueueHandler,
-        IDecidePurchaseRequestHandler decisionHandler)
+        IDecidePurchaseRequestHandler decisionHandler,
+        IListPurchaseRequestFulfillmentQueueHandler fulfillmentQueueHandler,
+        IMarkPurchaseRequestOrderedHandler markOrderedHandler,
+        IMarkPurchaseRequestDeliveredHandler markDeliveredHandler)
     {
         _createHandler = createHandler;
         _addItemHandler = addItemHandler;
@@ -76,6 +86,9 @@ public sealed class PurchaseRequestsController : ControllerBase
         _upsertBudgetHandler = upsertBudgetHandler;
         _approvalQueueHandler = approvalQueueHandler;
         _decisionHandler = decisionHandler;
+        _fulfillmentQueueHandler = fulfillmentQueueHandler;
+        _markOrderedHandler = markOrderedHandler;
+        _markDeliveredHandler = markDeliveredHandler;
     }
 
     /// <summary>Creates an empty draft in the current user's active Employee branch.</summary>
@@ -155,6 +168,32 @@ public sealed class PurchaseRequestsController : ControllerBase
             cancellationToken);
 
         return ToActionResult(result, MapApprovalQueue);
+    }
+
+    /// <summary>Returns accepted requests waiting for Procurement to order or deliver them.</summary>
+    [HttpGet("fulfillment-queue")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestFulfillmentQueueResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> FulfillmentQueue(
+        Guid organizationId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestFulfillmentQueueResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _fulfillmentQueueHandler.HandleAsync(
+            new ListPurchaseRequestFulfillmentQueueQuery(userId, organizationId),
+            cancellationToken);
+
+        return ToActionResult(result, MapFulfillmentQueue);
     }
 
     /// <summary>Reads one monthly budget in the current user's authorized branch scope.</summary>
@@ -251,6 +290,73 @@ public sealed class PurchaseRequestsController : ControllerBase
                 request.ConcurrencyStamp,
                 request.Approve,
                 request.RejectionReason),
+            cancellationToken);
+
+        return ToActionResult(result, MapDetails);
+    }
+
+    /// <summary>Marks one approved purchase request as ordered by Procurement.</summary>
+    [HttpPost("{purchaseRequestId:guid}/fulfillment/order")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> MarkOrdered(
+        Guid organizationId,
+        Guid purchaseRequestId,
+        MarkPurchaseRequestOrderedRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _markOrderedHandler.HandleAsync(
+            new MarkPurchaseRequestOrderedCommand(
+                userId,
+                organizationId,
+                purchaseRequestId,
+                request.ConcurrencyStamp,
+                request.OrderNumber,
+                request.FulfillmentNote),
+            cancellationToken);
+
+        return ToActionResult(result, MapDetails);
+    }
+
+    /// <summary>Marks one ordered purchase request as delivered by Procurement.</summary>
+    [HttpPost("{purchaseRequestId:guid}/fulfillment/deliver")]
+    [ProducesResponseType(typeof(ApiResponse<PurchaseRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> MarkDelivered(
+        Guid organizationId,
+        Guid purchaseRequestId,
+        MarkPurchaseRequestDeliveredRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<PurchaseRequestResponse>.Error(
+                StatusCodes.Status401Unauthorized,
+                "Authenticated user identifier is invalid."));
+        }
+
+        var result = await _markDeliveredHandler.HandleAsync(
+            new MarkPurchaseRequestDeliveredCommand(
+                userId,
+                organizationId,
+                purchaseRequestId,
+                request.ConcurrencyStamp,
+                request.FulfillmentNote),
             cancellationToken);
 
         return ToActionResult(result, MapDetails);
@@ -478,6 +584,8 @@ public sealed class PurchaseRequestsController : ControllerBase
             view.BranchId,
             view.Status,
             view.Note,
+            view.FulfillmentOrderNumber,
+            view.FulfillmentNote,
             view.Items.Select(MapItem).ToList(),
             view.TotalValue,
             view.CreatedAt,
@@ -516,6 +624,26 @@ public sealed class PurchaseRequestsController : ControllerBase
                     item.QueueRole))
                 .ToList(),
             view.QueueRole);
+
+    private static PurchaseRequestFulfillmentQueueResponse MapFulfillmentQueue(
+        PurchaseRequestFulfillmentQueueView view)
+        => new(
+            view.Items
+                .Select(item => new PurchaseRequestFulfillmentQueueItemResponse(
+                    item.Id,
+                    item.AuthorUserId,
+                    item.OrganizationId,
+                    item.BranchId,
+                    item.Status,
+                    item.Note,
+                    item.FulfillmentOrderNumber,
+                    item.FulfillmentNote,
+                    item.Items.Select(MapItem).ToList(),
+                    item.TotalValue,
+                    item.CreatedAt,
+                    item.UpdatedAt,
+                    item.ConcurrencyStamp))
+                .ToList());
 
     private static PurchaseRequestItemResponse MapItem(PurchaseRequestItemView item)
         => new(

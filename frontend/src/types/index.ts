@@ -225,6 +225,11 @@ export type {
   PurchaseRequestApprovalQueueItemDto,
   PurchaseRequestApprovalQueueDto,
   PurchaseRequestApprovalQueueResponse,
+  PurchaseRequestFulfillmentQueueItemDto,
+  PurchaseRequestFulfillmentQueueDto,
+  PurchaseRequestFulfillmentQueueResponse,
   UpsertBranchMonthlyBudgetRequest,
   DecidePurchaseRequestRequest,
+  MarkPurchaseRequestOrderedRequest,
+  MarkPurchaseRequestDeliveredRequest,
 } from './purchaseRequests';

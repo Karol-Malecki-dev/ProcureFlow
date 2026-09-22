@@ -10,6 +10,8 @@ public sealed class PurchaseRequest
 {
     public const int NoteMaxLength = 2_000;
     public const int DecisionReasonMaxLength = 1_000;
+    public const int FulfillmentOrderNumberMaxLength = 100;
+    public const int FulfillmentNoteMaxLength = 1_000;
 
     private readonly List<PurchaseRequestItem> _items = [];
 
@@ -53,6 +55,12 @@ public sealed class PurchaseRequest
 
     /// <summary>Optional request-level note.</summary>
     public string? Note { get; private set; }
+
+    /// <summary>Optional order number assigned during procurement fulfillment.</summary>
+    public string? FulfillmentOrderNumber { get; private set; }
+
+    /// <summary>Optional operational note recorded during procurement fulfillment.</summary>
+    public string? FulfillmentNote { get; private set; }
 
     /// <summary>Server-calculated total value of all item lines.</summary>
     public decimal TotalValue { get; private set; }
@@ -227,6 +235,51 @@ public sealed class PurchaseRequest
         Touch();
     }
 
+    /// <summary>
+    /// Marks an approved request as ordered and stores optional procurement metadata.
+    /// </summary>
+    public void MarkOrdered(string? orderNumber = null, string? fulfillmentNote = null)
+    {
+        if (Status != PurchaseRequestStatus.Approved)
+        {
+            throw new InvalidOperationException("Only approved purchase requests can be marked as ordered.");
+        }
+
+        FulfillmentOrderNumber = NormalizeFulfillmentText(
+            orderNumber,
+            FulfillmentOrderNumberMaxLength,
+            nameof(orderNumber));
+        FulfillmentNote = NormalizeFulfillmentText(
+            fulfillmentNote,
+            FulfillmentNoteMaxLength,
+            nameof(fulfillmentNote));
+        Status = PurchaseRequestStatus.Ordered;
+        Touch();
+    }
+
+    /// <summary>
+    /// Marks an ordered request as delivered. An optional note can update the
+    /// operational fulfillment note before the request becomes immutable.
+    /// </summary>
+    public void MarkDelivered(string? fulfillmentNote = null)
+    {
+        if (Status != PurchaseRequestStatus.Ordered)
+        {
+            throw new InvalidOperationException("Only ordered purchase requests can be marked as delivered.");
+        }
+
+        if (fulfillmentNote is not null)
+        {
+            FulfillmentNote = NormalizeFulfillmentText(
+                fulfillmentNote,
+                FulfillmentNoteMaxLength,
+                nameof(fulfillmentNote));
+        }
+
+        Status = PurchaseRequestStatus.Delivered;
+        Touch();
+    }
+
     private PurchaseRequestItem FindItem(Guid itemId)
     {
         if (itemId == Guid.Empty)
@@ -283,6 +336,27 @@ public sealed class PurchaseRequest
             throw new ArgumentException(
                 $"Purchase request note cannot exceed {NoteMaxLength} characters.",
                 nameof(note));
+        }
+
+        return normalized;
+    }
+
+    private static string? NormalizeFulfillmentText(
+        string? value,
+        int maximumLength,
+        string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maximumLength)
+        {
+            throw new ArgumentException(
+                $"Fulfillment text cannot exceed {maximumLength} characters.",
+                parameterName);
         }
 
         return normalized;

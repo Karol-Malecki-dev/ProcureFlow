@@ -71,6 +71,8 @@ const emptyDraft: PurchaseRequestDto = {
   branchId: membership.branchId,
   status: PurchaseRequestStatus.Draft,
   note: 'Office supplies',
+  fulfillmentOrderNumber: null,
+  fulfillmentNote: null,
   items: [],
   totalValue: 0,
   createdAt: '2026-09-21T09:00:00Z',
