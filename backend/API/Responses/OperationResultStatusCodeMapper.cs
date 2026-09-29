@@ -1,4 +1,3 @@
-using Application.Features.Projects;
 using Application.Modules.Catalog.UnitOfMeasure;
 using Application.Modules.PurchaseRequests;
 using Domain.Models.Organizations.Enums;
@@ -8,15 +7,6 @@ namespace API.Responses;
 
 internal static class OperationResultStatusCodeMapper
 {
-    public static int Map(ProjectOperationStatus status) => status switch
-    {
-        ProjectOperationStatus.NotFound => StatusCodes.Status404NotFound,
-        ProjectOperationStatus.ValidationError => StatusCodes.Status400BadRequest,
-        ProjectOperationStatus.Conflict => StatusCodes.Status409Conflict,
-        ProjectOperationStatus.Forbidden => StatusCodes.Status403Forbidden,
-        _ => StatusCodes.Status500InternalServerError
-    };
-
     public static int Map(UnitOfMeasureOperationStatus status) => status switch
     {
         UnitOfMeasureOperationStatus.NotFound => StatusCodes.Status404NotFound,

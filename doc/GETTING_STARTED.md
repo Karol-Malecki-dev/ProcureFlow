@@ -8,10 +8,10 @@ właściwą kolejność czytania dokumentacji.
 Czytaj ten plik, gdy konfigurujesz środowisko lokalne, uruchamiasz projekt po raz pierwszy albo szukasz podstawowych komend developerskich.
 
 > [!IMPORTANT]
-> PF0 jest ukończony, a PF1 jest następnym etapem produktu. Uruchomiona aplikacja
-> nadal zawiera demonstracyjne moduły `Projects` i `ProjectTasks`; pozostają one
-> dostępne jako zweryfikowany fundament do czasu zastąpienia przez ProcureFlow.
-> Kolejność prac definiuje
+> PF0-PF6 są zaimplementowane w lokalnym release candidate. Uruchomiona aplikacja
+> udostępnia aktywny workflow ProcureFlow bez demonstracyjnych modułów `Projects` i
+> `ProjectTasks`. Staging, backup/restore drill i formalny tag `v1.0.0` wymagają
+> jeszcze review release. Kolejność prac definiuje
 > [roadmapa produktu](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
 ## Prerequisites

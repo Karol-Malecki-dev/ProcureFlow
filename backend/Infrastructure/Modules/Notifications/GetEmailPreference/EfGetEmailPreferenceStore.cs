@@ -19,8 +19,7 @@ public sealed class EfGetEmailPreferenceStore : IGetEmailPreferenceStore
 
         return new NotificationEmailPreferenceDto
         {
-            IsEmailEnabled = preference?.IsEmailEnabled ?? true,
-            IsTaskDeadlineReminderEmailEnabled = preference?.IsTaskDeadlineReminderEmailEnabled ?? true
+            IsEmailEnabled = preference?.IsEmailEnabled ?? true
         };
     }
 }

@@ -20,12 +20,13 @@ what is already implemented.
 
 ## Current State
 
-- PF0 is complete.
-- PF1 organization, branches and resource access is the next product stage.
+- PF0-PF5 are implemented, and PF6 legacy cleanup is complete in the local release candidate.
+- The next decision is review and staging validation for `v1.0.0`; PF7 remains optional.
 - Authentication, PostgreSQL, notifications, file storage, observability, Docker and
   CI/CD form the existing technical foundation.
-- `Projects` and `ProjectTasks` are a temporary demonstration domain. They remain
-  operational until ProcureFlow passes PF5 validation and are removed in PF6.
+- The active product surface contains Organizations, Catalog, PurchaseRequests and
+  ProcureFlow-owned notification and attachment boundaries. Historical references to
+  `Projects` and `ProjectTasks` remain only in technical history and migration history.
 - The `V1-V8` documents describe how the technical foundation matured. They are not
   the active product backlog and their version labels are not semantic release tags.
 
@@ -36,10 +37,9 @@ Inherited runtime identifiers such as JWT issuer/audience values, Data Protectio
 application name, container/volume names, image names and deployment paths remain
 unchanged until a separately validated PF6 migration.
 
-Changing those identifiers early can invalidate sessions or protected data, create new
-Docker volumes instead of reusing existing data, and break deployment or backup scripts.
-Documentation must therefore explain the distinction instead of implying that a broad
-rename is harmless.
+Changing those identifiers can invalidate sessions or protected data, create new Docker
+volumes instead of reusing existing data, and break deployment or backup scripts. PF6 removes
+the retired product modules without renaming these compatibility identifiers.
 
 ## Reading Paths
 

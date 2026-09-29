@@ -27,7 +27,7 @@ try
     Log.Information("🚀 Application starting up...");
 
     builder.Host.UseSerilog();
-    builder.Services.AddProjectServices(builder.Configuration, builder.Environment);
+    builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
     var app = builder.Build();
     var databaseSettings = app.Services.GetRequiredService<IOptions<DatabaseSettings>>().Value;

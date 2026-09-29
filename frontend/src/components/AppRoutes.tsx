@@ -15,17 +15,14 @@ import PurchaseRequestDrafts from '../pages/PurchaseRequestDrafts';
 import PurchaseRequestApprovals from '../pages/PurchaseRequestApprovals';
 import PurchaseRequestFulfillment from '../pages/PurchaseRequestFulfillment';
 import Profile from '../pages/Profile';
-import ProjectInvitation from '../pages/ProjectInvitation';
-import Projects from '../pages/Projects';
 import Register from '../pages/Register';
 import ResetPassword from '../pages/ResetPassword';
 import VerifyTwoFactor from '../pages/VerifyTwoFactor';
 import UserList from '../pages/users/UserList';
 import { ProtectedRoute } from './UI/ProtectedRoute';
-import { ProjectsProvider } from '../context/ProjectsContext';
 
 export function AppRoutes() {
-  const { dashboardOverviewEnabled, projectsEnabled, adminNavigationEnabled, userManagementNavigationEnabled, emailTwoFactorEnabled } = useFeatureAvailability();
+  const { dashboardOverviewEnabled, adminNavigationEnabled, userManagementNavigationEnabled, emailTwoFactorEnabled } = useFeatureAvailability();
 
   return (
     <Routes>
@@ -48,8 +45,6 @@ export function AppRoutes() {
         <Route path="/purchase-requests/:purchaseRequestId" element={<PurchaseRequestDrafts />} />
         <Route path="/purchase-requests/approvals" element={<PurchaseRequestApprovals />} />
         <Route path="/purchase-requests/fulfillment" element={<PurchaseRequestFulfillment />} />
-        <Route path="/projects" element={projectsEnabled ? <ProjectsProvider><Projects /></ProjectsProvider> : <Navigate to="/" replace />} />
-        <Route path="/project-invitation" element={projectsEnabled ? <ProjectsProvider><ProjectInvitation /></ProjectsProvider> : <Navigate to="/" replace />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>

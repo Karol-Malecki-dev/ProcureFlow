@@ -22,7 +22,6 @@ public sealed class CollaborationNotificationWriter : ICollaborationNotification
         string message,
         string resourceType,
         Guid resourceId,
-        Guid projectId,
         string deduplicationKey,
         CancellationToken cancellationToken = default)
     {
@@ -46,7 +45,6 @@ public sealed class CollaborationNotificationWriter : ICollaborationNotification
             Message = message,
             ResourceType = resourceType,
             ResourceId = resourceId,
-            ProjectId = projectId,
             DeduplicationKey = normalizedKey,
             CreatedAt = now
         };

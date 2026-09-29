@@ -3,17 +3,18 @@
 > [!IMPORTANT]
 > This is the active execution guide for building ProcureFlow. Use it together
 > with the detailed PF0-PF7 stage documents. The product is ProcureFlow; the
-> existing technical foundation is an implementation resource, and `Projects`
-> and `ProjectTasks` are temporary legacy modules. Do not extend the legacy
-> domain when the work belongs to `Organizations`, `Catalog` or
-> `PurchaseRequests`.
+> existing technical foundation is an implementation resource. `Projects` and
+> `ProjectTasks` are retired legacy modules preserved only in technical history
+> and migration history. Do not reintroduce them when the work belongs to
+> `Organizations`, `Catalog` or `PurchaseRequests`.
 
 ## Current position
 
 - Product: `ProcureFlow`, a multi-branch purchase request management system.
-- Completed: `PF0`, product scope and domain decisions.
-- Start here: `feature/organization-branches`.
-- Next branch: `feature/branch-access-control`.
+- Completed locally: `PF0-PF6`, including the ProcureFlow critical workflow and
+  legacy cleanup.
+- Start here: review the local `v1.0.0` release candidate.
+- Next activity: staging validation and release review; PF7 is intentionally deferred.
 - Release target: `ProcureFlow v1.0.0` after `PF1-PF6`.
 
 ## Start now
@@ -47,11 +48,11 @@ ProcureFlow has three different documentation layers:
 | Current implementation | Code and tests in the worktree | Decides what already exists. |
 | Technical history | V1-V8, old ADRs and dated audits | Explains how the foundation matured; it is not a product backlog. |
 
-The current code already provides authentication, PostgreSQL persistence,
-notifications, storage, observability, Docker and automated tests. That does not
-mean that the ProcureFlow domain is complete. During PF1-PF5, the legacy modules
-remain available for regression coverage. PF6 removes them only after the new
-critical workflow has replaced their user-facing responsibility.
+The current code provides authentication, PostgreSQL persistence, notifications,
+neutral attachment storage/scanning, observability, Docker and automated tests.
+The ProcureFlow critical workflow is implemented. PF6 removed the legacy modules
+after the new workflow replaced their user-facing responsibility; old migration
+and ADR references remain historical evidence, not active module boundaries.
 
 Do not rename JWT issuer and audience values, Data Protection application names,
 Docker containers, volumes, image paths or deployment directories as part of a
@@ -113,7 +114,7 @@ In this repository, the first persistence files are normally
 `backend/Infrastructure/Data/ApplicationDbContext.cs` and a new configuration
 file under `backend/Infrastructure/Data/Configurations/`. A new module entry
 point belongs under `backend/Infrastructure/Modules/<BusinessModule>/` and is
-registered from `backend/API/Services/AddProjectServices.cs`, following the
+registered from `backend/API/Services/ApiServiceCollectionExtensions.cs`, following the
 existing module registration pattern.
 
 ### Step 4: Build one vertical slice at a time
@@ -526,8 +527,7 @@ Current PF5 status:
 
 ### PF6: cleanup and release
 
-Do not start `refactor/remove-project-management-demo` until the PF5 critical
-flow, PostgreSQL tests and browser E2E are green. Then remove the legacy domain in
+PF6 cleanup is complete in the local release candidate. The implementation used
 small compilable steps:
 
 1. disable old UI entry points;
@@ -540,6 +540,11 @@ small compilable steps:
 8. search for stale symbols, routes and `ProjectId`-only contracts;
 9. run the full build, tests, Compose smoke and staging gate;
 10. update product documentation to describe only verified ProcureFlow scope.
+
+The completed local gate is `UnitTests 249/249`, `IntegrationTests 115/115`,
+frontend `87/87`, frontend production build, backend solution build, Docker
+Compose smoke `3/3` and the critical browser flow. Formal staging validation,
+backup/restore and the release tag remain outside this local review checkpoint.
 
 Suggested commit:
 

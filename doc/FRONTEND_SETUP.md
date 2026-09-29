@@ -1,8 +1,7 @@
 # Frontend Setup
 
 Ten dokument opisuje aktualną strukturę frontendu ProcureFlow i sposób
-inkrementalnego zastępowania ekranów domeny demonstracyjnej docelowym workflow
-zakupowym.
+utrzymania kompletnego interfejsu docelowego workflow zakupowego ProcureFlow.
 
 ## When To Read This Document
 
@@ -21,11 +20,9 @@ Frontend odpowiada za:
 
 ## Product Migration Boundary
 
-Obecny frontend nadal zawiera ekrany `Projects` i `ProjectTasks`. Są one częścią
-domeny demonstracyjnej, a nie docelową nawigacją ProcureFlow. Nowe ekrany powinny
-powstawać zgodnie z etapami PF1-PF5 dla `Organizations`, `Catalog` i
-`PurchaseRequests`. Stare trasy pozostają działające do czasu przejścia krytycznego
-browser E2E i są usuwane w PF6.
+Frontend zawiera aktywne ekrany `Organizations`, `Catalog` i `PurchaseRequests`
+oraz wspólny shell auth/runtime config. Trasy i konsumenci domeny `Projects` oraz
+`ProjectTasks` zostały usunięte w PF6 po przejściu krytycznego browser E2E.
 
 Frontend może wykorzystać istniejący shell, auth bootstrap, `HttpClient`, obsługę
 błędów, formularze i runtime config. Nie powinien jednak kopiować nazw, typów ani
@@ -138,14 +135,8 @@ Aktualnie flagi sterują między innymi:
 - sekcjami związanymi z email features
 - dostępnością flow 2FA
 
-Przejściowe flagi domeny demonstracyjnej to:
-
-- `ProjectsEnabled`;
-- `ProjectArchiveEnabled`;
-- `ProjectTaskAssignmentEnabled`.
-
-Zostaną usunięte razem ze starymi ekranami w PF6. Ukrycie trasy lub przycisku
-przez flagę jest decyzją UX i nigdy nie zastępuje autoryzacji backendowej.
+Ukrycie trasy lub przycisku przez flagę jest decyzją UX i nigdy nie zastępuje
+autoryzacji backendowej.
 
 Najważniejsze miejsca użycia:
 
@@ -210,7 +201,7 @@ Kilka praktycznych zasad nazewnictwa:
 
 ## What Not To Do
 
-- nie dodawaj nowych funkcji produktowych do ekranów `Projects` lub `ProjectTasks`
+- nie traktuj feature flags jako mechanizmu autoryzacji
 - nie odczytuj feature flags bezpośrednio z kilku różnych źródeł
 - nie duplikuj logiki auth w wielu komponentach
 - nie blokuj bezpieczeństwa tylko po stronie frontendu

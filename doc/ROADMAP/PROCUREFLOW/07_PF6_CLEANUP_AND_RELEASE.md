@@ -6,6 +6,21 @@ PF6 usuwa demonstracyjną domenę startera dopiero po udowodnieniu, że ProcureF
 ją zastąpił. Etap kończy się release candidate, walidacją stagingową i tagiem
 `v1.0.0`, a nie kolejnymi funkcjami.
 
+## Aktualny status
+
+Cleanup PF6 jest zaimplementowany i lokalnie zweryfikowany. Release candidate
+przechodzi:
+
+- backend build oraz `UnitTests` (`249/249`);
+- `IntegrationTests` z PostgreSQL (`115/115`);
+- frontend Vitest (`87/87`) i production build;
+- Docker Compose build/healthcheck oraz smoke E2E (`3/3`);
+- migrację usuwającą historyczne tabele `Projects`/`ProjectTasks`;
+- wyszukanie aktywnych symboli, tras i kontraktów starej domeny.
+
+To zamyka lokalny zakres implementacyjny PF6. Formalny release `v1.0.0` wymaga
+jeszcze review, stagingu, backup/restore drill i decyzji o tagu.
+
 ## Warunek rozpoczęcia
 
 PF6 można rozpocząć tylko wtedy, gdy:

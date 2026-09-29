@@ -3,14 +3,13 @@ namespace Application.Modules.Workspace.SearchWorkspace;
 public sealed record SearchWorkspaceQuery(
     Guid UserId,
     string Query,
-    string Type = "projectTask",
+    string Type = "purchaseRequest",
     int Page = 1,
     int PageSize = 10);
 
 public sealed record WorkspaceSearchResult(
     string Type,
     Guid ResourceId,
-    Guid ProjectId,
     string Title,
     string Context);
 

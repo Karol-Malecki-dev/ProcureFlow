@@ -1,4 +1,4 @@
-using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.Attachments;
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.Attachments;
 using Application.Modules.PurchaseRequests.Attachments.CreatePurchaseRequestAttachment;
@@ -16,8 +16,8 @@ public sealed class CreatePurchaseRequestAttachmentHandlerTests
 {
     private readonly Mock<IPurchaseRequestMembershipReader> _membershipReader = new();
     private readonly Mock<IPurchaseRequestAttachmentStore> _store = new();
-    private readonly Mock<IProjectTaskAttachmentStorage> _storage = new();
-    private readonly Mock<IProjectTaskAttachmentMalwareScanner> _malwareScanner = new();
+    private readonly Mock<IAttachmentStorage> _storage = new();
+    private readonly Mock<IAttachmentMalwareScanner> _malwareScanner = new();
 
     [Fact]
     public async Task Clean_attachment_is_stored_after_content_and_malware_validation()
@@ -32,7 +32,7 @@ public sealed class CreatePurchaseRequestAttachmentHandlerTests
                 "quote.txt",
                 "text/plain",
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProjectTaskAttachmentScanStatus.Clean);
+            .ReturnsAsync(AttachmentScanStatus.Clean);
         _storage
             .Setup(storage => storage.SaveAsync(
                 It.IsAny<Stream>(),
@@ -82,7 +82,7 @@ public sealed class CreatePurchaseRequestAttachmentHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProjectTaskAttachmentScanStatus.ThreatDetected);
+            .ReturnsAsync(AttachmentScanStatus.ThreatDetected);
 
         var result = await CreateHandler().HandleAsync(command);
 
@@ -115,7 +115,7 @@ public sealed class CreatePurchaseRequestAttachmentHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProjectTaskAttachmentScanStatus.Unavailable);
+            .ReturnsAsync(AttachmentScanStatus.Unavailable);
 
         var result = await CreateHandler().HandleAsync(command);
 
@@ -165,7 +165,7 @@ public sealed class CreatePurchaseRequestAttachmentHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ProjectTaskAttachmentScanStatus.Clean);
+            .ReturnsAsync(AttachmentScanStatus.Clean);
         _storage
             .Setup(storage => storage.SaveAsync(
                 It.IsAny<Stream>(),
@@ -198,8 +198,8 @@ public sealed class CreatePurchaseRequestAttachmentHandlerTests
             Options.Create(new AttachmentSettings
             {
                 MaxFileSizeBytes = 10 * 1024 * 1024,
-                MaxCountPerTask = 20,
-                MaxBytesPerTask = 100 * 1024 * 1024,
+                MaxCountPerRequest = 20,
+                MaxBytesPerRequest = 100 * 1024 * 1024,
                 RequireMalwareScan = true
             }),
             NullLogger<CreatePurchaseRequestAttachmentHandler>.Instance);

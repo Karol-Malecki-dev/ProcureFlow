@@ -46,15 +46,12 @@ test('renders the public home experience for anonymous users', () => {
     emailDeliveryEnabled: false,
     emailTwoFactorEnabled: false,
     emailTwoFactorEnabledForNewUsers: false,
-    projectsEnabled: true,
-    projectArchiveEnabled: true,
-    projectTaskAssignmentEnabled: true,
   });
 
   render(<App />);
 
   expect(screen.getByRole('heading', { name: /professional auth flow, clear boundaries, zero guessing/i })).toBeInTheDocument();
-  expect(screen.getByRole('searchbox', { name: /project search/i })).toBeInTheDocument();
+  expect(screen.getByRole('searchbox', { name: /workspace search/i })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /register/i })).toBeInTheDocument();
   expect(screen.getByText(/nie jesteś zalogowany/i)).toBeInTheDocument();

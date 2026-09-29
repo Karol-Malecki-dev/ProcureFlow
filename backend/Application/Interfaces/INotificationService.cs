@@ -4,7 +4,7 @@ namespace Application.Interfaces;
 
 public interface INotificationWriter
 {
-    Task CreateAsync(Guid userId, NotificationType type, string title, string message, string? resourceType = null, Guid? resourceId = null, Guid? projectId = null, bool sendEmail = true, CancellationToken cancellationToken = default, string? deduplicationKey = null);
+    Task CreateAsync(Guid userId, NotificationType type, string title, string message, string? resourceType = null, Guid? resourceId = null, bool sendEmail = true, CancellationToken cancellationToken = default, string? deduplicationKey = null);
 }
 
 /// <summary>
@@ -19,7 +19,6 @@ public interface ICollaborationNotificationWriter
         string message,
         string resourceType,
         Guid resourceId,
-        Guid projectId,
         string deduplicationKey,
         CancellationToken cancellationToken = default);
 }

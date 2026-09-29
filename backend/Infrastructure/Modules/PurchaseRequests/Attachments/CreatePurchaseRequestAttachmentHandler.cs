@@ -1,9 +1,9 @@
-using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.Attachments;
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.Attachments;
 using Application.Modules.PurchaseRequests.Attachments.CreatePurchaseRequestAttachment;
 using Domain.Entities;
-using Infrastructure.Modules.ProjectTasks.CreateProjectTaskAttachment;
+using Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Settings;
@@ -18,16 +18,16 @@ public sealed class CreatePurchaseRequestAttachmentHandler
 {
     private readonly IPurchaseRequestMembershipReader _membershipReader;
     private readonly IPurchaseRequestAttachmentStore _store;
-    private readonly IProjectTaskAttachmentStorage _storage;
-    private readonly IProjectTaskAttachmentMalwareScanner _malwareScanner;
+    private readonly IAttachmentStorage _storage;
+    private readonly IAttachmentMalwareScanner _malwareScanner;
     private readonly AttachmentSettings _settings;
     private readonly ILogger<CreatePurchaseRequestAttachmentHandler> _logger;
 
     public CreatePurchaseRequestAttachmentHandler(
         IPurchaseRequestMembershipReader membershipReader,
         IPurchaseRequestAttachmentStore store,
-        IProjectTaskAttachmentStorage storage,
-        IProjectTaskAttachmentMalwareScanner malwareScanner,
+        IAttachmentStorage storage,
+        IAttachmentMalwareScanner malwareScanner,
         IOptions<AttachmentSettings> settings,
         ILogger<CreatePurchaseRequestAttachmentHandler> logger)
     {
@@ -106,7 +106,7 @@ public sealed class CreatePurchaseRequestAttachmentHandler
         }
 
         var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
-        var inspectionError = await ProjectTaskAttachmentContentInspector.InspectAsync(
+        var inspectionError = await AttachmentContentInspector.InspectAsync(
             command.Content,
             extension,
             command.SizeBytes,
@@ -126,14 +126,14 @@ public sealed class CreatePurchaseRequestAttachmentHandler
                 originalFileName,
                 command.ContentType,
                 cancellationToken);
-            if (scanStatus == ProjectTaskAttachmentScanStatus.ThreatDetected)
+            if (scanStatus == AttachmentScanStatus.ThreatDetected)
             {
                 return Failure(
                     PurchaseRequestOperationStatus.ValidationError,
                     "Attachment content was rejected by malware scanning.");
             }
 
-            if (scanStatus != ProjectTaskAttachmentScanStatus.Clean)
+            if (scanStatus != AttachmentScanStatus.Clean)
             {
                 return Failure(
                     PurchaseRequestOperationStatus.Conflict,
@@ -162,8 +162,8 @@ public sealed class CreatePurchaseRequestAttachmentHandler
                 command.SizeBytes);
             var view = await _store.CreateAsync(
                 attachment,
-                _settings.MaxCountPerTask,
-                _settings.MaxBytesPerTask,
+                _settings.MaxCountPerRequest,
+                _settings.MaxBytesPerRequest,
                 cancellationToken);
 
             return PurchaseRequestOperationResult<PurchaseRequestAttachmentView>.Success(

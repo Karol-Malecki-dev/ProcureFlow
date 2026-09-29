@@ -5,7 +5,7 @@ namespace Application.Modules.Notifications.Commands;
 
 public sealed record MarkNotificationAsReadCommand(Guid UserId, Guid NotificationId);
 public sealed record MarkAllNotificationsAsReadCommand(Guid UserId);
-public sealed record UpdateNotificationEmailPreferenceCommand(Guid UserId, bool? IsEmailEnabled, bool? IsTaskDeadlineReminderEmailEnabled);
+public sealed record UpdateNotificationEmailPreferenceCommand(Guid UserId, bool? IsEmailEnabled);
 
 public interface IMarkNotificationAsReadHandler
 {
@@ -37,6 +37,5 @@ public interface IUpdateNotificationEmailPreferenceStore
     Task<NotificationEmailPreferenceDto> UpdateAsync(
         Guid userId,
         bool? isEmailEnabled,
-        bool? isTaskDeadlineReminderEmailEnabled,
         CancellationToken cancellationToken = default);
 }

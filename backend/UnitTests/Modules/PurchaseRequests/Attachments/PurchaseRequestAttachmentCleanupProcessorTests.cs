@@ -1,4 +1,4 @@
-using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.Attachments;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Modules.PurchaseRequests.Attachments;
@@ -19,7 +19,7 @@ public sealed class PurchaseRequestAttachmentCleanupProcessorTests
         dbContext.PurchaseRequestAttachmentCleanupMessages.Add(message);
         await dbContext.SaveChangesAsync();
 
-        var storage = new Mock<IProjectTaskAttachmentStorage>();
+        var storage = new Mock<IAttachmentStorage>();
         var processor = CreateProcessor(dbContext, storage);
 
         await processor.ProcessPendingMessagesAsync();
@@ -41,7 +41,7 @@ public sealed class PurchaseRequestAttachmentCleanupProcessorTests
         dbContext.PurchaseRequestAttachmentCleanupMessages.Add(message);
         await dbContext.SaveChangesAsync();
 
-        var storage = new Mock<IProjectTaskAttachmentStorage>();
+        var storage = new Mock<IAttachmentStorage>();
         storage
             .Setup(service => service.DeleteAsync(
                 message.StoredFileName,
@@ -72,7 +72,7 @@ public sealed class PurchaseRequestAttachmentCleanupProcessorTests
         dbContext.PurchaseRequestAttachmentCleanupMessages.Add(message);
         await dbContext.SaveChangesAsync();
 
-        var storage = new Mock<IProjectTaskAttachmentStorage>();
+        var storage = new Mock<IAttachmentStorage>();
         var processor = CreateProcessor(dbContext, storage);
 
         await processor.ProcessPendingMessagesAsync();
@@ -87,7 +87,7 @@ public sealed class PurchaseRequestAttachmentCleanupProcessorTests
 
     private static PurchaseRequestAttachmentCleanupProcessor CreateProcessor(
         ApplicationDbContext dbContext,
-        Mock<IProjectTaskAttachmentStorage> storage)
+        Mock<IAttachmentStorage> storage)
         => new(
             dbContext,
             storage.Object,

@@ -2,8 +2,8 @@
 
 ProcureFlow jest modularnym monolitem full-stack z backendem ASP.NET Core 9 i
 frontendem React 19 + TypeScript. Projekt wykorzystuje stabilny fundament auth,
-persistence, testów i operacji, a domena zakupowa jest dodawana inkrementalnie bez
-przemianowywania istniejącej domeny demonstracyjnej.
+persistence, testów i operacji, a domena zakupowa jest zorganizowana wokół
+aktywnych modułów ProcureFlow.
 
 ## When To Read This Document
 
@@ -19,10 +19,9 @@ Dokument rozróżnia dwa stany:
 - **current implementation** - kod, endpointy i tabele istniejące obecnie;
 - **target product architecture** - moduły ProcureFlow wdrażane w kolejności PF1-PF6.
 
-`Projects` i `ProjectTasks` należą do current implementation, ale są domeną
-demonstracyjną przeznaczoną do usunięcia w PF6. Pozostają działające do czasu, aż
-nowy workflow przejdzie walidację PF5. Opis tych modułów poniżej jest dokumentacją
-istniejącego kodu i wzorców, a nie rekomendacją ich dalszej rozbudowy.
+PF6 zakończył lokalny cleanup domeny demonstracyjnej. Historyczne sekcje o
+`Projects` i `ProjectTasks` poniżej pozostają wyłącznie jako zapis wcześniejszych
+wzorców technicznych; nie opisują aktywnych endpointów, encji ani tras.
 
 ## High-Level Overview
 
@@ -43,8 +42,7 @@ Docelowa domena ProcureFlow jest podzielona według odpowiedzialności biznesowe
 - `Organizations` - organizacja, oddziały, członkostwa i role biznesowe;
 - `Catalog` - kategorie, jednostki miary i produkty;
 - `PurchaseRequests` - draft, pozycje, workflow, budżety i decyzje;
-- `Notifications` - dostarczanie informacji o zdarzeniach ProcureFlow po usunięciu
-	obecnych założeń `ProjectId` i `ProjectTask`;
+- `Notifications` - dostarczanie informacji o zdarzeniach ProcureFlow;
 - `Reports` - read modele dodawane dopiero po ustabilizowaniu zapisów produktu.
 
 `Accounts` i auth pozostają współdzieloną capability techniczną. `PurchaseRequest`
@@ -66,7 +64,7 @@ Backend jest podzielony na warstwy:
 Najważniejszy punkt startowy backendu:
 
 - `backend/API/Program.cs` - buduje host, aplikuje migracje, podłącza middleware i mapuje kontrolery
-- `backend/API/Services/AddProjectServices.cs` - centralny composition root dla serwisów, opcji, auth, CORS i persistence
+- `backend/API/Services/ApiServiceCollectionExtensions.cs` - centralny composition root dla serwisów, opcji, auth, CORS i persistence
 
 ## Frontend Structure
 
@@ -130,8 +128,8 @@ separate profile and security tables.
 
 Główna baza jest obsługiwana przez EF Core w `backend/Infrastructure/Data/ApplicationDbContext.cs`.
 
-Poniższa lista opisuje stan przejściowy. Tabele ProcureFlow będą dodawane etapami,
-a tabele domeny demonstracyjnej pozostaną do kontrolowanego cleanupu PF6.
+Poniższa lista opisuje aktywny model po cleanupie PF6. Historyczne migracje
+projektów i zadań pozostają w repozytorium, ale nie są częścią bieżącego modelu.
 
 Najważniejsze tabele/encje:
 
@@ -140,9 +138,12 @@ Najważniejsze tabele/encje:
 - `EmailConfirmationTokens`
 - `EmailTwoFactorChallenges`
 - `PasswordResetRequests`
-- `Projects`
-- `ProjectMembers`
-- `ProjectTasks`
+- `Organizations`, `Branches`, `Memberships`
+- `UnitsOfMeasure`, `Products`
+- `PurchaseRequests`, `PurchaseRequestItems`, `PurchaseRequestStatusHistories`
+- `BranchMonthlyBudgets`, `PurchaseRequestApprovalDecisions`
+- `PurchaseRequestAttachments`, `PurchaseRequestAttachmentCleanupMessages`
+- `Notifications`, `NotificationEmailPreferences`, `NotificationEmailOutboxMessages`
 
 Relacje są proste i czytelne:
 
@@ -413,10 +414,7 @@ To podejście jest używane do kontrolowania:
 - email delivery visibility
 - email 2FA availability
 
-Przejściowo istnieją również `ProjectsEnabled`, `ProjectArchiveEnabled` i
-`ProjectTaskAssignmentEnabled`. Sterują wyłącznie dostępnością UX domeny demo i
-zostaną usunięte razem z nią w PF6. Feature flag nigdy nie zastępuje autoryzacji
-po stronie API.
+Feature flag nigdy nie zastępuje autoryzacji po stronie API.
 
 ## Naming and Organization Rules
 

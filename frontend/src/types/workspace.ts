@@ -1,7 +1,6 @@
 export interface WorkspaceSearchResult {
-  type: 'projectTask';
+  type: 'purchaseRequest';
   resourceId: string;
-  projectId: string;
   title: string;
   context: string;
 }

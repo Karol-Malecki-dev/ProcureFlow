@@ -1,6 +1,6 @@
 namespace Shared.Settings;
 
-/// <summary>Limits applied to project task attachment uploads.</summary>
+/// <summary>Limits applied to private attachment uploads.</summary>
 public sealed class AttachmentSettings
 {
     /// <summary>Storage adapter name: Local or S3.</summary>
@@ -30,11 +30,11 @@ public sealed class AttachmentSettings
     /// <summary>Maximum size of one attachment in bytes.</summary>
     public long MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024;
 
-    /// <summary>Maximum number of attachments allowed for one task.</summary>
-    public int MaxCountPerTask { get; set; } = 20;
+    /// <summary>Maximum number of attachments allowed for one purchase request.</summary>
+    public int MaxCountPerRequest { get; set; } = 20;
 
-    /// <summary>Maximum combined attachment size allowed for one task in bytes.</summary>
-    public long MaxBytesPerTask { get; set; } = 100 * 1024 * 1024;
+    /// <summary>Maximum combined attachment size allowed for one purchase request in bytes.</summary>
+    public long MaxBytesPerRequest { get; set; } = 100 * 1024 * 1024;
 
     /// <summary>Whether uploads must receive a clean result from the configured malware scanner.</summary>
     public bool RequireMalwareScan { get; set; }

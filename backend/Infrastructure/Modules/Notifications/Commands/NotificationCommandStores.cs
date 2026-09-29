@@ -37,7 +37,6 @@ public sealed class EfMarkNotificationAsReadStore : IMarkNotificationAsReadStore
         Message = notification.Message,
         ResourceType = notification.ResourceType,
         ResourceId = notification.ResourceId,
-        ProjectId = notification.ProjectId,
         CreatedAt = notification.CreatedAt,
         ReadAt = notification.ReadAt
     };
@@ -74,7 +73,6 @@ public sealed class EfUpdateNotificationEmailPreferenceStore : IUpdateNotificati
     public async Task<NotificationEmailPreferenceDto> UpdateAsync(
         Guid userId,
         bool? isEmailEnabled,
-        bool? isTaskDeadlineReminderEmailEnabled,
         CancellationToken cancellationToken = default)
     {
         var preference = await _dbContext.NotificationEmailPreferences
@@ -85,7 +83,6 @@ public sealed class EfUpdateNotificationEmailPreferenceStore : IUpdateNotificati
             {
                 UserId = userId,
                 IsEmailEnabled = isEmailEnabled ?? true,
-                IsTaskDeadlineReminderEmailEnabled = isTaskDeadlineReminderEmailEnabled ?? true,
                 UpdatedAt = DateTime.UtcNow
             };
             _dbContext.NotificationEmailPreferences.Add(preference);
@@ -93,15 +90,13 @@ public sealed class EfUpdateNotificationEmailPreferenceStore : IUpdateNotificati
         else
         {
             if (isEmailEnabled.HasValue) preference.IsEmailEnabled = isEmailEnabled.Value;
-            if (isTaskDeadlineReminderEmailEnabled.HasValue) preference.IsTaskDeadlineReminderEmailEnabled = isTaskDeadlineReminderEmailEnabled.Value;
             preference.UpdatedAt = DateTime.UtcNow;
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         return new NotificationEmailPreferenceDto
         {
-            IsEmailEnabled = preference.IsEmailEnabled,
-            IsTaskDeadlineReminderEmailEnabled = preference.IsTaskDeadlineReminderEmailEnabled
+            IsEmailEnabled = preference.IsEmailEnabled
         };
     }
 }

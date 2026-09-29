@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import Notifications from '../../pages/Notifications';
@@ -7,20 +7,10 @@ import { NotificationType } from '../../types';
 
 vi.mock('../../hooks/useNotifications');
 
-const mockNavigate = vi.hoisted(() => vi.fn());
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
-  return { ...actual, useNavigate: () => mockNavigate };
-});
-
 const mockedUseNotifications = useNotifications as jest.MockedFunction<typeof useNotifications>;
 
 describe('Notifications page', () => {
-  beforeEach(() => {
-    mockNavigate.mockReset();
-  });
-
-  it('opens the related task and marks an unread task notification as read', async () => {
+  it('does not expose removed project-task navigation', () => {
     const markAsRead = jest.fn().mockResolvedValue(undefined);
     mockedUseNotifications.mockReturnValue({
       notifications: [{
@@ -28,9 +18,8 @@ describe('Notifications page', () => {
         type: NotificationType.TaskDeadlineApproaching,
         title: 'Task deadline approaching',
         message: 'Review the release notes.',
-        resourceType: 'ProjectTask',
+        resourceType: null,
         resourceId: 'task-1',
-        projectId: 'project-1',
         createdAt: '2026-07-31T10:00:00Z',
         readAt: null,
         isRead: false,
@@ -45,9 +34,7 @@ describe('Notifications page', () => {
 
     render(<MemoryRouter><Notifications /></MemoryRouter>);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open task' }));
-
-    await waitFor(() => expect(markAsRead).toHaveBeenCalledWith('notification-1'));
-    expect(mockNavigate).toHaveBeenCalledWith('/projects?projectId=project-1&taskId=task-1');
+    expect(screen.queryByRole('button', { name: 'Open task' })).not.toBeInTheDocument();
+    expect(markAsRead).not.toHaveBeenCalled();
   });
 });

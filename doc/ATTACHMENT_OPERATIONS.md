@@ -1,17 +1,14 @@
 # Attachment Operations Contract
 
 > [!IMPORTANT]
-> This is the current operational contract for attachments in the temporary
-> `ProjectTasks` domain. Storage, validation, cleanup, reconciliation and scanning
-> behavior are reusable. The metadata model, authorization context and
-> `IProjectTask*` ports are not domain-neutral and must be replaced by
-> `PurchaseRequest`-owned contracts in PF5. Both models must not remain active after
-> PF6.
+> This is the current operational contract for `PurchaseRequest` attachments.
+> Storage, validation, cleanup and scanning use neutral ports owned by the active
+> ProcureFlow attachment boundary.
 
 ## Scope
 
 Attachment metadata is stored in PostgreSQL and binary content is stored through
-`IProjectTaskAttachmentStorage`. Direct API development uses the `Local` adapter by
+`IAttachmentStorage`. Direct API development uses the `Local` adapter by
 default. Docker Compose uses the `S3` adapter against a private MinIO bucket persisted
 in the `minio-data` volume. Ephemeral container filesystems are unsupported.
 
@@ -46,8 +43,8 @@ the authorization boundary for downloads.
 
 ## Reconciliation
 
-`ProjectTaskAttachmentReconciliationService` compares metadata and provider inventory.
-It reports metadata without binaries and binaries without metadata, but never deletes
+The reconciliation process compares attachment metadata and provider inventory. It
+reports metadata without binaries and binaries without metadata, but never deletes
 objects automatically. Operators must investigate a report before scheduling cleanup.
 
 Run reconciliation from an authenticated administrative job or maintenance command in
@@ -112,7 +109,7 @@ selected for the deployment platform. Until a scanner is configured, the applica
 provides content-signature inspection and extension/MIME validation, but must not claim
 malware protection.
 
-The upload pipeline invokes `IProjectTaskAttachmentMalwareScanner` before binary or
+The upload pipeline invokes `IAttachmentMalwareScanner` before binary or
 metadata persistence when `Attachments:RequireMalwareScan` is enabled. Production
 configuration is rejected at startup unless this setting is `true`. The registered
 fallback scanner returns `Unavailable`, so uploads fail closed until the deployment

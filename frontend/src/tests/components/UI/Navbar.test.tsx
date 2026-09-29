@@ -48,9 +48,6 @@ describe('Navbar', () => {
       emailDeliveryEnabled: false,
       emailTwoFactorEnabled: true,
       emailTwoFactorEnabledForNewUsers: true,
-      projectsEnabled: true,
-      projectArchiveEnabled: true,
-      projectTaskAssignmentEnabled: true,
     });
   });
 
@@ -67,7 +64,7 @@ describe('Navbar', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('searchbox', { name: /project search/i })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: /workspace search/i })).toBeInTheDocument();
     expect(screen.getByText(/login/i)).toBeInTheDocument();
     expect(screen.getByText(/register/i)).toBeInTheDocument();
   });
@@ -146,7 +143,7 @@ describe('Navbar', () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByRole('searchbox', { name: /project search/i }), { target: { value: 'register' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: /workspace search/i }), { target: { value: 'register' } });
 
     expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
   });

@@ -1,15 +1,15 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.Attachments;
 
 namespace Infrastructure.Services;
 
 /// <summary>Checks that the configured attachment storage is available and writable.</summary>
 public sealed class AttachmentStorageHealthCheck : IHealthCheck
 {
-    private readonly IProjectTaskAttachmentStorage _storage;
+    private readonly IAttachmentStorage _storage;
 
     public AttachmentStorageHealthCheck(
-        IProjectTaskAttachmentStorage storage)
+        IAttachmentStorage storage)
     {
         _storage = storage;
     }

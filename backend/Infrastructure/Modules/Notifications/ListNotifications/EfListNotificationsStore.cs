@@ -48,7 +48,6 @@ public sealed class EfListNotificationsStore : IListNotificationsStore
                 Message = notification.Message,
                 ResourceType = notification.ResourceType,
                 ResourceId = notification.ResourceId,
-                ProjectId = notification.ProjectId,
                 CreatedAt = notification.CreatedAt,
                 ReadAt = notification.ReadAt
             })

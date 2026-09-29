@@ -1,7 +1,6 @@
 export { authApi, AuthApi } from './AuthApi';
 export { adminApi, AdminApi } from './AdminApi';
 export { httpClient, HttpClient, HttpError } from './HttpClient';
-export { projectApi, ProjectApi } from './ProjectApi';
 export { notificationApi, NotificationApi } from './NotificationApi';
 export { organizationApi, OrganizationApi } from './OrganizationApi';
 export { runtimeConfigApi, RuntimeConfigApi } from './RuntimeConfigApi';
@@ -9,4 +8,5 @@ export { tokenManager, TokenManager } from './TokenManager';
 export { userApi, UserApi } from './UserApi';
 export { catalogApi, CatalogApi } from './CatalogApi';
 export { purchaseRequestApi, PurchaseRequestApi } from './PurchaseRequestApi';
+export { workspaceApi, WorkspaceApi } from './WorkspaceApi';
 export { emitApiNotice, subscribeToApiNotices } from './apiEvents';

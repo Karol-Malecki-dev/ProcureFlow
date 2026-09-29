@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFeatureAvailability } from '../../hooks/useFeatureAvailability';
 import { QuickSearchBar, type QuickSearchItem } from './QuickSearchBar';
 import { NotificationBell } from './NotificationBell';
-import { projectApi } from '../../services/api/ProjectApi';
+import { workspaceApi } from '../../services/api/WorkspaceApi';
 
 export function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -14,7 +14,6 @@ export function Navbar() {
     adminNavigationEnabled,
     userManagementNavigationEnabled,
     emailTwoFactorEnabled,
-    projectsEnabled,
   } = useFeatureAvailability();
   const isAdmin = user?.role === 'Admin';
 
@@ -24,7 +23,6 @@ export function Navbar() {
     ...(isAuthenticated ? [{ label: 'Purchase requests', description: 'Build organization-scoped request drafts', to: '/purchase-requests', keywords: ['drafts', 'procurement', 'catalog'] }] : []),
     ...(isAuthenticated ? [{ label: 'Approval queue', description: 'Review purchase requests in your business role', to: '/purchase-requests/approvals', keywords: ['approvals', 'budget', 'manager', 'procurement'] }] : []),
     ...(isAuthenticated ? [{ label: 'Fulfillment queue', description: 'Order and deliver approved purchase requests', to: '/purchase-requests/fulfillment', keywords: ['fulfillment', 'orders', 'delivery', 'procurement'] }] : []),
-    ...(isAuthenticated && projectsEnabled ? [{ label: 'Projects', description: 'Manage projects and tasks', to: '/projects' }] : []),
     ...(isAuthenticated ? [{ label: 'Profile', description: 'Manage your account details', to: '/profile' }] : []),
     ...(isAdmin && adminNavigationEnabled ? [{ label: 'Admin panel', description: 'Administration overview', to: '/admin' }] : []),
     ...(isAdmin && userManagementNavigationEnabled ? [{ label: 'Users directory', description: 'Search and manage users', to: '/admin/users', keywords: ['users', 'people'] }] : []),
@@ -54,8 +52,8 @@ export function Navbar() {
         <QuickSearchBar
           items={searchItems}
           placeholder="Search pages, users, and actions"
-          label="Project search"
-          searchWorkspace={(query, signal) => projectApi.searchWorkspace(query, signal)}
+          label="Workspace search"
+          searchWorkspace={(query, signal) => workspaceApi.searchWorkspace(query, signal)}
         />
       ) : null}
 
@@ -65,7 +63,6 @@ export function Navbar() {
         {isAuthenticated ? <NavLink to="/purchase-requests">Purchase requests</NavLink> : null}
         {isAuthenticated ? <NavLink to="/purchase-requests/approvals">Approval queue</NavLink> : null}
         {isAuthenticated ? <NavLink to="/purchase-requests/fulfillment">Fulfillment</NavLink> : null}
-        {isAuthenticated && projectsEnabled ? <NavLink to="/projects">Projects</NavLink> : null}
         {isAuthenticated ? <NavLink to="/profile">Profile</NavLink> : null}
         {isAdmin && adminNavigationEnabled ? <NavLink to="/admin">Admin</NavLink> : null}
         {isAdmin && userManagementNavigationEnabled ? <NavLink to="/admin/users">Users</NavLink> : null}

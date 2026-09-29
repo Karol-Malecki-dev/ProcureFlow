@@ -1,7 +1,6 @@
 import type { ApiResponse } from './api';
 
 export enum NotificationType {
-  ProjectInvitation = 1,
   TaskAssigned = 2,
   SecurityAlert = 3,
   System = 4,
@@ -16,7 +15,6 @@ export interface NotificationDto {
   message: string;
   resourceType: string | null;
   resourceId: string | null;
-  projectId: string | null;
   createdAt: string;
   readAt: string | null;
   isRead: boolean;

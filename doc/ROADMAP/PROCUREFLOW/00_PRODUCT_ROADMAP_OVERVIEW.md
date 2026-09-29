@@ -69,9 +69,9 @@ Stan na: **2026-09-29**.
 
 Projekt ma gotowy fundament techniczny: auth, sesje, 2FA, spójne błędy API,
 PostgreSQL, testy integracyjne, optimistic concurrency, powiadomienia, email
-outbox, pliki, observability, Docker oraz CI/CD. Funkcje `Projects` i
-`ProjectTasks` są nadal działającą domeną demonstracyjną. Pozostają na miejscu
-do czasu, aż zastępujący je przepływ ProcureFlow przejdzie testy.
+outbox, pliki, observability, Docker oraz CI/CD. PF6 usunął aktywną domenę
+demonstracyjną `Projects` i `ProjectTasks`, a jej historyczne migracje zamyka
+kontrolowana migracja schema cleanup.
 
 Gotowy fundament nie oznacza gotowego produktu. Postęp ProcureFlow należy liczyć
 według etapów poniżej, nie według starej roadmapy startera.
@@ -81,16 +81,19 @@ według etapów poniżej, nie według starej roadmapy startera.
 | Etap | Cel | Status | Dokument |
 |---|---|---|---|
 | PF0 | Zamrożenie zakresu i decyzji domenowych | Ukończony przez tę roadmapę | [01_PF0_SCOPE_AND_DECISIONS.md](01_PF0_SCOPE_AND_DECISIONS.md) |
-| PF1 | Organizacja, oddziały i dostęp do zasobów | W toku: branch organizacji i oddziałów ukończony | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
-| PF2 | Katalog produktów | Planowany | [03_PF2_CATALOG.md](03_PF2_CATALOG.md) |
-| PF3 | Draft i wysłanie zapotrzebowania | Planowany | [04_PF3_PURCHASE_REQUEST_CORE.md](04_PF3_PURCHASE_REQUEST_CORE.md) |
-| PF4 | Budżety, zatwierdzanie i concurrency | Ukończony na `feature/purchase-request-approvals` | [05_PF4_APPROVALS_AND_BUDGETS.md](05_PF4_APPROVALS_AND_BUDGETS.md) |
-| PF5 | Realizacja, kompletność produktu i E2E | Ukończony na `test/procureflow-critical-flow-e2e` | [06_PF5_PRODUCT_COMPLETENESS.md](06_PF5_PRODUCT_COMPLETENESS.md) |
-| PF6 | Usunięcie domeny demo i release `v1.0.0` | Planowany | [07_PF6_CLEANUP_AND_RELEASE.md](07_PF6_CLEANUP_AND_RELEASE.md) |
+| PF1 | Organizacja, oddziały i dostęp do zasobów | Ukończony | [02_PF1_ORGANIZATION_AND_ACCESS.md](02_PF1_ORGANIZATION_AND_ACCESS.md) |
+| PF2 | Katalog produktów | Ukończony | [03_PF2_CATALOG.md](03_PF2_CATALOG.md) |
+| PF3 | Draft i wysłanie zapotrzebowania | Ukończony | [04_PF3_PURCHASE_REQUEST_CORE.md](04_PF3_PURCHASE_REQUEST_CORE.md) |
+| PF4 | Budżety, zatwierdzanie i concurrency | Ukończony | [05_PF4_APPROVALS_AND_BUDGETS.md](05_PF4_APPROVALS_AND_BUDGETS.md) |
+| PF5 | Realizacja, kompletność produktu i E2E | Ukończony | [06_PF5_PRODUCT_COMPLETENESS.md](06_PF5_PRODUCT_COMPLETENESS.md) |
+| PF6 | Usunięcie domeny demo i release `v1.0.0` | Ukończony lokalnie; review/staging przed tagiem | [07_PF6_CLEANUP_AND_RELEASE.md](07_PF6_CLEANUP_AND_RELEASE.md) |
 | PF7 | Rozszerzenia po MVP | Opcjonalny | [08_PF7_POST_MVP_OPTIONS.md](08_PF7_POST_MVP_OPTIONS.md) |
 
 Instrukcja wykonawcza dla wszystkich etapów znajduje się w
 [09_IMPLEMENTATION_PLAYBOOK.md](09_IMPLEMENTATION_PLAYBOOK.md).
+
+PF1-PF6 tworzą lokalnego release candidate. Przed formalnym tagiem `v1.0.0`
+pozostają review kodu, staging, backup/restore drill i decyzja release.
 
 ## Kanoniczna kolejność branchy
 

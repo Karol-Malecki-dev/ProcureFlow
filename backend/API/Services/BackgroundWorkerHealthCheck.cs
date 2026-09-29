@@ -1,4 +1,3 @@
-using Infrastructure.Modules.ProjectTasks.DeadlineReminders;
 using Infrastructure.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -11,8 +10,7 @@ public sealed class BackgroundWorkerHealthCheck : IHealthCheck
 {
     private static readonly (string Name, TimeSpan MaximumAge)[] Workers =
     [
-        (NotificationEmailOutboxWorker.WorkerName, TimeSpan.FromMinutes(1)),
-        (ProjectTaskDeadlineReminderWorker.WorkerName, TimeSpan.FromHours(2))
+        (NotificationEmailOutboxWorker.WorkerName, TimeSpan.FromMinutes(1))
     ];
 
     private readonly BackgroundWorkerHealthState _healthState;

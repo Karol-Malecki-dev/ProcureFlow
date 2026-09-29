@@ -1,7 +1,7 @@
 using Application.Modules.PurchaseRequests;
 using Application.Modules.PurchaseRequests.Attachments;
 using Application.Modules.PurchaseRequests.Attachments.DownloadPurchaseRequestAttachment;
-using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.Attachments;
 
 namespace Infrastructure.Modules.PurchaseRequests.Attachments;
 
@@ -11,12 +11,12 @@ public sealed class DownloadPurchaseRequestAttachmentHandler
 {
     private readonly IPurchaseRequestMembershipReader _membershipReader;
     private readonly IPurchaseRequestAttachmentStore _store;
-    private readonly IProjectTaskAttachmentStorage _storage;
+    private readonly IAttachmentStorage _storage;
 
     public DownloadPurchaseRequestAttachmentHandler(
         IPurchaseRequestMembershipReader membershipReader,
         IPurchaseRequestAttachmentStore store,
-        IProjectTaskAttachmentStorage storage)
+        IAttachmentStorage storage)
     {
         _membershipReader = membershipReader;
         _store = store;

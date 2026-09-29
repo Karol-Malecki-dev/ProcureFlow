@@ -6,10 +6,11 @@ existing production-minded starter into a focused B2B product with organization-
 catalog management, purchase-request workflows, monthly budgets and approvals.
 
 > [!IMPORTANT]
-> The technical foundation is already operational, but the ProcureFlow business domain is under
-> active development. `Projects` and `ProjectTasks` are a temporary demonstration domain retained
-> until the replacing ProcureFlow workflow passes PF5 validation. They are not the target product
-> contract. The canonical implementation order is the
+> The technical foundation and ProcureFlow v1 workflow are implemented locally. PF6 removed the
+> legacy `Projects` and `ProjectTasks` demonstration domain, neutralized shared attachment and
+> search boundaries, and added the schema cleanup migration. The local release candidate passed
+> the backend, frontend, PostgreSQL, Compose and smoke-test checks; staging validation and the
+> formal `v1.0.0` tag remain a review decision. The canonical implementation order is the
 > [ProcureFlow product roadmap](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 > For the concrete file-by-file writing order, start with the
 > [ProcureFlow implementation playbook](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
@@ -127,16 +128,8 @@ Product-neutral flags include:
 - `EmailTwoFactorEnabled`
 - `EmailTwoFactorEnabledForNewUsers`
 
-Temporary demo-domain flags include:
-
-- `ProjectsEnabled`
-- `ProjectArchiveEnabled`
-- `ProjectTaskAssignmentEnabled`
-
-The demo-domain flags remain available only while `Projects` and `ProjectTasks` are retained during
-the incremental migration to ProcureFlow.
-
-Use `RuntimeConfigProvider` and `useFeatureAvailability()` to read them from the frontend.
+Use `RuntimeConfigProvider` and `useFeatureAvailability()` to read the active
+frontend feature flags from the backend.
 
 ## Quick Start
 

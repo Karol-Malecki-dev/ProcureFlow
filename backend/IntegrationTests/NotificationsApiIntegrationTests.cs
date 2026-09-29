@@ -1,5 +1,6 @@
 using Application.DTOs.Auth;
 using Application.DTOs.Notification;
+using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.ValueObjects;
@@ -76,8 +77,8 @@ public sealed class NotificationsApiIntegrationTests
         var markedCount = await markAllResponse.Content.ReadFromJsonAsync<ApiResponse<int>>();
         Assert.Equal(1, markedCount?.Data);
 
-        await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await using var verificationScope = _factory.Services.CreateAsyncScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.Equal(0, await dbContext.Notifications.CountAsync(notification => notification.UserId == firstUserId && notification.ReadAt == null));
         Assert.Equal(1, await dbContext.Notifications.CountAsync(notification => notification.UserId == secondUserId && notification.ReadAt == null));
     }
@@ -104,10 +105,8 @@ public sealed class NotificationsApiIntegrationTests
     [Fact]
     public async Task Email_preference_controls_whether_new_notifications_are_queued_for_delivery()
     {
-        var ownerId = await SeedUserAsync("notifications.preference-owner@example.com", "password123", "Preference Owner");
         var firstMemberId = await SeedUserAsync("notifications.preference-first@example.com", "password123", "First Member");
         var secondMemberId = await SeedUserAsync("notifications.preference-second@example.com", "password123", "Second Member");
-        var projectId = await SeedProjectAsync(ownerId, "Preference project");
 
         await AuthenticateAsync("notifications.preference-first@example.com", "password123");
         var defaultPreferenceResponse = await _client.GetAsync("/api/notifications/email-preference");
@@ -120,58 +119,18 @@ public sealed class NotificationsApiIntegrationTests
             new { IsEmailEnabled = false });
         updatePreferenceResponse.EnsureSuccessStatusCode();
 
-        await AuthenticateAsync("notifications.preference-owner@example.com", "password123");
-        var addFirstMemberResponse = await _client.PostAsJsonAsync($"/api/projects/{projectId}/members", new { UserId = firstMemberId });
-        var addSecondMemberResponse = await _client.PostAsJsonAsync($"/api/projects/{projectId}/members", new { UserId = secondMemberId });
-        Assert.Equal(HttpStatusCode.Created, addFirstMemberResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.Created, addSecondMemberResponse.StatusCode);
+        await using (var notificationScope = _factory.Services.CreateAsyncScope())
+        {
+            var writer = notificationScope.ServiceProvider.GetRequiredService<INotificationWriter>();
+            await writer.CreateAsync(firstMemberId, NotificationType.System, "Disabled email", "Email is disabled.");
+            await writer.CreateAsync(secondMemberId, NotificationType.System, "Enabled email", "Email is enabled.");
+        }
 
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.Equal(2, await dbContext.Notifications.CountAsync());
         Assert.DoesNotContain(await dbContext.NotificationEmailOutboxMessages.ToListAsync(), message => message.UserId == firstMemberId);
         Assert.Contains(await dbContext.NotificationEmailOutboxMessages.ToListAsync(), message => message.UserId == secondMemberId);
-    }
-
-    [Fact]
-    public async Task Adding_member_and_assigning_task_create_one_notification_for_the_recipient()
-    {
-        var ownerId = await SeedUserAsync("notifications.project-owner@example.com", "password123", "Project Owner");
-        var memberId = await SeedUserAsync("notifications.project-member@example.com", "password123", "Project Member");
-        var projectId = await SeedProjectAsync(ownerId, "Notification project");
-
-        await AuthenticateAsync("notifications.project-owner@example.com", "password123");
-
-        var addMemberResponse = await _client.PostAsJsonAsync($"/api/projects/{projectId}/members", new { UserId = memberId });
-        Assert.Equal(HttpStatusCode.Created, addMemberResponse.StatusCode);
-
-        var createTaskResponse = await _client.PostAsJsonAsync($"/api/projects/{projectId}/tasks", new
-        {
-            Title = "Prepare the demo",
-            Priority = ProjectTaskPriority.High,
-            AssignedUserId = memberId
-        });
-        Assert.Equal(HttpStatusCode.Created, createTaskResponse.StatusCode);
-
-        var selfAssignedTaskResponse = await _client.PostAsJsonAsync($"/api/projects/{projectId}/tasks", new
-        {
-            Title = "Owner task",
-            Priority = ProjectTaskPriority.Normal,
-            AssignedUserId = ownerId
-        });
-        Assert.Equal(HttpStatusCode.Created, selfAssignedTaskResponse.StatusCode);
-
-        await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var memberNotifications = await dbContext.Notifications
-            .Where(notification => notification.UserId == memberId)
-            .OrderBy(notification => notification.Type)
-            .ToListAsync();
-
-        Assert.Equal(2, memberNotifications.Count);
-        Assert.Contains(memberNotifications, notification => notification.Type == NotificationType.ProjectInvitation);
-        Assert.Contains(memberNotifications, notification => notification.Type == NotificationType.TaskAssigned);
-        Assert.DoesNotContain(await dbContext.Notifications.ToListAsync(), notification => notification.UserId == ownerId);
     }
 
     private async Task AuthenticateAsync(string email, string password)
@@ -198,16 +157,6 @@ public sealed class NotificationsApiIntegrationTests
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
         return user.Id;
-    }
-
-    private async Task<Guid> SeedProjectAsync(Guid ownerId, string name)
-    {
-        await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var project = Project.Create(ownerId, name);
-        dbContext.Projects.Add(project);
-        await dbContext.SaveChangesAsync();
-        return project.Id;
     }
 
     private async Task<Guid> SeedNotificationAsync(Guid userId, string title, DateTime? readAt)

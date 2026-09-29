@@ -2,6 +2,7 @@ using Domain.Entities;
 using Domain.Entities.Auth;
 using Domain.Entities.JWT;
 using Domain.Models.Catalog;
+using Domain.Models.Organizations;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -27,12 +28,18 @@ public sealed class ApplicationDbContextModelTests
             typeof(EmailConfirmationToken),
             typeof(EmailTwoFactorChallenge),
             typeof(PasswordResetRequest),
-            typeof(Project),
-            typeof(ProjectTask),
-            typeof(ProjectMember),
+            typeof(Notification),
+            typeof(NotificationEmailPreference),
+            typeof(NotificationEmailOutboxMessage),
+            typeof(Organization),
+            typeof(Branch),
+            typeof(Membership),
+            typeof(UnitOfMeasure),
             typeof(Product),
             typeof(PurchaseRequest),
-            typeof(PurchaseRequestItem)
+            typeof(PurchaseRequestItem),
+            typeof(PurchaseRequestAttachment),
+            typeof(PurchaseRequestAttachmentCleanupMessage)
         };
 
         Assert.All(configuredTypes, type => Assert.NotNull(context.Model.FindEntityType(type)));
@@ -138,22 +145,4 @@ public sealed class ApplicationDbContextModelTests
         Assert.Equal("Display Name", user.DisplayName.Value);
     }
 
-    [Fact]
-    public void Project_task_relationships_have_expected_delete_behavior()
-    {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(nameof(Project_task_relationships_have_expected_delete_behavior))
-            .Options;
-
-        using var context = new ApplicationDbContext(options);
-        var projectTask = context.Model.FindEntityType(typeof(ProjectTask));
-
-        Assert.NotNull(projectTask);
-        Assert.Contains(projectTask.GetForeignKeys(), foreignKey =>
-            foreignKey.PrincipalEntityType.ClrType == typeof(Project) &&
-            foreignKey.DeleteBehavior == DeleteBehavior.Cascade);
-        Assert.Contains(projectTask.GetForeignKeys(), foreignKey =>
-            foreignKey.PrincipalEntityType.ClrType == typeof(User) &&
-            foreignKey.DeleteBehavior == DeleteBehavior.SetNull);
-    }
 }

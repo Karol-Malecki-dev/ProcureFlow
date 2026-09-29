@@ -141,9 +141,9 @@ export function QuickSearchBar({ items, placeholder = 'Search pages, actions, an
             <div className="quick-search__group">
               <span className="quick-search__group-title">Workspace</span>
               {workspaceItems.map((item) => (
-                <button key={item.resourceId} type="button" className="quick-search__item" onMouseDown={(event) => event.preventDefault()} onClick={() => handleSelect(`/projects?projectId=${item.projectId}`)}>
+                <button key={item.resourceId} type="button" className="quick-search__item" onMouseDown={(event) => event.preventDefault()} onClick={() => handleSelect(`/purchase-requests/${item.resourceId}`)}>
                   <strong>{item.title}</strong>
-                  <span>{item.context || 'Project task'}</span>
+                  <span>{item.context || 'Purchase request'}</span>
                 </button>
               ))}
             </div>

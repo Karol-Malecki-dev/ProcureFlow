@@ -20,7 +20,7 @@ public sealed class SearchWorkspaceController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<WorkspaceSearchPage>>> Search(
         [FromQuery] string? query,
-        [FromQuery] string type = "projectTask",
+        [FromQuery] string type = "purchaseRequest",
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)

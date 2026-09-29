@@ -19,23 +19,21 @@ Backend odpowiada za:
 - role-based authorization
 - dostarczanie runtime feature flags dla frontendu
 - persistence przez EF Core i PostgreSQL
-- przejściową domenę demonstracyjną projektów i zadań wraz z członkostwem,
-  załącznikami, terminami i powiadomieniami
+- moduły ProcureFlow: Organizations, Catalog, PurchaseRequests i Notifications
+- neutralne porty storage/scanning dla załączników zapotrzebowań
 - health checks, korelacja żądań i cykliczne workery infrastrukturalne
 
-## Product Migration Boundary
+## Product Boundary
 
-PF1-PF5 dodają docelowe moduły `Organizations`, `Catalog` i
-`PurchaseRequests`. `Projects` oraz `ProjectTasks` pozostają dostępne tylko jako
-zweryfikowana domena demonstracyjna i są usuwane w PF6 po przejściu testów
-zastępującego workflow.
+PF1-PF6 dostarczyły docelowe moduły `Organizations`, `Catalog` i
+`PurchaseRequests`. `Projects` oraz `ProjectTasks` nie są już częścią aktywnego
+runtime; ich stare migracje pozostają wyłącznie po to, aby nowa migracja mogła
+kontrolowanie usunąć historyczne tabele.
 
 Mechanizmy auth, email outboxu, storage, malware scanning, health checks i
-correlation ID są fundamentem nadającym się do ponownego użycia. Ich obecne
-kontrakty nie zawsze są jednak neutralne domenowo. W szczególności model
-powiadomień zawiera `ProjectId`, a porty i metadata załączników odnoszą się do
-`ProjectTask`. W PF5 należy zachować sprawdzoną mechanikę, ale wystawić nowe
-kontrakty należące do `PurchaseRequests`, zamiast wykonywać mechaniczny rename.
+correlation ID są fundamentem nadającym się do ponownego użycia. Kontrakty
+powiadomień, wyszukiwania i załączników zostały po PF6 oczyszczone z zależności
+od starej domeny.
 
 Szczegółową kolejność określa
 [roadmapa ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
@@ -54,7 +52,7 @@ Warstwa `API/` zawiera:
 Najważniejsze pliki:
 
 - `API/Program.cs`
-- `API/Services/AddProjectServices.cs`
+- `API/Services/ApiServiceCollectionExtensions.cs`
 - `API/Controllers/AuthController.cs`
 - `API/Controllers/UsersController.cs`
 - `API/Controllers/AdminController.cs`
@@ -166,7 +164,7 @@ Ważne zasady:
 
 - sekrety nie trafiają do repozytorium
 - CORS jest konfigurowany przez settings, nie hardcode w `Program.cs`
-- walidacja opcji odbywa się przy starcie w `AddProjectServices.cs`
+- walidacja opcji odbywa się przy starcie w `ApiServiceCollectionExtensions.cs`
 - `EmailDelivery.Enabled = false` pozwala lokalnie działać bez zewnętrznego SMTP
 
 ## Authentication Flow
@@ -223,9 +221,9 @@ Pełna decyzja bezpieczeństwa jest opisana w [ADR-09: Authentication brute-forc
 
 ## Current Database Model
 
-Aktualny model bazy obejmuje auth, użytkowników oraz przejściową domenę projektów
-i zadań. Tabele ProcureFlow będą dodawane etapami, a schema demo pozostanie do
-kontrolowanego cleanupu PF6.
+Aktualny model bazy obejmuje auth, organizację, katalog, zapotrzebowania,
+powiadomienia i neutralną infrastrukturę załączników. Historyczne migracje
+projektów i zadań są zamknięte migracją cleanupu PF6.
 
 Najważniejsze DbSety:
 
@@ -234,12 +232,13 @@ Najważniejsze DbSety:
 - `EmailConfirmationTokens`
 - `EmailTwoFactorChallenges`
 - `PasswordResetRequests`
-- `Projects`
-- `ProjectMembers`
-- `ProjectTasks`
-- `ProjectTaskAttachments`
-- `ProjectTaskLabels`
+- `Organizations`, `Branches`, `Memberships`
+- `UnitsOfMeasure`, `Products`
+- `PurchaseRequests`, `PurchaseRequestItems`, `PurchaseRequestStatusHistories`
+- `BranchMonthlyBudgets`, `PurchaseRequestApprovalDecisions`
+- `PurchaseRequestAttachments`, `PurchaseRequestAttachmentCleanupMessages`
 - `Notifications`
+- `NotificationEmailPreferences`
 - `NotificationEmailOutboxMessages`
 
 Warto zwrócić uwagę na kilka decyzji:

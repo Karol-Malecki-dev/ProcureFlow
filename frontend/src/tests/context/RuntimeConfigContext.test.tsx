@@ -41,9 +41,6 @@ describe('RuntimeConfigContext', () => {
       message: 'Runtime configuration loaded',
       data: {
         features: {
-          projectsEnabled: false,
-          projectArchiveEnabled: false,
-          projectTaskAssignmentEnabled: false,
           emailDeliveryEnabled: true,
           globalSearchEnabled: true,
           dashboardOverviewEnabled: true,

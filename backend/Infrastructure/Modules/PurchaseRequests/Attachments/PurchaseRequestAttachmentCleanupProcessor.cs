@@ -1,4 +1,4 @@
-using Application.Modules.ProjectTasks.Attachments;
+using Application.Modules.Attachments;
 using Application.Modules.PurchaseRequests.Attachments;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +14,12 @@ public sealed class PurchaseRequestAttachmentCleanupProcessor
     private const int BatchSize = 20;
 
     private readonly ApplicationDbContext _dbContext;
-    private readonly IProjectTaskAttachmentStorage _storage;
+    private readonly IAttachmentStorage _storage;
     private readonly ILogger<PurchaseRequestAttachmentCleanupProcessor> _logger;
 
     public PurchaseRequestAttachmentCleanupProcessor(
         ApplicationDbContext dbContext,
-        IProjectTaskAttachmentStorage storage,
+        IAttachmentStorage storage,
         ILogger<PurchaseRequestAttachmentCleanupProcessor> logger)
     {
         _dbContext = dbContext;

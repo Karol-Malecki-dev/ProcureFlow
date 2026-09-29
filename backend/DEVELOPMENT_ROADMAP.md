@@ -13,27 +13,28 @@ the primary learning goals.
 
 ## Current priority
 
-**PF1: Organization, branches and resource access** is the next implementation stage.
+**Review and staging validation for `v1.0.0`** is the next release activity. PF7 remains
+optional and must not begin before the release decision.
 
-PF0 defines the MVP, workflow and implementation order. The application already contains the
-technical foundation: authentication, notifications, file storage, observability, Docker, CI/CD
-and automated tests. The existing Projects and ProjectTasks domain remains available only until
-the ProcureFlow workflow replaces it and passes the PF5 release-level tests.
+PF0 defines the MVP, workflow and implementation order. PF1-PF6 now cover the
+technical foundation and ProcureFlow workflow: authentication, organization access,
+catalog, requests, approvals, fulfillment, notifications, attachments, observability,
+Docker, CI/CD and automated tests.
 
 ## Current progress
 
-As of **2026-09-02**. Product progress is tracked separately from the completed technical
+As of **2026-09-29**. Product progress is tracked separately from the completed technical
 foundation. Status is based on a stage Definition of Done, not the number of files or endpoints.
 
 | Stage | Status | Next result |
 |---|---|---|
 | PF0 | Complete | Product scope, workflow and branch order are defined. |
-| PF1 | Next | Organization, branches and business memberships. |
-| PF2 | Planned | Product catalog with reference tables. |
-| PF3 | Planned | Purchase-request drafts, items and submission. |
-| PF4 | Planned | Monthly budgets, approvals and race-condition handling. |
-| PF5 | Planned | Fulfillment, attachments, notifications, dashboard and E2E. |
-| PF6 | Planned | Remove the demo domain and pass the `v1.0.0` release gate. |
+| PF1 | Complete | Organization, branches and business memberships. |
+| PF2 | Complete | Product catalog with reference tables. |
+| PF3 | Complete | Purchase-request drafts, items and submission. |
+| PF4 | Complete | Monthly budgets, approvals and race-condition handling. |
+| PF5 | Complete | Fulfillment, attachments, notifications, dashboard and E2E. |
+| PF6 | Complete locally | Remove the demo domain and validate the local `v1.0.0` candidate. |
 | PF7 | Optional | At most one or two post-MVP extensions. |
 
 ## Stage index
@@ -69,7 +70,8 @@ remains available as reference.
 - Do not add technologies only for a CV checklist.
 - Treat frontend changes as support for backend workflows unless the task explicitly targets frontend learning.
 - Validate the relevant build and tests before considering a stage item complete.
-- Keep Projects and ProjectTasks until the ProcureFlow critical flow passes PF5 validation.
+- Keep historical migration and ADR references intact, but do not reintroduce the retired
+	`Projects` or `ProjectTasks` runtime modules.
 
 ## Recommended branch names
 

@@ -1,8 +1,8 @@
 using Application.DTOs.Auth;
+using Application.Modules.Attachments;
 using API.Modules.Catalog.ProductRead;
 using API.Modules.PurchaseRequests;
 using API.Modules.PurchaseRequests.Attachments;
-using Application.Modules.ProjectTasks.Attachments;
 using Application.Modules.PurchaseRequests.Attachments;
 using Domain.Entities;
 using Domain.Enums;
@@ -1076,7 +1076,7 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             await cleanupProcessor.ProcessPendingMessagesAsync();
 
             var storage = scope.ServiceProvider
-                .GetRequiredService<IProjectTaskAttachmentStorage>();
+                .GetRequiredService<IAttachmentStorage>();
             await using var deletedFile = await storage.OpenReadAsync(storedFileName);
             Assert.Null(deletedFile);
         }

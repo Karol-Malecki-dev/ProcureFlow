@@ -28,6 +28,6 @@ public sealed class UpdateNotificationEmailPreferenceHandler : IUpdateNotificati
     public UpdateNotificationEmailPreferenceHandler(IUpdateNotificationEmailPreferenceStore store) => _store = store;
     public async Task<ApiResponse<NotificationEmailPreferenceDto>> HandleAsync(UpdateNotificationEmailPreferenceCommand command, CancellationToken cancellationToken = default)
         => ApiResponse<NotificationEmailPreferenceDto>.Success(
-            await _store.UpdateAsync(command.UserId, command.IsEmailEnabled, command.IsTaskDeadlineReminderEmailEnabled, cancellationToken),
+            await _store.UpdateAsync(command.UserId, command.IsEmailEnabled, cancellationToken),
             "Notification email preference updated");
 }

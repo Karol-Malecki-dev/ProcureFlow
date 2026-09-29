@@ -34,23 +34,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<NotificationEmailPreference> NotificationEmailPreferences => Set<NotificationEmailPreference>();
     public DbSet<NotificationEmailOutboxMessage> NotificationEmailOutboxMessages => Set<NotificationEmailOutboxMessage>();
 
-    public DbSet<Project> Projects => Set<Project>();
-    public DbSet<ProjectActivity> ProjectActivities => Set<ProjectActivity>();
-
-    public DbSet<ProjectTask> ProjectTasks => Set<ProjectTask>();
-    public DbSet<ProjectTaskComment> ProjectTaskComments => Set<ProjectTaskComment>();
-    public DbSet<ProjectTaskAttachment> ProjectTaskAttachments => Set<ProjectTaskAttachment>();
     public DbSet<PurchaseRequestAttachment> PurchaseRequestAttachments => Set<PurchaseRequestAttachment>();
-    public DbSet<ProjectTaskAttachmentCleanupMessage> ProjectTaskAttachmentCleanupMessages => Set<ProjectTaskAttachmentCleanupMessage>();
     public DbSet<PurchaseRequestAttachmentCleanupMessage> PurchaseRequestAttachmentCleanupMessages => Set<PurchaseRequestAttachmentCleanupMessage>();
-    public DbSet<ProjectTaskLabel> ProjectTaskLabels => Set<ProjectTaskLabel>();
-    public DbSet<ProjectTaskDeadlineReminder> ProjectTaskDeadlineReminders => Set<ProjectTaskDeadlineReminder>();
-    public DbSet<ProjectInvitation> ProjectInvitations => Set<ProjectInvitation>();
 
-    public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
-
-
-    // That Project
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Membership> Memberships => Set<Membership>();

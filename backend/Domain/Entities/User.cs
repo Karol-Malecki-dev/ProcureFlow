@@ -101,8 +101,6 @@ public class User
     /// <summary>Timestamp when the user account was created in UTC.</summary>
     public DateTime CreatedAt { get; private set; }
 
-    public ICollection<ProjectMember> ProjectMemberships { get; private set; } = [];
-
     public ICollection<AuthenticatorRecoveryCode> AuthenticatorRecoveryCodes { get; private set; } = [];
 
     /// <summary>Changes the profile email after application-level uniqueness validation.</summary>

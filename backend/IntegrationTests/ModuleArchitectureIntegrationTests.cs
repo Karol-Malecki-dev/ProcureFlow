@@ -1,5 +1,4 @@
 using Application.Modules.Notifications.GetUnreadCount;
-using Application.Modules.Projects.GetProjectDashboard;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -19,17 +18,11 @@ public sealed class ModuleArchitectureIntegrationTests : IDisposable
     public void Every_module_handler_is_registered_in_dependency_injection()
     {
         using var scope = _factory.Services.CreateScope();
-        var applicationAssembly = typeof(IGetProjectDashboardHandler).Assembly;
+        var applicationAssembly = typeof(IGetUnreadCountHandler).Assembly;
         var handlerContracts = applicationAssembly.ExportedTypes
             .Where(type => type.IsInterface
                 && type.Name.EndsWith("Handler", StringComparison.Ordinal)
                 && (type.Namespace?.StartsWith(
-                        "Application.Modules.Projects",
-                        StringComparison.Ordinal) == true
-                    || type.Namespace?.StartsWith(
-                        "Application.Modules.ProjectTasks",
-                        StringComparison.Ordinal) == true
-                    || type.Namespace?.StartsWith(
                         "Application.Modules.Notifications",
                         StringComparison.Ordinal) == true
                     || type.Namespace?.StartsWith(
@@ -77,7 +70,7 @@ public sealed class ModuleArchitectureIntegrationTests : IDisposable
     public void Module_controllers_and_handlers_do_not_depend_directly_on_application_db_context()
     {
         var apiAssembly = typeof(Program).Assembly;
-        var infrastructureAssembly = typeof(Infrastructure.Modules.Projects.ProjectsModule).Assembly;
+        var infrastructureAssembly = typeof(ApplicationDbContext).Assembly;
         var moduleControllers = apiAssembly.ExportedTypes
             .Where(type => !type.IsAbstract
                 && typeof(ControllerBase).IsAssignableFrom(type)

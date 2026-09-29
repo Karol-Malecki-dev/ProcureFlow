@@ -37,7 +37,7 @@ public sealed class NotificationCommandsController : ControllerBase
 
     [HttpPatch("email-preference")]
     public async Task<IActionResult> UpdateEmailPreference([FromBody] UpdateNotificationEmailPreferenceDto request, CancellationToken cancellationToken = default)
-        => await ExecuteAsync(userId => _updatePreference.HandleAsync(new UpdateNotificationEmailPreferenceCommand(userId, request.IsEmailEnabled, request.IsTaskDeadlineReminderEmailEnabled), cancellationToken), ApiResponse<NotificationEmailPreferenceDto>.Error(401, "User not authenticated"));
+        => await ExecuteAsync(userId => _updatePreference.HandleAsync(new UpdateNotificationEmailPreferenceCommand(userId, request.IsEmailEnabled), cancellationToken), ApiResponse<NotificationEmailPreferenceDto>.Error(401, "User not authenticated"));
 
     private async Task<IActionResult> ExecuteAsync<T>(Func<Guid, Task<ApiResponse<T>>> action, ApiResponse<T> unauthorized)
     {
