@@ -169,4 +169,27 @@ Drugi slice PF5 jest zaimplementowany end-to-end:
 - migracja `AddPurchaseRequestAttachments`;
 - testy domenowe/cleanup, API InMemory, PostgreSQL, klienta API i UI.
 
-Do kolejnego slice'a pozostają powiadomienia, dashboard i krytyczny browser E2E.
+Do kolejnego slice'a pozostaje krytyczny browser E2E.
+
+## Stan implementacji `feature/procureflow-dashboard`
+
+Dashboard jest zaimplementowany end-to-end poza krytycznym scenariuszem browser
+E2E:
+
+- endpoint `GET /api/organizations/{organizationId}/dashboard` korzysta z
+    aktywnego członkostwa użytkownika i nie opiera autoryzacji na samym
+    `organizationId` z URL;
+- cztery wskaźniki są liczone projekcjami i agregacjami EF tłumaczonymi do SQL:
+    oczekujące wnioski, wartość zamówień w bieżącym miesiącu, popularne produkty
+    oraz wydatki według oddziałów;
+- Manager widzi wyłącznie swój oddział, a Procurement/Admin zakres całej
+    organizacji;
+- frontend obsługuje loading, błąd, retry, pusty wynik i dane dashboardu dla
+    bieżącego członkostwa organizacji;
+- pokrycie obejmuje testy handlera, API InMemory, agregacje i zakres ról na
+    PostgreSQL, klienta API, testy strony oraz build frontendu.
+
+Pozostaje jeden krytyczny browser E2E przez Docker Compose: Employee tworzy i
+wysyła wniosek, Manager zatwierdza, Procurement zamawia i dostarcza, a Employee
+widzi końcowy status i historię. Do czasu jego przejścia nie usuwamy modułów
+`Projects/ProjectTasks` i nie rozpoczynamy PF6.

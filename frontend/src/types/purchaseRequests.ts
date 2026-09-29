@@ -138,6 +138,28 @@ export interface PurchaseRequestFulfillmentQueueDto {
   items: PurchaseRequestFulfillmentQueueItemDto[];
 }
 
+export interface PurchaseRequestDashboardProductDto {
+  productId: string;
+  productName: string;
+  productCode: string | null;
+  totalQuantity: number;
+  requestCount: number;
+}
+
+export interface PurchaseRequestDashboardBranchDto {
+  branchId: string;
+  branchName: string;
+  totalValue: number;
+}
+
+export interface PurchaseRequestDashboardDto {
+  scopeRole: BusinessRole;
+  pendingRequestsCount: number;
+  currentMonthOrderValue: number;
+  mostFrequentlyOrderedProducts: PurchaseRequestDashboardProductDto[];
+  spendingByBranch: PurchaseRequestDashboardBranchDto[];
+}
+
 export interface UpsertBranchMonthlyBudgetRequest {
   limitAmount: number;
   expectedConcurrencyStamp: string | null;
@@ -175,6 +197,7 @@ export type PurchaseRequestListResponse = ApiResponse<PurchaseRequestListDto>;
 export type BranchMonthlyBudgetResponse = ApiResponse<BranchMonthlyBudgetDto>;
 export type PurchaseRequestApprovalQueueResponse = ApiResponse<PurchaseRequestApprovalQueueDto>;
 export type PurchaseRequestFulfillmentQueueResponse = ApiResponse<PurchaseRequestFulfillmentQueueDto>;
+export type PurchaseRequestDashboardResponse = ApiResponse<PurchaseRequestDashboardDto>;
 export type PurchaseRequestAttachmentsResponse = ApiResponse<PurchaseRequestAttachmentDto[]>;
 export type PurchaseRequestAttachmentResponse = ApiResponse<PurchaseRequestAttachmentDto>;
 export type PurchaseRequestOperationResponse = ApiResponse<boolean>;

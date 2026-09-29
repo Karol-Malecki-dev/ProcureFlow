@@ -50,6 +50,7 @@ public static class PurchaseRequestsModule
         services.AddScoped<IPurchaseRequestWorkflowStore, EfPurchaseRequestWorkflowStore>();
         services.AddScoped<IPurchaseRequestApprovalStore, EfPurchaseRequestApprovalStore>();
         services.AddScoped<IPurchaseRequestFulfillmentStore, EfPurchaseRequestFulfillmentStore>();
+        services.AddScoped<IPurchaseRequestDashboardStore, EfPurchaseRequestDashboardStore>();
         services.AddScoped<IPurchaseRequestAttachmentStore, EfPurchaseRequestAttachmentStore>();
         services.AddScoped<IPurchaseRequestAttachmentCleanupProcessor, PurchaseRequestAttachmentCleanupProcessor>();
 
@@ -75,6 +76,7 @@ public static class PurchaseRequestsModule
         services.AddScoped<IListPurchaseRequestFulfillmentQueueHandler, ListPurchaseRequestFulfillmentQueueHandler>();
         services.AddScoped<IMarkPurchaseRequestOrderedHandler, MarkPurchaseRequestOrderedHandler>();
         services.AddScoped<IMarkPurchaseRequestDeliveredHandler, MarkPurchaseRequestDeliveredHandler>();
+        services.AddScoped<IGetPurchaseRequestDashboardHandler, GetPurchaseRequestDashboardHandler>();
         services.AddScoped<ICreatePurchaseRequestAttachmentHandler, CreatePurchaseRequestAttachmentHandler>();
         services.AddScoped<IListPurchaseRequestAttachmentsHandler, ListPurchaseRequestAttachmentsHandler>();
         services.AddScoped<IDownloadPurchaseRequestAttachmentHandler, DownloadPurchaseRequestAttachmentHandler>();

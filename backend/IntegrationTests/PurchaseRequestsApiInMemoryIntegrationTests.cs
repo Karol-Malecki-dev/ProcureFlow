@@ -1066,6 +1066,76 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
         Assert.Equal(HttpStatusCode.Forbidden, listResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task Dashboard_aggregates_orders_and_keeps_manager_inside_their_branch()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var firstBranchId = await SeedBranchAsync(organizationId);
+        var secondBranchId = await SeedBranchAsync(organizationId);
+        var firstEmployeeEmail = UniqueEmail("dashboard-first-employee");
+        var secondEmployeeEmail = UniqueEmail("dashboard-second-employee");
+        var managerEmail = UniqueEmail("dashboard-manager");
+        var procurementEmail = UniqueEmail("dashboard-procurement");
+        var firstEmployeeId = await SeedUserAsync(firstEmployeeEmail);
+        var secondEmployeeId = await SeedUserAsync(secondEmployeeEmail);
+        var managerId = await SeedUserAsync(managerEmail);
+        var procurementId = await SeedUserAsync(procurementEmail);
+        var unitId = await SeedUnitAsync(organizationId, managerId);
+        var productId = await SeedProductAsync(organizationId, unitId, managerId);
+        await SeedMembershipAsync(organizationId, firstEmployeeId, firstBranchId, BusinessRole.Employee);
+        await SeedMembershipAsync(organizationId, secondEmployeeId, secondBranchId, BusinessRole.Employee);
+        await SeedMembershipAsync(organizationId, managerId, firstBranchId, BusinessRole.Manager);
+        await SeedMembershipAsync(organizationId, procurementId, null, BusinessRole.Procurement);
+        await SeedSubmittedRequestAsync(firstEmployeeId, organizationId, firstBranchId, productId, 1m);
+        await SeedSubmittedRequestAsync(secondEmployeeId, organizationId, secondBranchId, productId, 1m);
+        var firstOrderedRequest = await SeedOrderedRequestAsync(
+            firstEmployeeId,
+            organizationId,
+            firstBranchId,
+            productId,
+            2m);
+        await SeedOrderedRequestAsync(
+            secondEmployeeId,
+            organizationId,
+            secondBranchId,
+            productId,
+            1m);
+
+        await AuthenticateAsync(managerEmail);
+
+        var managerResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/dashboard");
+
+        Assert.Equal(HttpStatusCode.OK, managerResponse.StatusCode);
+        var managerPayload = await managerResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestDashboardResponse>>();
+        Assert.NotNull(managerPayload?.Data);
+        Assert.Equal(1, managerPayload.Data.PendingRequestsCount);
+        Assert.Equal(firstOrderedRequest.TotalValue, managerPayload.Data.CurrentMonthOrderValue);
+        var managerProduct = Assert.Single(managerPayload.Data.MostFrequentlyOrderedProducts);
+        Assert.Equal(2m, managerProduct.TotalQuantity);
+        Assert.Equal(1, managerProduct.RequestCount);
+        var managerBranch = Assert.Single(managerPayload.Data.SpendingByBranch);
+        Assert.Equal(firstBranchId, managerBranch.BranchId);
+        Assert.Equal(firstOrderedRequest.TotalValue, managerBranch.TotalValue);
+
+        await AuthenticateAsync(procurementEmail);
+
+        var procurementResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/dashboard");
+
+        Assert.Equal(HttpStatusCode.OK, procurementResponse.StatusCode);
+        var procurementPayload = await procurementResponse.Content
+            .ReadFromJsonAsync<ApiResponse<PurchaseRequestDashboardResponse>>();
+        Assert.NotNull(procurementPayload?.Data);
+        Assert.Equal(2, procurementPayload.Data.PendingRequestsCount);
+        Assert.Equal(31.50m, procurementPayload.Data.CurrentMonthOrderValue);
+        var procurementProduct = Assert.Single(procurementPayload.Data.MostFrequentlyOrderedProducts);
+        Assert.Equal(3m, procurementProduct.TotalQuantity);
+        Assert.Equal(2, procurementProduct.RequestCount);
+        Assert.Equal(2, procurementPayload.Data.SpendingByBranch.Count);
+    }
+
     public void Dispose()
     {
         _factory.Dispose();
@@ -1236,6 +1306,59 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
             previousStatus,
             request.Status,
             authorUserId));
+        await dbContext.SaveChangesAsync();
+        return request;
+    }
+
+    private async Task<PurchaseRequest> SeedOrderedRequestAsync(
+        Guid authorUserId,
+        Guid organizationId,
+        Guid branchId,
+        Guid productId,
+        decimal quantity)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var request = PurchaseRequest.Create(
+            authorUserId,
+            organizationId,
+            branchId,
+            "Dashboard order request");
+        request.AddItem(
+            productId,
+            "Monitor",
+            "MON-1",
+            "Piece",
+            "pc",
+            10.50m,
+            quantity);
+
+        var history = new List<PurchaseRequestStatusHistory>();
+        var previousStatus = request.Status;
+        request.Submit();
+        history.Add(PurchaseRequestStatusHistory.Create(
+            request.Id,
+            previousStatus,
+            request.Status,
+            authorUserId));
+        previousStatus = request.Status;
+        request.Approve();
+        history.Add(PurchaseRequestStatusHistory.Create(
+            request.Id,
+            previousStatus,
+            request.Status,
+            authorUserId));
+        previousStatus = request.Status;
+        request.MarkOrdered("PO-DASHBOARD", "Dashboard test order");
+        history.Add(PurchaseRequestStatusHistory.Create(
+            request.Id,
+            previousStatus,
+            request.Status,
+            authorUserId,
+            DateTime.UtcNow.AddMinutes(-1)));
+
+        dbContext.PurchaseRequests.Add(request);
+        dbContext.PurchaseRequestStatusHistories.AddRange(history);
         await dbContext.SaveChangesAsync();
         return request;
     }

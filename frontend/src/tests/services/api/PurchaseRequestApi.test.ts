@@ -146,6 +146,15 @@ describe('PurchaseRequestApi', () => {
     );
   });
 
+  it('builds the organization dashboard request', async () => {
+    const client = createClientMock();
+    const api = new PurchaseRequestApi(client);
+
+    await api.getDashboard('organization-1');
+
+    expect(client.get).toHaveBeenCalledWith('/organizations/organization-1/dashboard');
+  });
+
   it('builds attachment list, upload, download, and delete requests', async () => {
     const client = createClientMock();
     const api = new PurchaseRequestApi(client);
