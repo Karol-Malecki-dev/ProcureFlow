@@ -31,6 +31,15 @@ export interface PurchaseRequestItemDto {
   lineTotal: number;
 }
 
+export interface PurchaseRequestStatusHistoryDto {
+  id: string;
+  fromStatus: PurchaseRequestStatus;
+  toStatus: PurchaseRequestStatus;
+  changedByUserId: string;
+  actorDisplayName: string;
+  changedAt: string;
+}
+
 export interface PurchaseRequestDto {
   id: string;
   authorUserId: string;
@@ -45,6 +54,7 @@ export interface PurchaseRequestDto {
   createdAt: string;
   updatedAt: string;
   concurrencyStamp: string;
+  history?: PurchaseRequestStatusHistoryDto[];
 }
 
 export interface PurchaseRequestListItemDto {
@@ -67,6 +77,10 @@ export interface PurchaseRequestListDto {
 
 export interface CreatePurchaseRequestRequest {
   note: string | null;
+}
+
+export interface SubmitPurchaseRequestRequest {
+  concurrencyStamp: string;
 }
 
 export interface AddPurchaseRequestItemRequest {

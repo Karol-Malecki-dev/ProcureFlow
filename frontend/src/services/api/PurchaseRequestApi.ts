@@ -14,6 +14,7 @@ import type {
   PurchaseRequestFulfillmentQueueResponse,
   PurchaseRequestListResponse,
   RemovePurchaseRequestItemRequest,
+  SubmitPurchaseRequestRequest,
   UpsertBranchMonthlyBudgetRequest,
   UpdatePurchaseRequestItemQuantityRequest,
 } from '../../types/purchaseRequests';
@@ -158,6 +159,17 @@ export class PurchaseRequestApi {
   ): Promise<PurchaseRequestDetailsResponse> {
     return this.client.post<PurchaseRequestDetailsResponse, CreatePurchaseRequestRequest>(
       `/organizations/${organizationId}/purchase-requests`,
+      request,
+    );
+  }
+
+  submit(
+    organizationId: string,
+    purchaseRequestId: string,
+    request: SubmitPurchaseRequestRequest,
+  ): Promise<PurchaseRequestDetailsResponse> {
+    return this.client.post<PurchaseRequestDetailsResponse, SubmitPurchaseRequestRequest>(
+      `/organizations/${organizationId}/purchase-requests/${purchaseRequestId}/submit`,
       request,
     );
   }

@@ -20,25 +20,38 @@ public sealed class EfSelectableProductReader : ISelectableProductReader
         Guid organizationId,
         Guid productId,
         CancellationToken cancellationToken = default)
-        => BuildSelectableProductsQuery(organizationId)
-            .Where(product => product.ProductId == productId)
+        => BuildSelectableProductsQuery(organizationId, productId)
             .SingleOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<SelectableProductView>> GetSelectableProductsAsync(
         Guid organizationId,
         CancellationToken cancellationToken = default)
-        => await BuildSelectableProductsQuery(organizationId)
-            .OrderBy(product => product.Name)
-            .ThenBy(product => product.ProductId)
+    {
+        var products = await BuildSelectableProductsQuery(organizationId)
             .ToListAsync(cancellationToken);
 
-    private IQueryable<SelectableProductView> BuildSelectableProductsQuery(Guid organizationId)
-        => _dbContext.Products
+        return products
+            .OrderBy(product => product.Name)
+            .ThenBy(product => product.ProductId)
+            .ToList();
+    }
+
+    private IQueryable<SelectableProductView> BuildSelectableProductsQuery(
+        Guid organizationId,
+        Guid? productId = null)
+    {
+        var products = _dbContext.Products
             .AsNoTracking()
             .Where(product => product.OrganizationId == organizationId
                 && product.IsActive
-                && product.IsAvailable)
-            .Join(
+                && product.IsAvailable);
+
+        if (productId.HasValue)
+        {
+            products = products.Where(product => product.Id == productId.Value);
+        }
+
+        return products.Join(
                 _dbContext.UnitsOfMeasure
                     .AsNoTracking()
                     .Where(unit => unit.OrganizationId == organizationId && unit.IsActive),
@@ -51,6 +64,6 @@ public sealed class EfSelectableProductReader : ISelectableProductReader
                     product.Code,
                     unit.Name,
                     unit.Symbol,
-                    product.UnitPrice))
-                    ;
+                    product.UnitPrice));
+    }
 }

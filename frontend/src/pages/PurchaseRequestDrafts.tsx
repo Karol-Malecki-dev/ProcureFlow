@@ -344,7 +344,15 @@ export default function PurchaseRequestDrafts() {
         throw new Error('Purchase request mutation response missing data.');
       }
 
-      setSelectedDraft(response.data);
+      const refreshedResponse = await purchaseRequestApi.getDetails(
+        membership.organizationId,
+        response.data.id,
+      );
+      if (!refreshedResponse.data) {
+        throw new Error('Refreshed purchase request details response missing data.');
+      }
+
+      setSelectedDraft(refreshedResponse.data);
       setNotice(successMessage);
       await reloadDrafts();
       return true;
@@ -387,6 +395,20 @@ export default function PurchaseRequestDrafts() {
       setQuantity('1');
       setComment('');
     }
+  };
+
+  const handleSubmitDraft = async () => {
+    if (!membership || !selectedDraft || selectedDraft.status !== PurchaseRequestStatus.Draft) {
+      return;
+    }
+
+    await runMutation('submit', 'Purchase request submitted.', (concurrencyStamp) =>
+      purchaseRequestApi.submit(
+        membership.organizationId,
+        selectedDraft.id,
+        { concurrencyStamp },
+      ),
+    );
   };
 
   const handleUpdateQuantity = async (event: FormEvent<HTMLFormElement>, item: PurchaseRequestItemDto) => {
@@ -741,6 +763,43 @@ export default function PurchaseRequestDrafts() {
                 <span>Total value</span>
                 <strong>{formatMoney(selectedDraft.totalValue)}</strong>
               </section>
+
+              {selectedDraft.history?.length ? (
+                <section className="card" aria-label="Purchase request history">
+                  <div className="purchase-request-section-heading">
+                    <div>
+                      <p className="eyebrow">Lifecycle</p>
+                      <h2>History</h2>
+                    </div>
+                  </div>
+                  <ol>
+                    {selectedDraft.history.map((entry) => (
+                      <li key={entry.id}>
+                        <strong>{getStatusLabel(entry.toStatus)}</strong>
+                        <span>{getStatusLabel(entry.fromStatus)} -&gt; {getStatusLabel(entry.toStatus)} by {entry.actorDisplayName} · {formatDate(entry.changedAt)}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              ) : null}
+
+              {selectedDraft.status === PurchaseRequestStatus.Draft ? (
+                <section className="card purchase-request-submit" aria-label="Submit purchase request">
+                  <div>
+                    <p className="eyebrow">Ready for review</p>
+                    <h2>Submit this request</h2>
+                    <p className="page-note">A request must contain at least one item before it can be submitted.</p>
+                  </div>
+                  <button
+                    className="button"
+                    type="button"
+                    disabled={!canEditDraft || selectedDraft.items.length === 0 || busyKey !== null}
+                    onClick={() => void handleSubmitDraft()}
+                  >
+                    {busyKey === 'submit' ? 'Submitting...' : 'Submit request'}
+                  </button>
+                </section>
+              ) : null}
             </>
           ) : (
             <div className="page-state">

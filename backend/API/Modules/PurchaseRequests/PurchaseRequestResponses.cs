@@ -16,6 +16,15 @@ public sealed record PurchaseRequestItemResponse(
     string? Comment,
     decimal LineTotal);
 
+/// <summary>HTTP response for one purchase-request lifecycle transition.</summary>
+public sealed record PurchaseRequestStatusHistoryResponse(
+    Guid Id,
+    PurchaseRequestStatus FromStatus,
+    PurchaseRequestStatus ToStatus,
+    Guid ChangedByUserId,
+    string ActorDisplayName,
+    DateTime ChangedAt);
+
 /// <summary>HTTP response for one purchase-request draft.</summary>
 public sealed record PurchaseRequestResponse(
     Guid Id,
@@ -30,7 +39,11 @@ public sealed record PurchaseRequestResponse(
     decimal TotalValue,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    string ConcurrencyStamp);
+    string ConcurrencyStamp)
+{
+    /// <summary>Chronological lifecycle transitions for the request.</summary>
+    public IReadOnlyList<PurchaseRequestStatusHistoryResponse> History { get; init; } = [];
+}
 
 /// <summary>HTTP response for one entry in the current user's request list.</summary>
 public sealed record PurchaseRequestListItemResponse(

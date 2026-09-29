@@ -590,7 +590,18 @@ public sealed class PurchaseRequestsController : ControllerBase
             view.TotalValue,
             view.CreatedAt,
             view.UpdatedAt,
-            view.ConcurrencyStamp);
+            view.ConcurrencyStamp)
+        {
+            History = view.History
+                .Select(history => new PurchaseRequestStatusHistoryResponse(
+                    history.Id,
+                    history.FromStatus,
+                    history.ToStatus,
+                    history.ChangedByUserId,
+                    history.ActorDisplayName,
+                    history.ChangedAt))
+                .ToList()
+        };
 
     private static BranchMonthlyBudgetResponse MapBudget(BranchMonthlyBudgetView view)
         => new(

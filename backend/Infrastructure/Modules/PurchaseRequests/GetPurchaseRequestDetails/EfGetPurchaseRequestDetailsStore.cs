@@ -29,8 +29,26 @@ public sealed class EfGetPurchaseRequestDetailsStore : IGetPurchaseRequestDetail
                     && candidate.BranchId == membership.BranchId,
                 cancellationToken);
 
-        return request is null
-            ? null
-            : PurchaseRequestViewMapper.ToDetailsView(request);
+            if (request is null)
+            {
+                return null;
+            }
+
+            var history = await (
+                from statusHistory in _dbContext.PurchaseRequestStatusHistories.AsNoTracking()
+                join user in _dbContext.Users.AsNoTracking()
+                    on statusHistory.ChangedByUserId equals user.Id
+                where statusHistory.PurchaseRequestId == purchaseRequestId
+                orderby statusHistory.ChangedAt, statusHistory.Id
+                select new PurchaseRequestStatusHistoryView(
+                    statusHistory.Id,
+                    statusHistory.FromStatus,
+                    statusHistory.ToStatus,
+                    statusHistory.ChangedByUserId,
+                    user.DisplayName.Value,
+                    statusHistory.ChangedAt))
+                .ToListAsync(cancellationToken);
+
+            return PurchaseRequestViewMapper.ToDetailsView(request, history);
     }
 }

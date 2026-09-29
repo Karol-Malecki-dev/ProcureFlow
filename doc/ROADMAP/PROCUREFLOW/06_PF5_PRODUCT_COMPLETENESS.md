@@ -149,8 +149,7 @@ Pierwszy slice PF5 jest zaimplementowany i zweryfikowany:
 - migracja `AddPurchaseRequestFulfillmentMetadata`;
 - testy domenowe, API InMemory, frontendowe oraz pełna integracja backendu.
 
-Pozostałe elementy PF5 pozostają zakresem kolejnych branchy wymienionych powyżej:
-załączniki, powiadomienia, dashboard i krytyczny browser E2E.
+Pozostałym krokiem tego etapu był krytyczny browser E2E, opisany poniżej.
 
 ## Stan implementacji `feature/purchase-request-attachments`
 
@@ -189,7 +188,31 @@ E2E:
 - pokrycie obejmuje testy handlera, API InMemory, agregacje i zakres ról na
     PostgreSQL, klienta API, testy strony oraz build frontendu.
 
-Pozostaje jeden krytyczny browser E2E przez Docker Compose: Employee tworzy i
-wysyła wniosek, Manager zatwierdza, Procurement zamawia i dostarcza, a Employee
-widzi końcowy status i historię. Do czasu jego przejścia nie usuwamy modułów
-`Projects/ProjectTasks` i nie rozpoczynamy PF6.
+Krytyczny browser E2E przeszedł przez Docker Compose: Employee tworzy i wysyła
+wniosek, Manager zatwierdza, Procurement zamawia i dostarcza, a Employee widzi
+końcowy status oraz historię. Moduły `Projects/ProjectTasks` pozostają jeszcze
+na miejscu, ponieważ ich usunięcie należy do PF6.
+
+## Stan implementacji `test/procureflow-critical-flow-e2e`
+
+Krytyczny przepływ jest zweryfikowany przez przeglądarkę i obejmuje:
+
+- rejestrację oraz potwierdzenie trzech kont przez UI i Mailpit;
+- testowy, deterministyczny setup organizacji, oddziału, członkostw, katalogu
+    oraz budżetu wykonany wyłącznie w lokalnym PostgreSQL przez helper E2E;
+- utworzenie draftu i dodanie pozycji przez Employee;
+- zatwierdzenie przez Managera w zakresie jego oddziału;
+- przejście `Approved -> Ordered -> Delivered` przez Procurement;
+- ponowne otwarcie wniosku przez Employee i weryfikację statusu `Delivered` oraz
+    czterech wpisów historii.
+
+Helper fixture nie dodaje endpointu administracyjnego ani backdoora do API
+produkcyjnego. Korzysta z `docker compose exec db psql` tylko podczas testu
+browserowego, a dane używają stałych identyfikatorów i operacji konfliktowo
+bezpiecznych.
+
+Walidacja checkpointu:
+
+- Playwright: `purchase-requests.spec.ts` — `1/1`;
+- PostgreSQL: `PurchaseRequestsPostgreSqlIntegrationTests` — `10/10`;
+- build frontendu oraz diagnostyka zmodyfikowanych plików — bez błędów.

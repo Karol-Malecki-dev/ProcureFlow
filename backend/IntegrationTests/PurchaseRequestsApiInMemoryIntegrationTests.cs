@@ -253,6 +253,58 @@ public sealed class PurchaseRequestsApiInMemoryIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task Employee_can_submit_request_and_read_status_history()
+    {
+        var organizationId = await SeedOrganizationAsync();
+        var branchId = await SeedBranchAsync(organizationId);
+        var email = UniqueEmail("purchase-request-history");
+        var userId = await SeedUserAsync(email);
+        var unitId = await SeedUnitAsync(organizationId, userId);
+        var productId = await SeedProductAsync(organizationId, unitId, userId);
+        await SeedMembershipAsync(organizationId, userId, branchId, BusinessRole.Employee);
+        await AuthenticateAsync(email);
+
+        var createResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests",
+            new { Note = "History test request" });
+        var created = await ReadResponseAsync(createResponse);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.NotNull(created.Data);
+
+        var addResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/items",
+            new
+            {
+                ProductId = productId,
+                Quantity = 1m,
+                ConcurrencyStamp = created.Data.ConcurrencyStamp
+            });
+        var added = await ReadResponseAsync(addResponse);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+        Assert.NotNull(added.Data);
+
+        var submitResponse = await _client.PostAsJsonAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}/submit",
+            new { ConcurrencyStamp = added.Data.ConcurrencyStamp });
+        var submitted = await ReadResponseAsync(submitResponse);
+        Assert.Equal(HttpStatusCode.OK, submitResponse.StatusCode);
+        Assert.NotNull(submitted.Data);
+        Assert.Equal(PurchaseRequestStatus.Submitted, submitted.Data.Status);
+
+        var detailsResponse = await _client.GetAsync(
+            $"/api/organizations/{organizationId}/purchase-requests/{created.Data.Id}");
+        var details = await ReadResponseAsync(detailsResponse);
+        Assert.Equal(HttpStatusCode.OK, detailsResponse.StatusCode);
+        Assert.NotNull(details.Data);
+        var historyEntry = Assert.Single(details.Data.History);
+        Assert.Equal(PurchaseRequestStatus.Draft, historyEntry.FromStatus);
+        Assert.Equal(PurchaseRequestStatus.Submitted, historyEntry.ToStatus);
+        Assert.Equal(userId, historyEntry.ChangedByUserId);
+        Assert.Equal("Purchase request test user", historyEntry.ActorDisplayName);
+        Assert.NotEqual(default, historyEntry.ChangedAt);
+    }
+
+    [Fact]
     public async Task Procurement_can_create_and_manager_can_read_a_branch_monthly_budget()
     {
         var organizationId = await SeedOrganizationAsync();

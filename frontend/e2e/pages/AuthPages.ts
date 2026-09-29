@@ -48,7 +48,7 @@ export class LoginPage {
 export class TwoFactorPage {
   constructor(private readonly page: Page) {}
 
-  async verify(code: string) {
+  async verify(code: string, expectedUrl: RegExp = /\/dashboard$/) {
     const verifyButton = this.page.getByRole('button', { name: 'Verify code' });
     const transportError = this.page.getByText('Failed to fetch', { exact: true });
     await this.page.getByLabel('Verification code').fill(code);
@@ -57,7 +57,7 @@ export class TwoFactorPage {
       await verifyButton.click();
 
       try {
-        await expect(this.page).toHaveURL(/\/dashboard$/);
+        await expect(this.page).toHaveURL(expectedUrl);
         return;
       } catch (error) {
         // Retry only when Chromium never delivered the request to the API.

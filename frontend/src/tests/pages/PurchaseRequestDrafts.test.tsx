@@ -26,6 +26,7 @@ vi.mock('../../services/api', async () => {
       listDrafts: vi.fn(),
       getDetails: vi.fn(),
       createDraft: vi.fn(),
+      submit: vi.fn(),
       addItem: vi.fn(),
       updateItemQuantity: vi.fn(),
       removeItem: vi.fn(),
@@ -194,9 +195,17 @@ describe('PurchaseRequestDrafts page', () => {
 
     mockedPurchaseRequestApi.createDraft.mockResolvedValue(apiResponse(emptyDraft));
     mockedPurchaseRequestApi.addItem.mockResolvedValue(apiResponse(addedDraft));
+    mockedPurchaseRequestApi.submit.mockResolvedValue(apiResponse({
+      ...addedDraft,
+      status: PurchaseRequestStatus.Submitted,
+      concurrencyStamp: 'stamp-submitted',
+    }));
     mockedPurchaseRequestApi.updateItemQuantity.mockResolvedValue(apiResponse(updatedDraft));
     mockedPurchaseRequestApi.removeItem.mockResolvedValue(apiResponse(removedDraft));
-    mockedPurchaseRequestApi.getDetails.mockImplementation(async () => apiResponse(emptyDraft));
+    const refreshedDrafts = [emptyDraft, addedDraft, updatedDraft, removedDraft];
+    mockedPurchaseRequestApi.getDetails.mockImplementation(async () => apiResponse(
+      refreshedDrafts.shift() ?? removedDraft,
+    ));
 
     renderPage();
     await screen.findByRole('heading', { name: 'Purchase request drafts' });
@@ -271,6 +280,46 @@ describe('PurchaseRequestDrafts page', () => {
     ));
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Item removed.'));
     expect(await screen.findByText('This draft has no items yet.')).toBeInTheDocument();
+  });
+
+  it('submits a draft with items and hides the submit action', async () => {
+    const user = userEvent;
+    setupBaseApi([listItem(populatedDraft)], populatedDraft);
+    const submittedDraft = {
+      ...populatedDraft,
+      status: PurchaseRequestStatus.Submitted,
+      concurrencyStamp: 'stamp-submitted',
+      history: [{
+        id: 'history-1',
+        fromStatus: PurchaseRequestStatus.Draft,
+        toStatus: PurchaseRequestStatus.Submitted,
+        changedByUserId: membership.userId,
+        actorDisplayName: 'Purchase request test user',
+        changedAt: '2026-09-21T09:15:00Z',
+      }],
+    };
+    mockedPurchaseRequestApi.submit.mockResolvedValue(apiResponse(submittedDraft));
+    mockedPurchaseRequestApi.getDetails
+      .mockResolvedValueOnce(apiResponse(populatedDraft))
+      .mockResolvedValueOnce(apiResponse(submittedDraft));
+
+    renderPage('/purchase-requests/draft-1');
+
+    expect(await screen.findByRole('heading', { name: 'Office supplies' })).toBeInTheDocument();
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /submit request/i }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(mockedPurchaseRequestApi.submit).toHaveBeenCalledWith(
+      membership.organizationId,
+      populatedDraft.id,
+      { concurrencyStamp: populatedDraft.concurrencyStamp },
+    ));
+    expect(await screen.findByRole('status')).toHaveTextContent('Purchase request submitted.');
+    expect(screen.getByRole('heading', { name: 'History' })).toBeInTheDocument();
+    expect(screen.getByText(/Purchase request test user/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /submit request/i })).not.toBeInTheDocument();
   });
 
   it('lists, uploads, and deletes draft attachments', async () => {

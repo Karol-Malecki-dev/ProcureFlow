@@ -15,6 +15,15 @@ public sealed record PurchaseRequestItemView(
     string? Comment,
     decimal LineTotal);
 
+/// <summary>Read-only projection of one lifecycle transition and its actor.</summary>
+public sealed record PurchaseRequestStatusHistoryView(
+    Guid Id,
+    PurchaseRequestStatus FromStatus,
+    PurchaseRequestStatus ToStatus,
+    Guid ChangedByUserId,
+    string ActorDisplayName,
+    DateTime ChangedAt);
+
 /// <summary>Read-only projection of request details.</summary>
 public sealed record PurchaseRequestDetailsView(
     Guid Id,
@@ -29,7 +38,11 @@ public sealed record PurchaseRequestDetailsView(
     decimal TotalValue,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    string ConcurrencyStamp);
+    string ConcurrencyStamp)
+{
+    /// <summary>Chronological lifecycle transitions visible with the request.</summary>
+    public IReadOnlyList<PurchaseRequestStatusHistoryView> History { get; init; } = [];
+}
 
 /// <summary>Read-only projection used by the current user's request list.</summary>
 public sealed record PurchaseRequestListItemView(

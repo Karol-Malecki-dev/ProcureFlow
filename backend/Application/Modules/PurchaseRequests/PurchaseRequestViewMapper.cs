@@ -21,7 +21,9 @@ public static class PurchaseRequestViewMapper
             budget.AvailableAmount,
             budget.ConcurrencyStamp);
 
-    public static PurchaseRequestDetailsView ToDetailsView(PurchaseRequest request)
+    public static PurchaseRequestDetailsView ToDetailsView(
+        PurchaseRequest request,
+        IReadOnlyList<PurchaseRequestStatusHistoryView>? history = null)
         => new(
             request.Id,
             request.AuthorUserId,
@@ -38,7 +40,10 @@ public static class PurchaseRequestViewMapper
             request.TotalValue,
             request.CreatedAt,
             request.UpdatedAt,
-            request.ConcurrencyStamp);
+            request.ConcurrencyStamp)
+        {
+            History = history ?? []
+        };
 
     public static PurchaseRequestFulfillmentQueueItemView ToFulfillmentQueueItemView(
         PurchaseRequest request)

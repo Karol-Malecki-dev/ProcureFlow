@@ -521,8 +521,8 @@ Current PF5 status:
 - dashboard coverage includes handler unit tests, InMemory API coverage,
   PostgreSQL scope and aggregation coverage, API-client tests, page tests and
   a successful frontend build;
-- `test/procureflow-critical-flow-e2e` remains outstanding and is required
-  before PF6 cleanup.
+- `test/procureflow-critical-flow-e2e` is green against Docker Compose; PF5 is
+  complete and PF6 cleanup may begin after this checkpoint is merged.
 
 ### PF6: cleanup and release
 
