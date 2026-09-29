@@ -10,6 +10,7 @@ import type {
   PurchaseRequestOperationResponse,
   PurchaseRequestDetailsResponse,
   PurchaseRequestApprovalQueueResponse,
+  PurchaseRequestDashboardResponse,
   PurchaseRequestFulfillmentQueueResponse,
   PurchaseRequestListResponse,
   RemovePurchaseRequestItemRequest,
@@ -37,6 +38,12 @@ export class PurchaseRequestApi {
   listFulfillmentQueue(organizationId: string): Promise<PurchaseRequestFulfillmentQueueResponse> {
     return this.client.get<PurchaseRequestFulfillmentQueueResponse>(
       `/organizations/${organizationId}/purchase-requests/fulfillment-queue`,
+    );
+  }
+
+  getDashboard(organizationId: string): Promise<PurchaseRequestDashboardResponse> {
+    return this.client.get<PurchaseRequestDashboardResponse>(
+      `/organizations/${organizationId}/dashboard`,
     );
   }
 

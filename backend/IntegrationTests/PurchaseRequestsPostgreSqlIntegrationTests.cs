@@ -12,6 +12,7 @@ using Infrastructure.Data;
 using Infrastructure.Modules.PurchaseRequests.Approval;
 using Infrastructure.Modules.PurchaseRequests.Attachments;
 using Infrastructure.Modules.PurchaseRequests.ListMyPurchaseRequests;
+using Infrastructure.Modules.PurchaseRequests;
 using Infrastructure.Modules.PurchaseRequests.PurchaseRequestMembershipReader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,263 @@ public sealed class PurchaseRequestsPostgreSqlIntegrationTests
     public PurchaseRequestsPostgreSqlIntegrationTests(PostgreSqlWebApplicationFactory factory)
     {
         _factory = factory;
+    }
+
+    [Fact]
+    public async Task PostgreSql_dashboard_aggregates_current_month_orders_and_applies_membership_scope()
+    {
+        var now = DateTime.UtcNow;
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var currentOrderAt = monthStart.AddDays(1).AddHours(10);
+        var previousOrderAt = monthStart.AddMonths(-1).AddDays(1).AddHours(10);
+        Guid organizationId;
+        Guid firstBranchId;
+        Guid secondBranchId;
+        Guid managerId;
+        Guid procurementId;
+        Guid productId;
+        decimal firstOrderValue;
+        decimal secondOrderValue;
+
+        await using (var seedScope = _factory.Services.CreateAsyncScope())
+        {
+            var dbContext = seedScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var firstEmployee = User.Create(
+                EmailAddress.Create($"purchase-request-dashboard-first-{Guid.NewGuid():N}@example.com"),
+                DisplayName.Create("Purchase request dashboard first employee"),
+                UserRole.User,
+                isActive: true,
+                isEmailConfirmed: true);
+            var secondEmployee = User.Create(
+                EmailAddress.Create($"purchase-request-dashboard-second-{Guid.NewGuid():N}@example.com"),
+                DisplayName.Create("Purchase request dashboard second employee"),
+                UserRole.User,
+                isActive: true,
+                isEmailConfirmed: true);
+            var manager = User.Create(
+                EmailAddress.Create($"purchase-request-dashboard-manager-{Guid.NewGuid():N}@example.com"),
+                DisplayName.Create("Purchase request dashboard manager"),
+                UserRole.User,
+                isActive: true,
+                isEmailConfirmed: true);
+            var procurement = User.Create(
+                EmailAddress.Create($"purchase-request-dashboard-procurement-{Guid.NewGuid():N}@example.com"),
+                DisplayName.Create("Purchase request dashboard procurement"),
+                UserRole.User,
+                isActive: true,
+                isEmailConfirmed: true);
+            dbContext.Users.AddRange(firstEmployee, secondEmployee, manager, procurement);
+
+            var organization = await dbContext.Organizations
+                .SingleOrDefaultAsync(candidate => !candidate.IsArchived);
+            if (organization is null)
+            {
+                organization = new DomainOrganization(
+                    "Purchase request dashboard PostgreSQL organization",
+                    CreateAddress(),
+                    $"PD{Guid.NewGuid():N}"[..10],
+                    null);
+                dbContext.Organizations.Add(organization);
+                await dbContext.SaveChangesAsync();
+            }
+
+            var firstBranch = new DomainBranch(
+                $"Purchase request dashboard first branch {Guid.NewGuid():N}",
+                CreateAddress(),
+                $"PDB{Guid.NewGuid():N}"[..10],
+                organization.Id);
+            var secondBranch = new DomainBranch(
+                $"Purchase request dashboard second branch {Guid.NewGuid():N}",
+                CreateAddress(),
+                $"PDB{Guid.NewGuid():N}"[..10],
+                organization.Id);
+            var unit = new UnitOfMeasure(
+                organization.Id,
+                "Piece",
+                $"u{Guid.NewGuid():N}"[..10],
+                firstEmployee.Id);
+            var product = new Product(
+                organization.Id,
+                "Dashboard monitor",
+                $"DM-{Guid.NewGuid():N}"[..10],
+                unit.Id,
+                10.50m,
+                firstEmployee.Id);
+            dbContext.Branches.AddRange(firstBranch, secondBranch);
+            dbContext.UnitsOfMeasure.Add(unit);
+            dbContext.Products.Add(product);
+            dbContext.Memberships.AddRange(
+                new DomainMembership(organization.Id, firstEmployee.Id, firstBranch.Id, BusinessRole.Employee),
+                new DomainMembership(organization.Id, secondEmployee.Id, secondBranch.Id, BusinessRole.Employee),
+                new DomainMembership(organization.Id, manager.Id, firstBranch.Id, BusinessRole.Manager),
+                new DomainMembership(organization.Id, procurement.Id, null, BusinessRole.Procurement));
+
+            var firstOrder = BuildOrderedRequest(
+                firstEmployee.Id,
+                organization.Id,
+                firstBranch.Id,
+                product.Id,
+                2m,
+                currentOrderAt);
+            var secondOrder = BuildOrderedRequest(
+                secondEmployee.Id,
+                organization.Id,
+                secondBranch.Id,
+                product.Id,
+                1m,
+                currentOrderAt.AddMinutes(1));
+            var previousOrder = BuildOrderedRequest(
+                secondEmployee.Id,
+                organization.Id,
+                secondBranch.Id,
+                product.Id,
+                5m,
+                previousOrderAt,
+                delivered: true);
+            var submittedRequest = PurchaseRequest.Create(
+                firstEmployee.Id,
+                organization.Id,
+                firstBranch.Id,
+                "Dashboard submitted request");
+            submittedRequest.AddItem(
+                product.Id,
+                "Dashboard monitor",
+                product.Code,
+                "Piece",
+                "pc",
+                10.50m,
+                1m);
+            var submittedPreviousStatus = submittedRequest.Status;
+            submittedRequest.Submit();
+            var submittedHistory = PurchaseRequestStatusHistory.Create(
+                submittedRequest.Id,
+                submittedPreviousStatus,
+                submittedRequest.Status,
+                firstEmployee.Id,
+                currentOrderAt.AddMinutes(-10));
+
+            dbContext.PurchaseRequests.AddRange(
+                firstOrder.Request,
+                secondOrder.Request,
+                previousOrder.Request,
+                submittedRequest);
+            dbContext.PurchaseRequestStatusHistories.AddRange(
+                firstOrder.History
+                    .Concat(secondOrder.History)
+                    .Concat(previousOrder.History)
+                    .Append(submittedHistory));
+            await dbContext.SaveChangesAsync();
+
+            organizationId = organization.Id;
+            firstBranchId = firstBranch.Id;
+            secondBranchId = secondBranch.Id;
+            managerId = manager.Id;
+            procurementId = procurement.Id;
+            productId = product.Id;
+            firstOrderValue = firstOrder.Request.TotalValue;
+            secondOrderValue = secondOrder.Request.TotalValue;
+        }
+
+        await using var queryScope = _factory.Services.CreateAsyncScope();
+        var queryContext = queryScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var handler = new GetPurchaseRequestDashboardHandler(
+            new EfPurchaseRequestMembershipReader(queryContext),
+            new EfPurchaseRequestDashboardStore(queryContext));
+
+        var managerResult = await handler.HandleAsync(
+            new GetPurchaseRequestDashboardQuery(managerId, organizationId));
+
+        Assert.True(managerResult.IsSuccess);
+        Assert.NotNull(managerResult.Value);
+        var managerDashboard = managerResult.Value!;
+        Assert.Equal(1, managerDashboard.PendingRequestsCount);
+        Assert.Equal(firstOrderValue, managerDashboard.CurrentMonthOrderValue);
+        var managerProduct = Assert.Single(managerDashboard.MostFrequentlyOrderedProducts);
+        Assert.Equal(productId, managerProduct.ProductId);
+        Assert.Equal(2m, managerProduct.TotalQuantity);
+        Assert.Equal(1, managerProduct.RequestCount);
+        var managerBranch = Assert.Single(managerDashboard.SpendingByBranch);
+        Assert.Equal(firstBranchId, managerBranch.BranchId);
+        Assert.Equal(firstOrderValue, managerBranch.TotalValue);
+
+        var procurementResult = await handler.HandleAsync(
+            new GetPurchaseRequestDashboardQuery(procurementId, organizationId));
+
+        Assert.True(procurementResult.IsSuccess);
+        Assert.NotNull(procurementResult.Value);
+        var procurementDashboard = procurementResult.Value!;
+        Assert.Equal(2, procurementDashboard.PendingRequestsCount);
+        Assert.Equal(firstOrderValue + secondOrderValue, procurementDashboard.CurrentMonthOrderValue);
+        var procurementProduct = Assert.Single(procurementDashboard.MostFrequentlyOrderedProducts);
+        Assert.Equal(productId, procurementProduct.ProductId);
+        Assert.Equal(3m, procurementProduct.TotalQuantity);
+        Assert.Equal(2, procurementProduct.RequestCount);
+        Assert.Equal(2, procurementDashboard.SpendingByBranch.Count);
+        Assert.Contains(procurementDashboard.SpendingByBranch, branch => branch.BranchId == firstBranchId);
+        Assert.Contains(procurementDashboard.SpendingByBranch, branch => branch.BranchId == secondBranchId);
+
+        static (PurchaseRequest Request, List<PurchaseRequestStatusHistory> History) BuildOrderedRequest(
+            Guid authorUserId,
+            Guid organizationId,
+            Guid branchId,
+            Guid productId,
+            decimal quantity,
+            DateTime orderedAt,
+            bool delivered = false)
+        {
+            var request = PurchaseRequest.Create(
+                authorUserId,
+                organizationId,
+                branchId,
+                "Dashboard order request");
+            request.AddItem(
+                productId,
+                "Dashboard monitor",
+                "DASH-MONITOR",
+                "Piece",
+                "pc",
+                10.50m,
+                quantity);
+            var history = new List<PurchaseRequestStatusHistory>();
+            var previousStatus = request.Status;
+            request.Submit();
+            history.Add(PurchaseRequestStatusHistory.Create(
+                request.Id,
+                previousStatus,
+                request.Status,
+                authorUserId,
+                orderedAt.AddMinutes(-2)));
+            previousStatus = request.Status;
+            request.Approve();
+            history.Add(PurchaseRequestStatusHistory.Create(
+                request.Id,
+                previousStatus,
+                request.Status,
+                authorUserId,
+                orderedAt.AddMinutes(-1)));
+            previousStatus = request.Status;
+            request.MarkOrdered($"PO-DASHBOARD-{Guid.NewGuid():N}", "Dashboard PostgreSQL test order");
+            history.Add(PurchaseRequestStatusHistory.Create(
+                request.Id,
+                previousStatus,
+                request.Status,
+                authorUserId,
+                orderedAt));
+
+            if (delivered)
+            {
+                previousStatus = request.Status;
+                request.MarkDelivered("Dashboard PostgreSQL test delivery");
+                history.Add(PurchaseRequestStatusHistory.Create(
+                    request.Id,
+                    previousStatus,
+                    request.Status,
+                    authorUserId,
+                    orderedAt.AddMinutes(1)));
+            }
+
+            return (request, history);
+        }
     }
 
     [Fact]

@@ -511,6 +511,19 @@ feat(reports): add procurement dashboard
 test(e2e): cover ProcureFlow critical purchase flow
 ```
 
+Current PF5 status:
+
+- fulfillment, request attachments and purchase-request notifications are
+  implemented and covered by the existing backend and frontend tests;
+- `feature/procureflow-dashboard` is implemented: the API uses active
+  membership scope, PostgreSQL performs the four dashboard aggregations, and
+  the frontend renders the metrics with loading, empty, error and retry states;
+- dashboard coverage includes handler unit tests, InMemory API coverage,
+  PostgreSQL scope and aggregation coverage, API-client tests, page tests and
+  a successful frontend build;
+- `test/procureflow-critical-flow-e2e` remains outstanding and is required
+  before PF6 cleanup.
+
 ### PF6: cleanup and release
 
 Do not start `refactor/remove-project-management-demo` until the PF5 critical
