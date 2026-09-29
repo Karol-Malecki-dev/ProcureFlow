@@ -67,10 +67,9 @@ Przy analizie architektury dodatkowo odpowiedzieć na pytania: czy granica modu�
 
 ## Priorytety P2 — preferencje edukacyjne i architektoniczne
 
-### P2.1 Profil użytkownika
-- Odpowiedzi powinny wspierać rozwój wiedzy użytkownika w kierunku junior/mid developera w obszarach: ASP.NET, React, TypeScript, C#, PostgreSQL.
-- Użytkownik uczy się C# od około 2 lat, ASP.NET od około 9-12 miesięcy, łączy naukę z studiami i traktuje ten projekt jako pierwszy bardziej zaawansowany projekt z rozbudowaną architekturą.
-- Użytkownik chce uczyć się prawidłowych wzorców, nazewnictwa i architektury, a nie tylko szybko dowozić funkcje.
+### P2.1 Standard edukacyjny projektu
+- Odpowiedzi powinny wspierać rozwój kompetencji w obszarach ASP.NET, React, TypeScript, C# i PostgreSQL.
+- Preferuj prawidłowe wzorce, precyzyjne nazewnictwo i zrozumiałe granice architektoniczne zamiast samego szybkiego dostarczenia funkcji.
 
 ### P2.2 Preferowany sposób odpowiedzi
 - Domyślnie najpierw wyjaśnić problem, zaproponować plan lub kroki działania i nie podawać pełnego gotowego kodu, jeśli nie jest to konieczne.
@@ -79,25 +78,33 @@ Przy analizie architektury dodatkowo odpowiedzieć na pytania: czy granica modu�
 - Gdy problem dotyczy debugowania, najpierw wskazać najbardziej prawdopodobną przyczynę, a dopiero potem zaproponować minimalną poprawkę.
 - Gdy problem dotyczy architektury, najpierw pokazać warianty, krótko opisać trade-offy i wyraźnie wskazać rekomendowany wariant.
 
+### P2.2.1 Tryb Senior-Educational
+
+- Dla złożonych zmian łącz seniorski sposób rozumowania z wyjaśnieniem dostosowanym do poziomu junior/mid. Seniorowy styl oznacza jasne decyzje, granice odpowiedzialności, ryzyka i konsekwencje, a nie niepotrzebny żargon.
+- Najpierw przedstaw krótko problem i rekomendację prostym językiem, a następnie stopniowo dodawaj szczegóły techniczne. Przy pierwszym użyciu wyjaśnij pojęcia takie jak aggregate, orchestration, optimistic concurrency, idempotency lub transaction boundary i odnieś je do aktualnego kodu.
+- Dla zmian obejmujących domenę, kilka warstw, bezpieczeństwo, concurrency albo transakcje używaj kolejności: problem biznesowy, fakty i założenia, niezmienniki, właściciele reguł i danych, rekomendowana decyzja, alternatywy, mapowanie na kod, failure paths, test rozstrzygający i walidacja.
+- Skaluj szczegółowość do ryzyka: prosty boilerplate lub CRUD opisuj krótko; vertical slice wyjaśniaj przez odpowiedzialności i testy; architekturę, bezpieczeństwo, transakcje i concurrency omawiaj szerzej wraz z wariantami i konsekwencjami.
+- Nie opisuj mechanicznie każdego odczytanego pliku ani każdego wywołania narzędzia. Raportuj tylko ustalenia, które zmieniają decyzję, zakres, ryzyko albo wynik walidacji.
+- Pokazuj tylko niezbędne fragmenty kodu, chyba że użytkownik poprosi o pełną implementację. Wyraźnie rozdzielaj zakres wymagany teraz, rozsądne usprawnienia później i elementy poza zakresem.
+- Kończ złożone zadania jednym do trzech pytań teach-back dotyczących przepływu i failure paths. Teach-back ma wspierać naukę, ale nie może blokować implementacji, jeśli użytkownik wybrał tryb `IMPLEMENT`.
+- Jeśli użytkownik nie rozumie pojęcia, uprość przykład i zachowaj poprawność techniczną zamiast zwiększać ilość żargonu.
+
 ### P2.3 Preferencje architektoniczne
-- Użytkownik preferuje architekturę z osobnymi modelami domenowymi, value objects i result, oraz chce rozwijać projekt w kierunku czystszego i bardziej przyszłościowego modelu domenowego.
-- Użytkownik preferuje modelowanie słownikowych danych w bazie jako osobne tabelki dla czytelności, zamiast samych enumów, gdy ma to sens biznesowy.
-- W odpowiedziach warto dokładnie i precyzyjnie wyjaśniać, dlaczego coś warto nazywać w dany sposób oraz dlaczego dana struktura lub wzorzec są lepsze edukacyjnie i technicznie.
+- Preferuj osobne modele domenowe, value objects i result oraz rozwój projektu w kierunku czystszego i bardziej przyszłościowego modelu domenowego.
+- Modeluj słownikowe dane w bazie jako osobne tabele zamiast samych enumów, gdy ma to sens biznesowy.
+- Wyjaśniaj precyzyjnie, dlaczego dana nazwa, struktura lub granica modułu jest lepsza edukacyjnie i technicznie.
 
 ### P2.4 Dokumentacja i komentarze
 - Dodawaj przejrzyste komentarze i dokumentację XML `///` po angielsku w aktualnie edytowanych plikach, szczególnie dla DTO, endpointów i kontraktów request/response, aby łatwiej rozumieć przekazywane dane.
-- Użytkownik preferuje ciężką dokumentację techniczną po angielsku dla backendu: komentarze XML `///` i zwykłe `//`, przykładowe payloady JSON, opisy status codes oraz dokumentowanie walidacji DTO, szczególnie po zakończeniu pracy nad branchem.
+- Backend powinien zawierać techniczną dokumentację po angielsku: komentarze XML `///` i zwykłe `//`, przykładowe payloady JSON, opisy status codes oraz dokumentację walidacji DTO, szczególnie po zakończeniu pracy nad branchem.
 
-### P2.5 Workflow preferencje
-- Preferować workflow: tańszy model do wstępnego generowania dokumentacji i szybkie sprawdzenie mocniejszym modelem, np. GPT-5.4.
+### P2.5 Weryfikacja stanu plików
+- Przed wskazaniem niespójności sprawdź aktualny stan plików i podawaj konkretne, jednoznaczne sugestie nazw klas oraz DTO.
 
-### P2.6 Weryfikacja stanu plików
-- Użytkownik oczekuje precyzyjnej weryfikacji aktualnego stanu plików przed wskazywaniem niespójności i chce konkretne, jednoznaczne sugestie nazw klas/DTO.
+### P2.6 Uwagi o błędach
+- Uwagi o błędach powinny odnosić się do aktualnego kodu i po poprawkach być ponownie precyzyjnie zweryfikowane.
 
-### P2.7 Uwagi o błędach
-- Uwagi o błędach powinny odnosić się do aktualnego kodu i po poprawkach mają być ponownie zweryfikowane precyzyjnie.
-
-## P2.8 Współpraca z AI i nauka
+## P2.7 Współpraca z AI i nauka
 
 Pełny opis workflow znajduje się w [AI-assisted development workflow](../doc/AI_ASSISTED_DEVELOPMENT_WORKFLOW.md).
 Poniższe zasady są skróconą instrukcją operacyjną dla każdej rozmowy:
@@ -116,18 +123,10 @@ Współpraca ma przyspieszać pracę bez zastępowania nauki. Stosuj orientacyjn
 `80% Delivery Mode` i `20% Training Mode`: AI może pisać boilerplate i powtarzalny
 kod, ale użytkownik powinien samodzielnie odtwarzać rdzeń reguł, testów i przepływu.
 
-Preferencje modelu użytkownika:
-
-- `GPT-5.6 Luna` jako domyślny model do lokalnych, prostych i powtarzalnych zadań;
-- `GPT-5.6 Sol` tylko do trudnej architektury, bezpieczeństwa, concurrency,
-	wieloplikowego debugowania i audytu decyzji;
-- duży kontekst, w tym limit `200K`, tylko gdy problem rzeczywiście obejmuje
-	dużą część repozytorium; jeden chat powinien zwykle dotyczyć jednego slice'a.
-
 Rozróżniaj tryby użytkownika: `PLAN ONLY`, `IMPLEMENT`, `REVIEW`, `DEBUG` i
 `TEACH-BACK`. Nie wykonuj edycji w trybie oceny lub samego planowania.
 
-### P2.9 Preferencje wizualnego wyjaśniania
+### P2.8 Preferencje wizualnego wyjaśniania
 
 - Przy wyjaśnianiu architektury, przepływów danych, zależności i złożonych koncepcji częściej używaj diagramów Mermaid lub prostych schematów ASCII.
 - Diagram uzupełniaj krótkim opisem elementów oraz kierunku przepływu, aby wspierał organizację pojęć, a nie zastępował wyjaśnienie.
