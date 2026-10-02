@@ -7,6 +7,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $exitCode = 0
 $stackStarted = $false
+$originalRateLimitPermitLimit = $env:AUTH_SECURITY_RATE_LIMIT_PERMIT_LIMIT
 
 function Assert-CommandAvailable {
     param([string]$Name)
@@ -53,6 +54,7 @@ try {
     }
 
     Write-Host 'Starting PostgreSQL, backend, and frontend containers...'
+    $env:AUTH_SECURITY_RATE_LIMIT_PERMIT_LIMIT = '100'
     $stackStarted = $true
     & docker compose up --build --wait --wait-timeout $WaitTimeoutSeconds --detach
     if ($LASTEXITCODE -ne 0) {
@@ -98,6 +100,13 @@ catch {
 }
 finally {
     Set-Location $repositoryRoot
+    if ($null -eq $originalRateLimitPermitLimit) {
+        Remove-Item Env:AUTH_SECURITY_RATE_LIMIT_PERMIT_LIMIT -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:AUTH_SECURITY_RATE_LIMIT_PERMIT_LIMIT = $originalRateLimitPermitLimit
+    }
+
     if ($stackStarted) {
         Write-Host 'Stopping test containers...'
         & docker compose down --remove-orphans

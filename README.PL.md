@@ -6,10 +6,10 @@ React 19, TypeScript, EF Core i PostgreSQL na bazie wcześniej zweryfikowanego
 fundamentu technicznego.
 
 > [!IMPORTANT]
-> Fundament aplikacji już działa, ale domena biznesowa ProcureFlow jest rozwijana
-> etapami. `Projects` i `ProjectTasks` są tymczasową domeną demonstracyjną zachowaną
-> do przejścia walidacji PF5. Nie są docelowym kontraktem produktu. Kanoniczną
-> kolejność implementacji definiuje
+> Fundament aplikacji oraz zakres funkcjonalny PF0-PF6 są zaimplementowane lokalnie.
+> PF6 usunął aktywną domenę demonstracyjną `Projects` i `ProjectTasks`, a lokalny
+> release candidate wymaga jeszcze zielonego CI, stagingu i formalnej decyzji przed
+> tagiem `v1.0.0`. Kanoniczną kolejność implementacji definiuje
 > [roadmapa ProcureFlow](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 
 ## Zakres ProcureFlow v1.0
@@ -32,8 +32,8 @@ fundamentu technicznego.
 - walidacja formularzy przez React Hook Form i Zod;
 - centralna obsługa wyjątków, Serilog i health check API;
 - endpointy liveness, readiness i kondycji workerów oraz korelacja żądań przez `X-Correlation-ID`;
-- przejściowa domena demonstracyjna projektów i zadań, używana jako źródło
-	sprawdzonych wzorców transakcji, concurrency, załączników i powiadomień;
+- neutralne granice załączników, skanowania malware i wyszukiwania używane przez
+  aktywne moduły ProcureFlow;
 - PostgreSQL, Mailpit i reverse proxy w lokalnym środowisku Docker Compose;
 - testy jednostkowe, integracyjne, frontendowe oraz Docker smoke/E2E;
 - GitHub Actions dla walidacji kodu i publikowania obrazów do GHCR.

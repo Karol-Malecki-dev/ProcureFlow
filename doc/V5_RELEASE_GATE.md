@@ -5,8 +5,8 @@ V5 is accepted only after both repository validation and target-environment vali
 > [!IMPORTANT]
 > V5 validates deployment and operational readiness. It does not by itself prove
 > that the ProcureFlow business scope is complete. Before `v1.0.0`, the staging gate
-> must use the PF5 critical purchase-request workflow; project/task scenarios remain
-> regression coverage only while the demonstration domain exists.
+> must use the PF5 critical purchase-request workflow. Retired project/task scenarios
+> are historical references and are not staging requirements.
 
 ## Repository gate
 
@@ -35,7 +35,6 @@ Required evidence:
 - public `/health/live`, `/health/ready`, and `/health/workers` return HTTP 200;
 - automatic TLS certificate is valid for the configured domain;
 - registration, email confirmation and login workflows pass;
-- the current project/task regression workflows pass while the demo domain remains;
 - the ProcureFlow request, approval, fulfillment and attachment workflow passes before `v1.0.0`;
 - Grafana receives application and host data;
 - all configured Prometheus alert rules are loaded and Alertmanager delivers a test notification;

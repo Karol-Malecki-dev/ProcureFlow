@@ -5,9 +5,8 @@
 > Operational names such as `dotnet-react-starter`, `dotnet-react` and the existing
 > image paths are intentionally retained for compatibility with volumes, backups,
 > staging and rollback. They may be renamed only through the validated PF6 migration.
-> References to project/task browser scenarios describe the temporary regression
-> suite; the ProcureFlow `v1.0.0` gate additionally requires the PF5 purchase-request
-> workflow.
+> The ProcureFlow `v1.0.0` gate requires the PF5 purchase-request workflow. Historical
+> project/task scenarios are not part of the current deployment contract.
 
 ## Deployment decision
 
@@ -121,9 +120,8 @@ endpoint. Do not put a webhook token or provider credential in the repository.
   profile so browser tests can inspect email without sending messages to real recipients.
 5. Confirm `https://<domain>/health/ready` returns HTTP 200.
 6. CD opens a pinned SSH tunnel to Mailpit and runs the current authentication and
-  business regression suite through public HTTPS. While the demo domain exists, this
-  includes project, task, comment, and attachment scenarios. ProcureFlow `v1.0.0`
-  additionally requires the PF5 request, approval, fulfillment, and attachment flow.
+  ProcureFlow business regression suite through public HTTPS. Before `v1.0.0`, this
+  must include the PF5 request, approval, fulfillment, and attachment flow.
 7. Verify that the Grafana dashboard receives health and host metrics and send a test
   Alertmanager notification.
 

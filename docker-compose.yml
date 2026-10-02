@@ -90,6 +90,7 @@ services:
       - Jwt__RefreshTokenCookieSecurePolicy=${JWT_REFRESH_TOKEN_COOKIE_SECURE_POLICY:-SameAsRequest}
       - Jwt__RefreshTokenCookieIsEssential=${JWT_REFRESH_TOKEN_COOKIE_IS_ESSENTIAL:-true}
       - Jwt__RefreshTokenCookieDomain=${JWT_REFRESH_TOKEN_COOKIE_DOMAIN:-}
+      - AuthSecurity__RateLimitPermitLimit=${AUTH_SECURITY_RATE_LIMIT_PERMIT_LIMIT:-5}
       - DataProtection__KeyRingPath=${DATA_PROTECTION_KEY_RING_PATH:-/home/app/.aspnet/DataProtection-Keys}
       - DataProtection__ApplicationName=${DATA_PROTECTION_APPLICATION_NAME:-DotnetReactStarter}
       - Attachments__StorageProvider=${ATTACHMENTS_STORAGE_PROVIDER:-S3}

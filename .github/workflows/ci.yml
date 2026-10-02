@@ -157,6 +157,8 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Start application stack
+        env:
+          AUTH_SECURITY_RATE_LIMIT_PERMIT_LIMIT: 100
         run: docker compose up --build --wait --wait-timeout 180 --detach
 
       - name: Run E2E smoke tests

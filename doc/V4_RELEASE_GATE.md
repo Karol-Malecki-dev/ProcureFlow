@@ -2,9 +2,9 @@
 
 > [!NOTE]
 > This is the repository gate for the inherited technical foundation and the
-> temporary demo domain. It remains useful as a regression gate, but it is not the
-> ProcureFlow `v1.0.0` product gate. PF6 requires this validation plus the PF5
-> purchase-request browser workflow and target-environment evidence.
+> active ProcureFlow product. It is not the complete `v1.0.0` product gate:
+> staging, backup/restore, rollback and target-environment evidence are defined
+> by the V5 release gate.
 
 Run from PowerShell with Docker Desktop available:
 

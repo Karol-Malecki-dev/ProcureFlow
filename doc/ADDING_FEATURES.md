@@ -22,8 +22,9 @@ Najpierw ustal, jakiego typu jest nowy feature.
 Dla funkcji biznesowej najpierw znajdź etap i branch w
 [roadmapie ProcureFlow](ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md). Roadmapa
 określa zakres produktu, natomiast bieżący kod i testy określają, co jest już
-zaimplementowane. Nie rozszerzaj `Projects` ani `ProjectTasks`, jeśli wymaganie
-należy do `Organizations`, `Catalog` lub `PurchaseRequests`.
+zaimplementowane. `Projects` i `ProjectTasks` są wycofane; nowe wymagania kieruj
+do aktywnych modułów `Organizations`, `Catalog`, `PurchaseRequests` albo
+`Notifications`.
 
 Najczęstsze przypadki:
 
@@ -130,8 +131,8 @@ Rekomendowany podział:
    powinien znać tylko punkt wejścia modułu.
 6. Testuj handler przez mocki portów, a zapis i zapytania EF przez testy integracyjne.
 
-Poniższe porty `ProjectTasks` są referencją istniejącej domeny demonstracyjnej,
-a nie katalogiem portów do kopiowania do ProcureFlow:
+Poniższe porty `ProjectTasks` są wyłącznie historyczną referencją istniejącej
+domeny demonstracyjnej, a nie katalogiem portów do kopiowania do ProcureFlow:
 
 - `IProjectTaskAccess` - aktywna rola użytkownika i pobranie zadania z etykietami,
 - `IListProjectTasksQueryStore` - filtrowanie, sortowanie i paginacja listy zadań,
@@ -139,10 +140,10 @@ a nie katalogiem portów do kopiowania do ProcureFlow:
 - `IProjectTaskMemberAssignmentWriter` - staging unassign przy usuwaniu członka,
 - `IProjectTaskDashboardReader` - read model statystyk dla dashboardu `Projects`.
 
-Każdy use case `Projects` ma focused store lub jawny port modułowy. Dashboard
-rozdziela `IGetProjectDashboardStore` dla danych należących do `Projects` od
-`IProjectTaskDashboardReader` dla danych należących do `ProjectTasks`. Kontroler
-i handler nie znają `ApplicationDbContext`.
+Historyczne use case'y `Projects` miały focused store lub jawny port modułowy.
+Dashboard rozdzielał `IGetProjectDashboardStore` dla danych należących do
+`Projects` od `IProjectTaskDashboardReader` dla danych należących do
+`ProjectTasks`. Kontroler i handler nie znały `ApplicationDbContext`.
 
 Nie twórz generycznego `IRepository<T>` tylko po to, aby ukryć EF Core. Port powinien
 wynikać z przypadku użycia i przyjmować typy oraz operacje potrzebne konkretnej
@@ -175,8 +176,8 @@ Każdy slice powinien mieć, zależnie od potrzeb:
 Każda nowa komenda lub kwerenda ProcureFlow powinna mieć własny slice oraz
 rejestrację w entry poincie właściwego modułu, na przykład
 `OrganizationsModule`, `CatalogModule` albo `PurchaseRequestsModule`. Zmiany w
-`ProjectsModule` i `ProjectTasksModule` ograniczaj do napraw koniecznych przed PF6.
-Porty współdzielone przez kilka slice'ów są dopuszczalne tylko wtedy, gdy opisują
+`ProjectsModule` i `ProjectTasksModule` są wycofane i nie należy ich ponownie
+rejestrować ani rozwijać. Porty współdzielone przez kilka slice'ów są dopuszczalne tylko wtedy, gdy opisują
 rzeczywistą wspólną potrzebę, a nie wygodę dostępu do całego `DbContext`.
 
 Nie traktuj folderu jako granicy sam w sobie. Moduł jest granicą dopiero wtedy, gdy:
@@ -229,9 +230,9 @@ Jeśli feature wprowadza nowy przepływ, nowy typ danych albo nowy wzorzec archi
 ## Legacy Project And ProjectTask Reference
 
 > [!NOTE]
-> Ta sekcja dokumentuje działający kod domeny demonstracyjnej. Nie definiuje
-> modelu `PurchaseRequest` i nie jest backlogiem nowych funkcji. Domena zostanie
-> usunięta dopiero po spełnieniu warunków PF6.
+> Ta sekcja zachowuje historyczny opis usuniętej domeny demonstracyjnej. Nie definiuje
+> modelu `PurchaseRequest`, nie opisuje aktywnych endpointów i nie jest backlogiem
+> nowych funkcji. Używaj jej wyłącznie jako referencji do wcześniejszych wzorców.
 
 Feature zarządzania projektami składa się z dwóch powiązanych, ale osobnych agregatów:
 
