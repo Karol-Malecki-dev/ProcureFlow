@@ -98,13 +98,13 @@ docker compose up --build
 
 Lokalne adresy:
 
-- frontend: http://localhost:3000;
-- API: http://localhost:5000;
-- health check: http://localhost:5000/health;
-- readiness: http://localhost:5000/health/ready;
-- worker health: http://localhost:5000/health/workers;
-- Swagger: http://localhost:5000/swagger;
-- Mailpit: http://localhost:8025.
+- frontend: <http://localhost:3000>;
+- API: <http://localhost:5000>;
+- health check: <http://localhost:5000/health>;
+- readiness: <http://localhost:5000/health/ready>;
+- worker health: <http://localhost:5000/health/workers>;
+- Swagger: <http://localhost:5000/swagger>;
+- Mailpit: <http://localhost:8025>.
 
 Compose uruchamia PostgreSQL, Mailpit, backend i frontend. Wartości domyślne są przeznaczone do lokalnego developmentu. Sekrety środowiska docelowego należy dostarczać przez konfigurację hostingu lub bezpieczny magazyn sekretów.
 
@@ -196,9 +196,10 @@ restore i rollbacku. Szczegóły znajdują się w [doc/CI_CD.md](doc/CI_CD.md).
 
 ## Znane ograniczenia
 
-- domena ProcureFlow jest obecnie na etapie PF1, a gotowej domeny demo nie należy
-	traktować jako publicznego kontraktu przyszłego wydania;
-- frontend korzysta z Vite i Vitest; audyt zależności z 2026-09-02 nie wykazał znanych podatności npm;
+- zakres produktu PF0-PF6 jest zaimplementowany lokalnie, ale formalny release
+  v1.0.0 nadal wymaga walidacji CI, stagingu oraz dowodu backupu, restore i rollbacku;
+- ostatnie `npm ci` zgłosiło 3 podatności zależności (2 moderate i 1 high); wymagają
+  osobnego przeglądu przed publicznym wydaniem;
 - Docker Compose jest przede wszystkim lokalnym środowiskiem uruchomieniowym i testowym;
 - domyślne hasła oraz sekrety Compose nie nadają się do środowiska produkcyjnego;
 - publikacja obrazu do GHCR nie jest równoznaczna z deploymentem;
@@ -223,11 +224,10 @@ Nie definiują już kolejności branchy produktu.
 
 ## Aktualny etap produktu
 
-PF0 jest ukończony. Następny etap to
-[PF1: organizacja, oddziały i dostęp](doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md),
-rozpoczynany przez `feature/organization-branches`, a następnie
-`feature/branch-access-control`.
-Konkretne pliki do napisania i kolejność testów opisuje
+PF0-PF6 są ukończone lokalnie, a lokalny release gate przeszedł backend, frontend,
+build produkcyjny i krytyczne scenariusze Playwright. Formalne wydanie `v1.0.0`
+pozostaje osobnym krokiem zależnym od CI, stagingu i operacyjnej walidacji wdrożenia.
+PF7 pozostaje poza zakresem V1. Konkretne pliki i kolejność testów opisuje
 [playbook implementacji ProcureFlow](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 
 ## Licencja
