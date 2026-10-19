@@ -19,24 +19,21 @@
 
 ## Start now
 
-For the first implementation session, do only this:
+The product workflow and PF0-PF6 implementation are complete in the local
+release candidate. The current activity is release validation, not a new PF1
+implementation branch:
 
-1. Read [PF1: organization and access](02_PF1_ORGANIZATION_AND_ACCESS.md).
-2. Implement `Organization`, `Branch` and the `CreateBranch` slice.
-3. Add `ListBranches` and `GetBranchDetails` only after creation and its tests
-  are working.
-4. Finish the branch with archive behavior, PostgreSQL constraint coverage and
-  the `OrganizationBranches` screen.
-5. Do not add memberships, `BusinessRole` or catalog code until this branch
-  satisfies the Definition of Done.
+1. Confirm the exact candidate commit and review its CI results.
+2. Read the [PF6 release checklist](07_PF6_CLEANUP_AND_RELEASE.md) and
+   [V5 release gate](../../V5_RELEASE_GATE.md).
+3. Run the repository gate and validate the critical purchase-request workflow
+   on staging.
+4. Record migration, backup, restore, rollback and known-limitation evidence.
+5. Make the `v1.0.0` release decision before selecting any PF7 extension.
 
-The first useful proof is simple: an administrator can create and list a branch,
-while a duplicate branch code or name is rejected by the database.
-
-The implementation order is deliberately incremental. Every branch must leave a
-working state that can be built, tested and explained. Do not open the next
-branch only because the previous branch contains code; open it after the previous
-branch meets its Definition of Done.
+Do not reimplement PF1-PF5 or begin PF7 as part of release hardening. The
+incremental implementation guidance below is retained as the historical record
+of how the product slices were built.
 
 ## 1. Product context
 

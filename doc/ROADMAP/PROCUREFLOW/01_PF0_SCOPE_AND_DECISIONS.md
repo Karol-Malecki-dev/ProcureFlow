@@ -77,8 +77,8 @@ wniosku przekraczającego dostępny budżet.
   modułów.
 - Jeden `ApplicationDbContext` i jedna transakcja relacyjna pozostają domyślne.
 - `Projects` i `ProjectTasks` nie są przemianowywane na nowe pojęcia.
-- Domena demonstracyjna pozostaje tymczasowo działająca i jest usuwana dopiero w
-  PF6.
+- Domena demonstracyjna pozostała tymczasowo aktywna podczas PF1-PF5 i została
+  usunięta w PF6.
 
 ### Nazewnictwo i dokumentacja podczas migracji
 

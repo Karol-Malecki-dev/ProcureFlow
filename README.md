@@ -1,16 +1,19 @@
 # ProcureFlow
 
 ProcureFlow is a portfolio-grade, multi-branch purchase request management system built with
-ASP.NET Core 9, React 19, TypeScript, EF Core and PostgreSQL. It is being developed from an
+ASP.NET Core 10 LTS, React 19, TypeScript, EF Core and PostgreSQL. It is being developed from an
 existing production-minded starter into a focused B2B product with organization-scoped access,
 catalog management, purchase-request workflows, monthly budgets and approvals.
 
 > [!IMPORTANT]
 > The technical foundation and ProcureFlow v1 workflow are implemented locally. PF6 removed the
 > legacy `Projects` and `ProjectTasks` demonstration domain, neutralized shared attachment and
-> search boundaries, and added the schema cleanup migration. The local release candidate passed
-> the backend, frontend, PostgreSQL, Compose and smoke-test checks; staging validation and the
-> formal `v1.0.0` tag remain a review decision. The canonical implementation order is the
+> search boundaries, and added the schema cleanup migration. This working branch has moved the
+> backend to .NET 10 LTS. The local release gate on this branch passed: backend build, 249 unit
+> tests, 115 PostgreSQL integration tests, 3 Docker smoke tests, 87 frontend tests, production
+> build, 2 Playwright E2E tests, and clean NuGet/npm audits. GitHub CI, staging validation, and
+> backup/restore/rollback evidence remain required before deciding on the formal `v1.0.0` tag.
+> The canonical implementation order is the
 > [ProcureFlow product roadmap](doc/ROADMAP/PROCUREFLOW/00_PRODUCT_ROADMAP_OVERVIEW.md).
 > For the concrete file-by-file writing order, start with the
 > [ProcureFlow implementation playbook](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
@@ -44,7 +47,7 @@ catalog management, purchase-request workflows, monthly budgets and approvals.
 
 ### Backend
 
-- .NET 9
+- .NET 10 LTS
 - ASP.NET Core Web API
 - Entity Framework Core
 - PostgreSQL in Docker/runtime scenarios
@@ -135,7 +138,7 @@ frontend feature flags from the backend.
 
 ### Prerequisites
 
-- .NET 9 SDK
+- .NET 10 SDK
 - Node.js 22.x
 - Docker Desktop with Compose support for containerized runs
 
@@ -284,13 +287,14 @@ For local Docker runs, transactional emails are delivered to Mailpit. Open http:
 The `V1-V8` roadmap records the maturity of the inherited technical foundation. It does not define
 the current product branch order.
 
-## Current Product Step
+## Current Release Status
 
-PF0 is complete. The next implementation stage is
-[PF1: organization, branches and access](doc/ROADMAP/PROCUREFLOW/02_PF1_ORGANIZATION_AND_ACCESS.md),
-starting with `feature/organization-branches` and followed by `feature/branch-access-control`.
-The concrete files and validation order are described in the
-[ProcureFlow implementation playbook](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
+PF0-PF6 are complete in the local `v1.0.0` release candidate. The next step is
+release review and staging validation, including backup, restore and rollback
+evidence, before deciding whether to tag `v1.0.0`. PF7 remains deferred until
+after that release decision. See the
+[PF6 release checklist](doc/ROADMAP/PROCUREFLOW/07_PF6_CLEANUP_AND_RELEASE.md)
+and [V5 release gate](doc/V5_RELEASE_GATE.md).
 
 ## License
 

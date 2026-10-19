@@ -1,7 +1,7 @@
 # ProcureFlow
 
 ProcureFlow to portfolio-grade system zarządzania zapotrzebowaniami zakupowymi dla
-organizacji posiadającej wiele oddziałów. Aplikacja powstaje w ASP.NET Core 9,
+organizacji posiadającej wiele oddziałów. Aplikacja wykorzystuje ASP.NET Core 10 LTS,
 React 19, TypeScript, EF Core i PostgreSQL na bazie wcześniej zweryfikowanego
 fundamentu technicznego.
 
@@ -42,7 +42,7 @@ fundamentu technicznego.
 
 ### Backend
 
-- .NET 9 i ASP.NET Core Web API;
+- .NET 10 LTS i ASP.NET Core Web API;
 - Entity Framework Core i PostgreSQL;
 - FluentValidation;
 - Serilog;
@@ -52,7 +52,7 @@ fundamentu technicznego.
 
 - React 19;
 - TypeScript;
-- React Router 6;
+- React Router 7;
 - React Hook Form;
 - Zod;
 - Testing Library, Vitest i Vite.
@@ -83,7 +83,7 @@ Aktywny manifest aplikacji frontendowej znajduje się w [frontend/package.json](
 
 ### Wymagania
 
-- .NET 9 SDK;
+- .NET 10 SDK;
 - Node.js 22.x;
 - Docker Desktop z obsługą Compose.
 
@@ -196,10 +196,9 @@ restore i rollbacku. Szczegóły znajdują się w [doc/CI_CD.md](doc/CI_CD.md).
 
 ## Znane ograniczenia
 
-- zakres produktu PF0-PF6 jest zaimplementowany lokalnie, ale formalny release
-  v1.0.0 nadal wymaga walidacji CI, stagingu oraz dowodu backupu, restore i rollbacku;
-- ostatnie `npm ci` zgłosiło 3 podatności zależności (2 moderate i 1 high); wymagają
-  osobnego przeglądu przed publicznym wydaniem;
+- lokalny release gate przeszedł, ale formalne `v1.0.0` nadal wymaga zielonego
+  GitHub CI, stagingu oraz dowodu backupu, restore i rollbacku;
+- ostatni `npm ci` i pełny audyt npm zakończyły się bez podatnych pakietów;
 - Docker Compose jest przede wszystkim lokalnym środowiskiem uruchomieniowym i testowym;
 - domyślne hasła oraz sekrety Compose nie nadają się do środowiska produkcyjnego;
 - publikacja obrazu do GHCR nie jest równoznaczna z deploymentem;
@@ -224,9 +223,12 @@ Nie definiują już kolejności branchy produktu.
 
 ## Aktualny etap produktu
 
-PF0-PF6 są ukończone lokalnie, a lokalny release gate przeszedł backend, frontend,
-build produkcyjny i krytyczne scenariusze Playwright. Formalne wydanie `v1.0.0`
-pozostaje osobnym krokiem zależnym od CI, stagingu i operacyjnej walidacji wdrożenia.
+PF0-PF6 są ukończone w lokalnym release candidate. Po migracji na .NET 10 lokalny
+release gate przeszedł: build backendu bez ostrzeżeń, 249 testów jednostkowych,
+115 testów integracyjnych PostgreSQL, 3 Docker smoke tests, 87 testów frontendu,
+build produkcyjny oraz 2/2 testy Playwright E2E. Audyty NuGet i npm nie wykazały
+podatnych pakietów. Formalne wydanie `v1.0.0` nadal wymaga zielonego GitHub CI,
+stagingu i operacyjnej walidacji wdrożenia, w tym backupu, restore i rollbacku.
 PF7 pozostaje poza zakresem V1. Konkretne pliki i kolejność testów opisuje
 [playbook implementacji ProcureFlow](doc/ROADMAP/PROCUREFLOW/09_IMPLEMENTATION_PLAYBOOK.md).
 

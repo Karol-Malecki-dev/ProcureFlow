@@ -1,6 +1,6 @@
 # ProcureFlow Architecture
 
-ProcureFlow jest modularnym monolitem full-stack z backendem ASP.NET Core 9 i
+ProcureFlow jest modularnym monolitem full-stack z backendem ASP.NET Core 10 LTS i
 frontendem React 19 + TypeScript. Projekt wykorzystuje stabilny fundament auth,
 persistence, testów i operacji, a domena zakupowa jest zorganizowana wokół
 aktywnych modułów ProcureFlow.
@@ -147,19 +147,14 @@ Najważniejsze tabele/encje:
 
 Relacje są proste i czytelne:
 
-- tokeny i challenge są przypisane do `User`
-- usunięcie użytkownika kaskadowo usuwa powiązane rekordy auth
-- tokeny mają indeksy na hashach i datach wygaśnięcia
-- `Project` należy do jednego `User` przez `OwnerId`
-- `Project` ma członków przez encję `ProjectMember`; właściciel jest dodawany automatycznie
-- `ProjectMember` łączy projekt z aktywnym użytkownikiem i posiada unikalny indeks na `(ProjectId, UserId)`
-- `Project` jest aggregate rootem dla `ProjectMember`
-- `ProjectTask` jest osobnym aggregate rootem powiązanym z `Project` przez wymagany `ProjectId`
-- `ProjectTask` może mieć opcjonalnego przypisanego członka projektu przez `AssignedUserId`
-- `ProjectTask` może mieć etykiety, załączniki i termin wykonania
-- przypomnienia terminów tworzą powiadomienia, a dostarczanie emailowe przechodzi przez outbox
-- usunięcie projektu kaskadowo usuwa jego zadania
-- usunięcie przypisanego użytkownika ustawia `AssignedUserId` na `NULL`
+- tokeny, wyzwania i zdarzenia bezpieczeństwa są powiązane z `User`;
+- `Branch` należy do organizacji, a `Membership` łączy użytkownika z organizacją
+  i opcjonalnym oddziałem;
+- produkt należy do organizacji i korzysta z jednostki miary;
+- `PurchaseRequest` przechowuje autora, organizację i oddział oraz jest
+  powiązany z pozycjami, historią statusu, decyzjami i załącznikami;
+- budżet miesięczny jest przypisany do oddziału;
+- powiadomienia, preferencje e-mail i outbox obsługują zdarzenia produktu.
 
 ### Project And ProjectTask Domain
 

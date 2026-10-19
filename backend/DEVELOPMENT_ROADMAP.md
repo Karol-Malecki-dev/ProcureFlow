@@ -73,22 +73,14 @@ remains available as reference.
 - Keep historical migration and ADR references intact, but do not reintroduce the retired
 	`Projects` or `ProjectTasks` runtime modules.
 
-## Recommended branch names
+## Release activity
 
-For the documentation work:
-
-```text
-docs/procureflow-product-roadmap
-```
-
-For the immediate implementation work:
-
-```text
-feature/organization-branches
-```
-
-Then continue with `feature/branch-access-control`, `feature/catalog-management`,
-`feature/purchase-request-drafts` and the remaining branches listed in the canonical overview.
+The branch names above were part of the original product implementation order.
+PF1-PF6 are now complete in the local release candidate; do not restart the
+organization or catalog implementation sequence. Follow the
+[PF6 release checklist](../doc/ROADMAP/PROCUREFLOW/07_PF6_CLEANUP_AND_RELEASE.md)
+and [V5 release gate](../doc/V5_RELEASE_GATE.md) for the current validation
+work. Choose any PF7 extension only after the `v1.0.0` release decision.
 
 ## Learning model
 
