@@ -20,12 +20,11 @@ administracyjnego CRUD oddziałów. Obejmuje:
 - frontendowy ekran administracyjny z obsługą loading, empty, error i archive;
 - testy jednostkowe, API/PostgreSQL oraz testy frontendowe dla tego przepływu.
 
-PF1 jako cały etap pozostaje w toku, ale branch
-`feature/branch-access-control` ma zaimplementowany zakres administracji
-członkostwami. Obejmuje role `Employee`, `Manager` i `Procurement`, jeden
-aktywny membership na użytkownika, listowanie, zmianę, archiwizację oraz
-odczyt aktualnego kontekstu membershipu. Wykonanie testów PostgreSQL pozostaje
-zależne od dostępności lokalnego Docker Engine.
+PF1 jest ukończony w lokalnym release candidate. Branch
+`feature/branch-access-control` dostarcza administrację członkostwami: role
+`Employee`, `Manager` i `Procurement`, jeden aktywny membership na użytkownika,
+listowanie, zmianę, archiwizację oraz odczyt aktualnego kontekstu membershipu.
+Uruchomienie testów PostgreSQL wymaga dostępnego Docker Engine.
 
 ## Kolejność branchy
 
@@ -100,9 +99,9 @@ organizacji i kolekcję przypisań oddziałowych.
 - nieaktywny użytkownik traci dostęp mimo istniejącego tokenu;
 - migracje tworzą wymagane klucze obce i indeksy.
 
-Testy PostgreSQL oraz Testcontainers są przygotowane, ale ich wykonanie jest
-obecnie zablokowane przez niedostępny Docker Engine. Testy domeny, API w pamięci
-oraz frontend przechodzą.
+Testy PostgreSQL i Testcontainers przeszły w lokalnym release gate po
+uruchomieniu Docker Engine. Testy domeny, API w pamięci oraz frontend również
+przechodzą.
 
 ### Frontend tests
 
@@ -117,7 +116,7 @@ oraz frontend przechodzą.
 - istnieje jeden sposób uzyskania aktualnego kontekstu członkostwa;
 - endpointy administracyjne egzekwują dostęp po stronie backendu;
 - izolacja oddziałów ma test integracyjny;
-- schema i ograniczenia mają testy PostgreSQL, oczekujące na uruchomienie Dockera;
+- schema i ograniczenia mają testy PostgreSQL, które przeszły w lokalnym release gate;
 - backend i frontend budują się bez nowych ostrzeżeń związanych ze zmianą.
 
 ## Poza zakresem PF1

@@ -287,7 +287,7 @@ namespace API.Services
                     : ForwardedHeaders.None;
                 options.ForwardLimit = settings.ForwardLimit;
                 options.KnownProxies.Clear();
-                options.KnownNetworks.Clear();
+                options.KnownIPNetworks.Clear();
 
                 foreach (var knownProxy in settings.KnownProxies)
                 {
@@ -296,7 +296,7 @@ namespace API.Services
 
                 foreach (var knownNetwork in settings.KnownNetworks)
                 {
-                    options.KnownNetworks.Add(ParseIpNetwork(knownNetwork));
+                    options.KnownIPNetworks.Add(ParseIpNetwork(knownNetwork));
                 }
             });
 
@@ -496,7 +496,7 @@ namespace API.Services
         private static bool IsValidIpNetwork(string value)
             => TryParseIpNetwork(value, out _);
 
-        private static Microsoft.AspNetCore.HttpOverrides.IPNetwork ParseIpNetwork(string value)
+        private static System.Net.IPNetwork ParseIpNetwork(string value)
         {
             if (!TryParseIpNetwork(value, out var network))
             {
@@ -508,9 +508,9 @@ namespace API.Services
 
         private static bool TryParseIpNetwork(
             string value,
-            out Microsoft.AspNetCore.HttpOverrides.IPNetwork network)
+            out System.Net.IPNetwork network)
         {
-            network = null!;
+            network = default;
             var separatorIndex = value.LastIndexOf("/", StringComparison.Ordinal);
             if (separatorIndex <= 0 || separatorIndex == value.Length - 1)
             {
@@ -529,7 +529,7 @@ namespace API.Services
                 return false;
             }
 
-            network = new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, prefixLength);
+            network = new System.Net.IPNetwork(prefix, prefixLength);
             return true;
         }
     }

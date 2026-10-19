@@ -57,7 +57,7 @@ public class ApiServiceCollectionExtensionsTests
 
         Assert.True(settings.Enabled);
         Assert.Equal(ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto, options.ForwardedHeaders);
-        Assert.Single(options.KnownNetworks);
+        Assert.Single(options.KnownIPNetworks);
         Assert.Empty(options.KnownProxies);
     }
 
